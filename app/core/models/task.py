@@ -1,0 +1,26 @@
+from typing import TYPE_CHECKING
+
+from .base import Base
+
+from sqlalchemy import String, ForeignKey
+from sqlalchemy.orm import (
+    Mapped,
+    mapped_column,
+    relationship,
+)
+
+if TYPE_CHECKING:
+    from .group import Group
+    from .user import User
+
+
+class Task(Base):
+    name: Mapped[str] = mapped_column(String(100))
+    text: Mapped[str] = mapped_column()
+    correct_answer: Mapped[str] = mapped_column()
+
+    group_id: Mapped[int] = mapped_column(ForeignKey("groups.id"))
+    group: Mapped["Group"] = relationship(back_populates="tasks")
+
+    admin_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    admin: Mapped["User"] = relationship(back_populates="admin_tasks")
