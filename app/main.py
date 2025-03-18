@@ -1,8 +1,11 @@
-from fastapi import FastAPI
 import uvicorn
+
+from fastapi import FastAPI
 
 from app.core.models import lifespan
 from core.config import settings
+
+from api import router as api_router
 
 app = FastAPI(lifespan=lifespan)
 
@@ -14,3 +17,7 @@ if __name__ == "__main__":
         port=settings.run.port,
         reload=True,
     )
+
+app.include_router(
+    api_router,
+)

@@ -17,5 +17,5 @@ class GroupCreate(GroupBase):
 
 class GroupRead(GroupBase):
     id: int
-    users: list[UserRead]
-    tasks: list[TaskRead]
+    users: list[UserRead] = []
+    tasks: list[TaskRead] = []
