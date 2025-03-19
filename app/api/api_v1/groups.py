@@ -73,7 +73,7 @@ async def get_users_in_group(
 
 
 @router.put("/{group_id}/")
-async def update_product(
+async def update_group(
     session: Annotated[
         AsyncSession,
         Depends(db_helper.session_getter),
@@ -89,7 +89,7 @@ async def update_product(
 
 
 @router.patch("/{group_id}/")
-async def update_product_partial(
+async def update_group_partial(
     session: Annotated[
         AsyncSession,
         Depends(db_helper.session_getter),
