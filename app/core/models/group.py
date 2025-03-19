@@ -19,6 +19,7 @@ if TYPE_CHECKING:
 
 class Group(Base, IdIntPkMixin):
     title: Mapped[str] = mapped_column(String(64))
+    description: Mapped[str] = mapped_column(String(200))
 
     admin_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     admin: Mapped["User"] = relationship(back_populates="admin_groups")
