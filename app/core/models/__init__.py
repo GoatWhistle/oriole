@@ -12,6 +12,8 @@ from .db_helper import db_helper, lifespan
 
 from .base import Base
 
+from .access_token import AccessToken
+
 from .user import User
 from .group import Group
 from .task import Task

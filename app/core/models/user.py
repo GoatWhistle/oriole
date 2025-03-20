@@ -1,6 +1,11 @@
 from typing import TYPE_CHECKING, Optional
 
-from fastapi_users.db import SQLAlchemyUserDatabase, SQLAlchemyBaseUserTable
+from fastapi_users_db_sqlalchemy import (
+    SQLAlchemyUserDatabase,
+    SQLAlchemyBaseUserTable,
+)
+
+from core.types.user_id import UserIdType
 from .base import Base
 
 from .user_group_association import user_group_association_table
@@ -19,7 +24,7 @@ if TYPE_CHECKING:
     from .task import Task
 
 
-class User(Base, SQLAlchemyBaseUserTable[int]):
+class User(Base, SQLAlchemyBaseUserTable[UserIdType]):
     # TODO: возможно потребуется изменить ->
     name: Mapped[str] = mapped_column(String(31))
     surname: Mapped[str] = mapped_column(String(31))
