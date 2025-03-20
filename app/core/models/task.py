@@ -1,6 +1,7 @@
 from typing import TYPE_CHECKING
 
 from .base import Base
+from .mixins.id_int_pk import IdIntPkMixin
 
 from sqlalchemy import String, ForeignKey
 from sqlalchemy.orm import (
@@ -14,7 +15,7 @@ if TYPE_CHECKING:
     from .user import User
 
 
-class Task(Base):
+class Task(Base, IdIntPkMixin):
     name: Mapped[str] = mapped_column(String(100))
     text: Mapped[str] = mapped_column()
     correct_answer: Mapped[str] = mapped_column()

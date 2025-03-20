@@ -1,6 +1,7 @@
 from typing import TYPE_CHECKING, Optional
 
 from .base import Base
+from .mixins.id_int_pk import IdIntPkMixin
 
 from .user_group_association import user_group_association_table
 
@@ -16,7 +17,7 @@ if TYPE_CHECKING:
     from .task import Task
 
 
-class Group(Base):
+class Group(Base, IdIntPkMixin):
     title: Mapped[str] = mapped_column(String(64))
 
     admin_id: Mapped[int] = mapped_column(ForeignKey("users.id"))

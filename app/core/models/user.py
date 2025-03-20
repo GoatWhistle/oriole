@@ -5,9 +5,6 @@ from fastapi_users_db_sqlalchemy import (
     SQLAlchemyBaseUserTable,
 )
 
-from core.types.user_id import UserIdType
-from .base import Base
-
 from .user_group_association import user_group_association_table
 
 from sqlalchemy import String
@@ -17,6 +14,9 @@ from sqlalchemy.orm import (
     relationship,
 )
 
+from core.types.user_id import UserIdType
+from .base import Base
+from .mixins.id_int_pk import IdIntPkMixin
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
@@ -24,7 +24,7 @@ if TYPE_CHECKING:
     from .task import Task
 
 
-class User(Base, SQLAlchemyBaseUserTable[UserIdType]):
+class User(Base, IdIntPkMixin, SQLAlchemyBaseUserTable[UserIdType]):
     # TODO: возможно потребуется изменить ->
     name: Mapped[str] = mapped_column(String(31))
     surname: Mapped[str] = mapped_column(String(31))

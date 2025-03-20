@@ -2,6 +2,7 @@ __all__ = (
     "db_helper",
     "lifespan",
     "Base",
+    "AccessToken",
     "User",
     "Group",
     "Task",
