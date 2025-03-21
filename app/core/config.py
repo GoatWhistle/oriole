@@ -30,6 +30,7 @@ class ApiV1Prefix(BaseModel):
     users: str = "/users"
     groups: str = "/groups"
     tasks: str = "/tasks"
+    auth: str = "/auth"
 
 
 class ApiPrefix(BaseModel):
