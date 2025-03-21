@@ -25,7 +25,6 @@ if TYPE_CHECKING:
 
 
 class User(Base, IdIntPkMixin, SQLAlchemyBaseUserTable[UserIdType]):
-    # TODO: возможно потребуется изменить ->
     name: Mapped[str] = mapped_column(String(31))
     surname: Mapped[str] = mapped_column(String(31))
     patronymic: Mapped[str] = mapped_column(String(63))
