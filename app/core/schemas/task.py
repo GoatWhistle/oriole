@@ -10,6 +10,9 @@ class TaskBase(BaseModel):
     text: str
     correct_answer: str
 
+    rating: Annotated[int, Field(ge=0, le=5)]
+    difficulty: Annotated[str, Field(ge=0, le=5)]
+
     group: GroupRead
     group_id: int
 
