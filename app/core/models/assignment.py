@@ -1,5 +1,3 @@
-from typing import TYPE_CHECKING
-
 from .base import Base
 from .mixins.id_int_pk import IdIntPkMixin
 
