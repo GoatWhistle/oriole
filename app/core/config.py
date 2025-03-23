@@ -29,6 +29,7 @@ class ApiV1Prefix(BaseModel):
     prefix: str = "/v1"
     users: str = "/users"
     groups: str = "/groups"
+    assignments: str = "/assignments"
     tasks: str = "/tasks"
     auth: str = "/auth"
 
