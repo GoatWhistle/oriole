@@ -13,7 +13,7 @@ from sqlalchemy.orm import (
 )
 
 if TYPE_CHECKING:
-    from .user import User
+    from .user_profile import UserProfile
     from .task import Task
 
 
@@ -21,10 +21,10 @@ class Group(Base, IdIntPkMixin):
     title: Mapped[str] = mapped_column(String(64))
     description: Mapped[str] = mapped_column(String(200))
 
-    admin_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
-    admin: Mapped["User"] = relationship(back_populates="admin_groups")
+    admin_id: Mapped[int] = mapped_column(ForeignKey("user_profiles.user_id"))
+    admin: Mapped["UserProfile"] = relationship(back_populates="admin_groups")
 
-    users: Mapped[list["User"]] = relationship(
+    users: Mapped[list["UserProfile"]] = relationship(
         secondary=user_group_association_table,
         back_populates="groups",
     )  # many to many
