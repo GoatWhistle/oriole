@@ -12,7 +12,7 @@ from sqlalchemy.orm import (
 
 if TYPE_CHECKING:
     from .group import Group
-    from .user import User
+    from .user_profile import UserProfile
 
 
 class Task(Base, IdIntPkMixin):
@@ -23,5 +23,5 @@ class Task(Base, IdIntPkMixin):
     group_id: Mapped[int] = mapped_column(ForeignKey("groups.id"))
     group: Mapped["Group"] = relationship(back_populates="tasks")
 
-    admin_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
-    admin: Mapped["User"] = relationship(back_populates="admin_tasks")
+    admin_id: Mapped[int] = mapped_column(ForeignKey("user_profiles.user_id"))
+    admin: Mapped["UserProfile"] = relationship(back_populates="admin_tasks")
