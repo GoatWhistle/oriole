@@ -12,8 +12,9 @@ from .user_group_association import user_group_association_table
 
 if TYPE_CHECKING:
     from .group import Group
-    from .task import Task
+    from .assignment import Assignment
     from .user import User
+    from .task import Task
 
 
 class UserProfile(Base):
@@ -35,4 +36,7 @@ class UserProfile(Base):
 
     admin_groups: Mapped[list[Optional["Group"]]] = relationship(back_populates="admin")
 
-    admin_tasks: Mapped[list[Optional["Task"]]] = relationship(back_populates="admin")
+    admin_assignments: Mapped[list[Optional["Assignment"]]] = relationship(
+        back_populates="admin"
+    )
+    done_tasks: Mapped[list[Optional["Task"]]] = relationship(back_populates="user")

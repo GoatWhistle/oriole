@@ -14,7 +14,7 @@ from sqlalchemy.orm import (
 
 if TYPE_CHECKING:
     from .user_profile import UserProfile
-    from .task import Task
+    from .assignment import Assignment
 
 
 class Group(Base, IdIntPkMixin):
@@ -27,6 +27,9 @@ class Group(Base, IdIntPkMixin):
     users: Mapped[list["UserProfile"]] = relationship(
         secondary=user_group_association_table,
         back_populates="groups",
-    )  # many to many
+    )
 
-    tasks: Mapped[list[Optional["Task"]]] = relationship(back_populates="group")
+    assignments: Mapped[list[Optional["Assignment"]]] = relationship(
+        back_populates="group"
+    )
+    # tasks: Mapped[list[Optional["Task"]]] = relationship(back_populates="group")

@@ -1,5 +1,6 @@
 from typing import TYPE_CHECKING
 
+from core.models.assignment import Assignment
 from .base import Base
 from .mixins.id_int_pk import IdIntPkMixin
 
@@ -13,6 +14,7 @@ from sqlalchemy.orm import (
 if TYPE_CHECKING:
     from .group import Group
     from .user_profile import UserProfile
+    from .assignment import Assignment
 
 
 class Task(Base, IdIntPkMixin):
@@ -20,8 +22,8 @@ class Task(Base, IdIntPkMixin):
     text: Mapped[str] = mapped_column()
     correct_answer: Mapped[str] = mapped_column()
 
-    group_id: Mapped[int] = mapped_column(ForeignKey("groups.id"))
-    group: Mapped["Group"] = relationship(back_populates="tasks")
+    assignment_id: Mapped[int] = mapped_column(ForeignKey("assignments.id"))
+    assignment: Mapped["Assignment"] = relationship(back_populates="tasks")
 
-    admin_id: Mapped[int] = mapped_column(ForeignKey("user_profiles.user_id"))
-    admin: Mapped["UserProfile"] = relationship(back_populates="admin_tasks")
+    user_id: Mapped[int] = mapped_column(ForeignKey("user_profiles.user_id"))
+    user: Mapped["UserProfile"] = relationship(back_populates="done_tasks")

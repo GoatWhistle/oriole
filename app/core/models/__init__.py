@@ -8,6 +8,7 @@ __all__ = (
     "Task",
     "user_group_association_table",
     "UserProfile",
+    "Assignment",
 )
 
 from .db_helper import db_helper, lifespan
@@ -16,8 +17,12 @@ from .base import Base
 
 from .access_token import AccessToken
 
+from .assignment import Assignment
+from .task import Task
+
 from .user_profile import UserProfile
 from .user import User
+
 from .group import Group
-from .task import Task
+
 from .user_group_association import user_group_association_table
