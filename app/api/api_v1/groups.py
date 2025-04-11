@@ -1,16 +1,27 @@
-from typing import Annotated
-
 from fastapi import (
     APIRouter,
     Depends,
     status,
 )
+
 from sqlalchemy.ext.asyncio import AsyncSession
+from typing import Annotated, Sequence
+
 from core.config import settings
 from core.models import db_helper
-from core.schemas.group import GroupCreate, GroupRead, GroupUpdate, GroupUpdatePartial
-from core.schemas.user import UserRead
+
+from core.schemas.group import (
+    GroupCreate,
+    GroupRead,
+    GroupUpdate,
+    GroupUpdatePartial,
+)
+
 from crud import groups as crud
+
+from core.schemas.assignment import AssignmentRead
+from core.schemas.user import UserRead
+
 from crud.dependencies import validate_group_by_id
 
 router = APIRouter(tags=settings.api.v1.groups.capitalize())
@@ -24,7 +35,7 @@ router = APIRouter(tags=settings.api.v1.groups.capitalize())
 async def create_group(
     session: Annotated[
         AsyncSession,
-        Depends(db_helper.session_getter),
+        Depends(db_helper.dependency_session_getter),
     ],
     group_in: GroupCreate,
 ):
@@ -38,7 +49,7 @@ async def create_group(
 async def get_group(
     session: Annotated[
         AsyncSession,
-        Depends(db_helper.session_getter),
+        Depends(db_helper.dependency_session_getter),
     ],
     group_id: int,
 ):
@@ -47,36 +58,51 @@ async def get_group(
 
 @router.get(
     "/",
-    response_model=list[GroupRead],
+    response_model=Sequence[GroupRead],
 )
 async def get_groups(
     session: Annotated[
         AsyncSession,
-        Depends(db_helper.session_getter),
+        Depends(db_helper.dependency_session_getter),
     ],
+    user_id: int,
 ):
-    return await crud.get_groups(session=session)
+    return await crud.get_groups(session=session, user_id=user_id)
 
 
 @router.get(
     "/{group_id}/users/",
-    response_model=list[UserRead],
+    response_model=Sequence[UserRead],
 )
 async def get_users_in_group(
     session: Annotated[
         AsyncSession,
-        Depends(db_helper.session_getter),
+        Depends(db_helper.dependency_session_getter),
     ],
     group_id: int,
 ):
     return await crud.get_users_in_group(session=session, group_id=group_id)
 
 
+@router.get(
+    "/{group_id}/assignments/",
+    response_model=list[AssignmentRead],
+)
+async def get_users_in_group(
+    session: Annotated[
+        AsyncSession,
+        Depends(db_helper.dependency_session_getter),
+    ],
+    group_id: int,
+):
+    return await crud.get_assignments_in_group(session=session, group_id=group_id)
+
+
 @router.put("/{group_id}/")
 async def update_group(
     session: Annotated[
         AsyncSession,
-        Depends(db_helper.session_getter),
+        Depends(db_helper.dependency_session_getter),
     ],
     group_update: GroupUpdate,
     group: Annotated[GroupRead, Depends(validate_group_by_id)],
@@ -92,7 +118,7 @@ async def update_group(
 async def update_group_partial(
     session: Annotated[
         AsyncSession,
-        Depends(db_helper.session_getter),
+        Depends(db_helper.dependency_session_getter),
     ],
     group_update: GroupUpdatePartial,
     group: Annotated[GroupRead, Depends(validate_group_by_id)],
@@ -112,7 +138,7 @@ async def update_group_partial(
 async def delete_group(
     session: Annotated[
         AsyncSession,
-        Depends(db_helper.session_getter),
+        Depends(db_helper.dependency_session_getter),
     ],
     group: Annotated[GroupRead, Depends(validate_group_by_id)],
 ) -> None:
@@ -120,6 +146,12 @@ async def delete_group(
 
 
 @router.get("/create_link/{group_id}")
-async def create_link(group_id: int):
-    await validate_group_by_id(group_id)
+async def create_link(
+    session: Annotated[
+        AsyncSession,
+        Depends(db_helper.dependency_session_getter),
+    ],
+    group_id: int,
+):
+    await validate_group_by_id(session=session, group_id=group_id)
     return {"link": f"http://oriole.com/groups/join/{group_id}"}

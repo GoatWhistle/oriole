@@ -5,10 +5,11 @@ from fastapi import (
 )
 
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.sql.annotation import Annotated
+from typing import Annotated, Sequence
 
 from core.config import settings
-from core.models import db_helper, Task
+from core.models import db_helper
+
 from core.schemas.task import (
     TaskCreate,
     TaskRead,
@@ -28,7 +29,7 @@ router = APIRouter(tags=settings.api.v1.assignments.capitalize())
 async def create_task(
     session: Annotated[
         AsyncSession,
-        Depends(db_helper.session_getter),
+        Depends(db_helper.dependency_session_getter),
     ],
     task_in: TaskCreate,
 ):
@@ -42,7 +43,7 @@ async def create_task(
 async def get_task(
     session: Annotated[
         AsyncSession,
-        Depends(db_helper.session_getter),
+        Depends(db_helper.dependency_session_getter),
     ],
     task_id: int,
 ):
@@ -51,12 +52,12 @@ async def get_task(
 
 @router.get(
     "/",
-    response_model=list[TaskRead],
+    response_model=Sequence[TaskRead],
 )
 async def get_tasks(
     session: Annotated[
         AsyncSession,
-        Depends(db_helper.dependency_session_getter()),
+        Depends(db_helper.dependency_session_getter),
     ],
 ):
     return await crud.get_tasks(session=session)
@@ -64,9 +65,9 @@ async def get_tasks(
 
 @router.put("/{task_id}/")
 async def update_task(
-    session: Annotated[AsyncSession, Depends(db_helper.dependency_session_getter())],
+    session: Annotated[AsyncSession, Depends(db_helper.dependency_session_getter)],
     task_update: TaskUpdate,
-    task: Task,
+    task: TaskRead,
 ):
     return await crud.update_task(
         session=session,
@@ -79,10 +80,10 @@ async def update_task(
 async def update_task_partial(
     session: Annotated[
         AsyncSession,
-        Depends(db_helper.session_getter),
+        Depends(db_helper.dependency_session_getter),
     ],
     task_update: TaskUpdatePartial,
-    task: Task,
+    task: TaskRead,
 ):
     return await crud.update_task(
         session=session,
@@ -99,8 +100,8 @@ async def update_task_partial(
 async def delete_task(
     session: Annotated[
         AsyncSession,
-        Depends(db_helper.session_getter),
+        Depends(db_helper.dependency_session_getter),
     ],
-    task: Task,
+    task: TaskRead,
 ) -> None:
     await crud.delete_task(session=session, task=task)

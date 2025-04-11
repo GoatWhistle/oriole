@@ -5,10 +5,11 @@ from fastapi import (
 )
 
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.sql.annotation import Annotated
+from typing import Annotated, Sequence
 
 from core.config import settings
-from core.models import db_helper, Assignment
+from core.models import db_helper
+
 from core.schemas.assignment import (
     AssignmentCreate,
     AssignmentRead,
@@ -28,7 +29,7 @@ router = APIRouter(tags=settings.api.v1.assignments.capitalize())
 async def create_assignment(
     session: Annotated[
         AsyncSession,
-        Depends(db_helper.session_getter),
+        Depends(db_helper.dependency_session_getter),
     ],
     assignment_in: AssignmentCreate,
 ):
@@ -42,7 +43,7 @@ async def create_assignment(
 async def get_assignment(
     session: Annotated[
         AsyncSession,
-        Depends(db_helper.session_getter),
+        Depends(db_helper.dependency_session_getter),
     ],
     assignment_id: int,
 ):
@@ -51,22 +52,26 @@ async def get_assignment(
 
 @router.get(
     "/",
-    response_model=list[AssignmentRead],
+    response_model=Sequence[AssignmentRead],
 )
 async def get_assignments(
     session: Annotated[
         AsyncSession,
-        Depends(db_helper.dependency_session_getter()),
+        Depends(db_helper.dependency_session_getter),
     ],
+    group_id: int,
 ):
-    return await crud.get_assignments(session=session)
+    return await crud.get_assignments(session=session, group_id=group_id)
 
 
 @router.put("/{assignment_id}/")
 async def update_assignment(
-    session: Annotated[AsyncSession, Depends(db_helper.dependency_session_getter())],
+    session: Annotated[
+        AsyncSession,
+        Depends(db_helper.dependency_session_getter),
+    ],
     assignment_update: AssignmentUpdate,
-    assignment: Assignment,
+    assignment: AssignmentRead,
 ):
     return await crud.update_assignment(
         session=session,
@@ -79,10 +84,10 @@ async def update_assignment(
 async def update_assignment_partial(
     session: Annotated[
         AsyncSession,
-        Depends(db_helper.session_getter),
+        Depends(db_helper.dependency_session_getter),
     ],
     assignment_update: AssignmentUpdatePartial,
-    assignment: Assignment,
+    assignment: AssignmentRead,
 ):
     return await crud.update_assignment(
         session=session,
@@ -99,8 +104,8 @@ async def update_assignment_partial(
 async def delete_assignment(
     session: Annotated[
         AsyncSession,
-        Depends(db_helper.session_getter),
+        Depends(db_helper.dependency_session_getter),
     ],
-    assignment: Assignment,
+    assignment: AssignmentRead,
 ) -> None:
     await crud.delete_assignment(session=session, assignment=assignment)
