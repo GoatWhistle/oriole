@@ -26,6 +26,7 @@ def view_may_raise_error(
     return {"ok": True}
 
 
+# TODO: добавить "учетки" учителей учеников кураторов в группах
 @router.get("")
 def get_messages(
     user: Annotated[User, Depends(current_active_user)],
