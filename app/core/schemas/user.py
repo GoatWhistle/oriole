@@ -37,3 +37,8 @@ class UserRead(schemas.BaseUser[UserIdType], UserProfileDataBase):
 
     class Config:
         from_attributes = True
+
+
+class UserRegisteredNotification(BaseModel):
+    user: UserRead
+    ts: int
