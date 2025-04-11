@@ -1,8 +1,6 @@
 from pydantic import BaseModel, Field, ConfigDict
 from typing import Annotated, Sequence, Optional
 
-from datetime import datetime
-
 from .group import GroupRead
 from .user import UserRead
 from .task import TaskRead
@@ -11,23 +9,18 @@ from .task import TaskRead
 class AssignmentBase(BaseModel):
     title: Annotated[str, Field(max_length=100)]
     description: str
+    is_contest: bool
+
+    admin_id: int
+    admin: UserRead
+
+    group_id: int
+    group: GroupRead
 
     tasks: Sequence[TaskRead]
-    progress: Sequence[UserRead]
-    deadline: datetime
-
-    group: GroupRead
-    group_id: int
-
-    admin: UserRead
-    admin_id: int
 
 
-class AssignmentCreate(AssignmentBase):
-    pass
-
-
-class AssignmentRead(AssignmentCreate):
+class AssignmentRead(AssignmentBase):
     id: int
 
     model_config = ConfigDict(
@@ -35,20 +28,23 @@ class AssignmentRead(AssignmentCreate):
     )
 
 
+class AssignmentCreate(AssignmentBase):
+    pass
+
+
 class AssignmentUpdate(AssignmentCreate):
     pass
 
 
 class AssignmentUpdatePartial(AssignmentCreate):
-    title: Annotated[Optional[str], Field(max_length=100)]
-    description: Optional[str]
+    title: Annotated[str, Field(max_length=100)] = None
+    description: Optional[str] = None
+    is_contest: bool = None
 
-    tasks: Sequence[Optional[TaskRead]]
-    progress: Sequence[Optional[UserRead]]
-    deadline: Optional[datetime]
+    admin_id: Optional[int] = None
+    admin: Optional[UserRead] = None
 
-    group: Optional[GroupRead]
-    group_id: Optional[int]
+    group_id: Optional[int] = None
+    group: Optional[GroupRead] = None
 
-    admin: Optional[UserRead]
-    admin_id: Optional[int]
+    tasks: Sequence[TaskRead] = None

@@ -1,6 +1,7 @@
 from pydantic import BaseModel, Field, ConfigDict
 from typing import Annotated, Optional
 
+from .assignment import AssignmentRead
 from .group import GroupRead
 from .user import UserRead
 
@@ -10,18 +11,11 @@ class TaskBase(BaseModel):
     text: str
     correct_answer: str
 
-    rating: Annotated[int, Field(ge=0, le=5)]
-    difficulty: Annotated[str, Field(ge=0, le=5)]
+    assignment_id: int
+    assignment: AssignmentRead
 
-    group: GroupRead
-    group_id: int
-
-    admin: UserRead
-    admin_id: int
-
-
-class TaskCreate(TaskBase):
-    pass
+    user_id: int
+    user: UserRead
 
 
 class TaskRead(TaskBase):
@@ -32,17 +26,21 @@ class TaskRead(TaskBase):
     )
 
 
+class TaskCreate(TaskBase):
+    pass
+
+
 class TaskUpdate(TaskCreate):
     pass
 
 
 class TaskUpdatePartial(TaskCreate):
-    name: Annotated[Optional[str], Field(max_length=100)]
-    text: Optional[str]
-    correct_answer: Optional[str]
+    name: Annotated[str, Field(max_length=100)] = None
+    text: Optional[str] = None
+    correct_answer: Optional[str] = None
 
-    group: Optional[GroupRead]
-    group_id: Optional[int]
+    assignment_id: Optional[int] = None
+    assignment: Optional[GroupRead] = None
 
-    admin: Optional[UserRead]
-    admin_id: Optional[int]
+    user_id: Optional[int] = None
+    user: Optional[UserRead] = None
