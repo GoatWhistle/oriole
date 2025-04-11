@@ -1,5 +1,7 @@
+from core.models.account import Account
 from .base import Base
 from .mixins.id_int_pk import IdIntPkMixin
+from typing import TYPE_CHECKING
 
 from sqlalchemy import String, ForeignKey
 from sqlalchemy.orm import (

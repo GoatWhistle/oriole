@@ -8,13 +8,11 @@ from sqlalchemy.orm import (
 )
 
 from .base import Base
-from .user_group_association import user_group_association_table
 
 if TYPE_CHECKING:
-    from .group import Group
     from .assignment import Assignment
     from .user import User
-    from .task import Task
+    from .account import Account
 
 
 class UserProfile(Base):
@@ -25,18 +23,12 @@ class UserProfile(Base):
     )
     user: Mapped["User"] = relationship(back_populates="profile")
 
+    accounts: Mapped[list["Account"]] = relationship(back_populates="user_profile")
+
     name: Mapped[str] = mapped_column(String(31), index=True)
     surname: Mapped[str] = mapped_column(String(31), index=True)
     patronymic: Mapped[str] = mapped_column(String(63), index=True)
 
-    groups: Mapped[list[Optional["Group"]]] = relationship(
-        secondary=user_group_association_table,
-        back_populates="users",
-    )
-
-    admin_groups: Mapped[list[Optional["Group"]]] = relationship(back_populates="admin")
-
     admin_assignments: Mapped[list[Optional["Assignment"]]] = relationship(
         back_populates="admin"
     )
-    done_tasks: Mapped[list[Optional["Task"]]] = relationship(back_populates="user")

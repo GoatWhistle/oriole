@@ -12,9 +12,8 @@ from sqlalchemy.orm import (
 )
 
 if TYPE_CHECKING:
-    from .group import Group
-    from .user_profile import UserProfile
     from .assignment import Assignment
+    from .account import Account
 
 
 class Task(Base, IdIntPkMixin):
@@ -25,5 +24,5 @@ class Task(Base, IdIntPkMixin):
     assignment_id: Mapped[int] = mapped_column(ForeignKey("assignments.id"))
     assignment: Mapped["Assignment"] = relationship(back_populates="tasks")
 
-    user_id: Mapped[int] = mapped_column(ForeignKey("user_profiles.user_id"))
-    user: Mapped["UserProfile"] = relationship(back_populates="done_tasks")
+    account_id: Mapped[int] = mapped_column(ForeignKey("accounts.id"))
+    account: Mapped["Account"] = relationship(back_populates="done_tasks")
