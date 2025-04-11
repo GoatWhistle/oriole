@@ -5,6 +5,7 @@ from sqlalchemy.engine import Result
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.models import Task
+
 from core.schemas.task import (
     TaskCreate,
     TaskRead,
@@ -21,39 +22,50 @@ async def create_task(
     session.add(task)
     await session.commit()
     await session.refresh(task)
-    return task
 
-
-async def get_tasks(
-    session: AsyncSession,
-) -> Sequence[Task]:
-    statement = select(Task).order_by(Task.id)
-    result: Result = await session.execute(statement)
-    return list(result.scalars().all())
+    return TaskRead.model_validate(task)
 
 
 async def get_task(
     session: AsyncSession,
     task_id: int,
-) -> Task | None:
-    return await session.get(Task, task_id)
+) -> TaskRead | None:
+    task = await session.get(Task, task_id)
+
+    return None if task is None else TaskRead.model_validate(task)
+
+
+async def get_tasks(
+    session: AsyncSession,
+    assignment_id: int,
+) -> Sequence[TaskRead]:
+    statement = (
+        select(Task).where(Task.assignment_id == assignment_id).order_by(Task.id)
+    )
+
+    result: Result = await session.execute(statement)
+    tasks = list(result.scalars().all())
+
+    return [TaskRead.model_validate(task) for task in tasks]
 
 
 async def update_task(
     session: AsyncSession,
-    task: Task,
+    task: TaskRead,
     task_update: TaskUpdate | TaskUpdatePartial,
     partial: bool = False,
-) -> Task:
+) -> TaskRead:
     for name, value in task_update.model_dump(exclude_unset=partial).items():
         setattr(task, name, value)
     await session.commit()
-    return task
+    await session.refresh(task)
+
+    return TaskRead.model_validate(task)
 
 
 async def delete_task(
     session: AsyncSession,
-    task: Task,
+    task: TaskRead,
 ) -> None:
     await session.delete(task)
     await session.commit()
