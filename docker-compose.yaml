@@ -2,12 +2,12 @@ services:
   pg:
     image: postgres
     environment:
-      POSTGRES_DB: DB_project
-      POSTGRES_USER: Trava
-      POSTGRES_PASSWORD: 1234
-      PGDATA: /var/lib/postgresql/data
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      PGDATA: ${PGDATA}
     ports:
-      - "5432:5432"
+      - "${DB_PORT}:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -18,16 +18,16 @@ services:
   adminer:
     image: adminer
     ports:
-      - "8080:8080"
+      - "${ADMIN_PORT}:8080"
 
   pgadmin:
     image: dpage/pgadmin4
     environment:
-      PGADMIN_DEFAULT_EMAIL: admin@admin.org
-      PGADMIN_DEFAULT_PASSWORD: admin
-      PGADMIN_CONFIG_SERVER_MODE: 'False'
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+      PGADMIN_CONFIG_SERVER_MODE: ${PGADMIN_CONFIG_SERVER_MODE}
     ports:
-      - "5050:80"
+      - "${PGADMIN_PORT}:80"
 
 
 volumes:
