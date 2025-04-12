@@ -18,8 +18,7 @@ from core.schemas.task import (
 )
 from crud import tasks as crud
 
-# router = APIRouter(tags=settings.api.v1.assignments.capitalize())
-router = APIRouter()
+router = APIRouter(tags=settings.api.v1.assignments[1:].capitalize())
 
 
 @router.post(
