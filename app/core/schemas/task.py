@@ -1,10 +1,6 @@
 from pydantic import BaseModel, Field, ConfigDict
 from typing import Annotated, Optional
 
-from .assignment import AssignmentRead
-from .group import GroupRead
-from .user import UserRead
-
 
 class TaskBase(BaseModel):
     name: Annotated[str, Field(max_length=100)]
@@ -12,10 +8,8 @@ class TaskBase(BaseModel):
     correct_answer: str
 
     assignment_id: int
-    assignment: AssignmentRead
 
-    user_id: int
-    user: UserRead
+    account_id: int
 
 
 class TaskRead(TaskBase):
@@ -40,7 +34,5 @@ class TaskUpdatePartial(TaskCreate):
     correct_answer: Optional[str] = None
 
     assignment_id: Optional[int] = None
-    assignment: Optional[GroupRead] = None
 
-    user_id: Optional[int] = None
-    user: Optional[UserRead] = None
+    account_id: Optional[int] = None

@@ -1,13 +1,11 @@
 from pydantic import BaseModel, EmailStr, Field, constr
-from typing import Annotated, Optional
+from typing import Annotated, Optional, TYPE_CHECKING
 from fastapi_users import schemas
 
-from .group import GroupBase
-from .task import TaskRead
 from core.types.user_id import UserIdType
 
 
-class UserProfileDataBase(BaseModel):
+class UserProfile(BaseModel):
     name: Annotated[constr(max_length=31), Field(example="Иван")]
     surname: Annotated[constr(max_length=31), Field(example="Петров")]
     patronymic: Annotated[
@@ -16,29 +14,30 @@ class UserProfileDataBase(BaseModel):
     email: Annotated[EmailStr, Field(example="user@example.com")]
 
 
-class UserCreate(schemas.BaseUserCreate, UserProfileDataBase):
+class UserCreate(schemas.BaseUserCreate, UserProfile):
     pass
 
 
-class UserPersonalDataUpdate(BaseModel):
+class UserProfileUpdatePartial(BaseModel):
     name: Annotated[Optional[str], Field(max_length=31)] = None
     surname: Annotated[Optional[str], Field(max_length=31)] = None
     patronymic: Annotated[Optional[str], Field(max_length=63)] = None
 
 
-class UserUpdate(schemas.BaseUserUpdate, UserPersonalDataUpdate):
+class UserUpdate(schemas.BaseUserUpdate, UserProfileUpdatePartial):
     pass
 
 
-class UserRead(schemas.BaseUser[UserIdType], UserProfileDataBase):
-    groups: list[GroupBase] = []
-    admin_groups: list[GroupBase] = []
-    admin_tasks: list[TaskRead] = []
+class UserRead(schemas.BaseUser[UserIdType], UserProfile):
+    id: int
+
+    accounts: list[Optional[int]]
+    done_tasks: list[Optional[int]]
 
     class Config:
         from_attributes = True
 
 
 class UserRegisteredNotification(BaseModel):
-    user: UserRead
+    user_id: int
     ts: int

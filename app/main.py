@@ -9,6 +9,9 @@ from api import router as api_router
 
 app = FastAPI(lifespan=lifespan)
 
+app.include_router(
+    api_router,
+)
 
 if __name__ == "__main__":
     uvicorn.run(
@@ -17,7 +20,3 @@ if __name__ == "__main__":
         port=settings.run.port,
         reload=True,
     )
-
-app.include_router(
-    api_router,
-)

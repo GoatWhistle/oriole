@@ -24,7 +24,8 @@ from core.schemas.user import UserRead
 
 from crud.dependencies import validate_group_by_id
 
-router = APIRouter(tags=settings.api.v1.groups.capitalize())
+# router = APIRouter(tags=settings.api.v1.groups.capitalize())
+router = APIRouter()
 
 
 @router.post(

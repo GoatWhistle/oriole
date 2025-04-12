@@ -1,9 +1,10 @@
 from pydantic import BaseModel, Field, ConfigDict
-from typing import Annotated, Sequence, Optional
+from typing import Annotated, Sequence, Optional, TYPE_CHECKING
 
-from .group import GroupRead
-from .user import UserRead
-from .task import TaskRead
+if TYPE_CHECKING:
+    from .group import GroupRead
+    from .user import UserRead
+    from .task import TaskRead
 
 
 class AssignmentBase(BaseModel):
@@ -12,12 +13,10 @@ class AssignmentBase(BaseModel):
     is_contest: bool
 
     admin_id: int
-    admin: UserRead
 
     group_id: int
-    group: GroupRead
 
-    tasks: Sequence[TaskRead]
+    tasks: Sequence[int]
 
 
 class AssignmentRead(AssignmentBase):
@@ -42,9 +41,7 @@ class AssignmentUpdatePartial(AssignmentCreate):
     is_contest: bool = None
 
     admin_id: Optional[int] = None
-    admin: Optional[UserRead] = None
 
     group_id: Optional[int] = None
-    group: Optional[GroupRead] = None
 
-    tasks: Sequence[TaskRead] = None
+    tasks: Sequence[int] = None

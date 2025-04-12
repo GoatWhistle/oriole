@@ -12,7 +12,7 @@ async def validate_group_by_id(
     group_id: Annotated[int, Path],
     session: Annotated[
         AsyncSession,
-        Depends(db_helper.session_getter),
+        Depends(db_helper.dependency_session_getter),
     ],
 ) -> Group:
     group = await groups_crud.get_group(session=session, group_id=group_id)
