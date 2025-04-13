@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr, Field, constr
+from pydantic import BaseModel, EmailStr, Field, constr, ConfigDict
 from typing import Annotated, Optional, TYPE_CHECKING
 from fastapi_users import schemas
 
@@ -34,8 +34,9 @@ class UserRead(schemas.BaseUser[UserIdType], UserProfile):
     accounts: list[Optional[int]]
     done_tasks: list[Optional[int]]
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(
+        from_attributes=True,
+    )
 
 
 class UserRegisteredNotification(BaseModel):
