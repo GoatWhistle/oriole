@@ -1,14 +1,17 @@
 from pydantic import BaseModel, Field, ConfigDict
+
 from typing import Annotated, Optional
+
+from utils.number_optimizer import get_number_one_bit_less as num_opt
 
 
 class TaskBase(BaseModel):
-    name: Annotated[str, Field(max_length=100)]
-    text: str
+    title: Annotated[str, Field(max_length=num_opt(100))]
+    description: Annotated[str, Field(max_length=num_opt(200))]
+
     correct_answer: str
 
     assignment_id: int
-
     account_id: int
 
 
@@ -29,10 +32,10 @@ class TaskUpdate(TaskCreate):
 
 
 class TaskUpdatePartial(TaskCreate):
-    name: Annotated[str, Field(max_length=100)] = None
-    text: Optional[str] = None
+    title: Annotated[Optional[str], Field(max_length=num_opt(100))] = None
+    description: Annotated[Optional[str], Field(max_length=num_opt(200))] = None
+
     correct_answer: Optional[str] = None
 
     assignment_id: Optional[int] = None
-
     account_id: Optional[int] = None

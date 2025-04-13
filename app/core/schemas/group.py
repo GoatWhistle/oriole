@@ -1,10 +1,13 @@
 from pydantic import BaseModel, Field, ConfigDict
+
 from typing import Annotated, Optional, Sequence
+
+from utils.number_optimizer import get_number_one_bit_less as num_opt
 
 
 class GroupBase(BaseModel):
-    title: Annotated[str, Field(max_length=64)]
-    description: Annotated[str, Field(max_length=200)]
+    title: Annotated[str, Field(max_length=num_opt(100))]
+    description: Annotated[str, Field(max_length=num_opt(200))]
 
     accounts: Sequence[int]
     assignments: Sequence[int]
@@ -27,8 +30,8 @@ class GroupUpdate(GroupCreate):
 
 
 class GroupUpdatePartial(GroupCreate):
-    title: Annotated[Optional[str], Field(max_length=64)] = None
-    description: Annotated[Optional[str], Field(max_length=200)] = None
+    title: Annotated[Optional[str], Field(max_length=num_opt(100))] = None
+    description: Annotated[Optional[str], Field(max_length=num_opt(200))] = None
 
-    accounts: Sequence[int] = None
-    assignments: Sequence[int] = None
+    accounts: Optional[Sequence[int]] = None
+    assignments: Optional[Sequence[int]] = None
