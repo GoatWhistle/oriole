@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from core.models import Assignment
 
 
-async def get_group_or_404(
+async def get_assignment_or_404(
     session: AsyncSession, assignment_id: int
 ) -> Type[Assignment]:
     assignment = await session.get(Assignment, assignment_id)
