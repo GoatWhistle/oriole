@@ -143,8 +143,8 @@ async def get_assignments_in_group(
     return await crud.get_assignments_in_group(session=session, group_id=group_id)
 
 
-@router.get("/create_link/{group_id}")
+@router.get("/{group_id}/create_link/")
 async def create_link(
     group_id: int,
 ):
-    return {"link": f"http://oriole.com/groups/join/{group_id}"}
+    return {"link": f"http://oriole.com/join/{group_id}"}
