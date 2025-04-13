@@ -59,19 +59,23 @@ async def get_tasks(
         AsyncSession,
         Depends(db_helper.dependency_session_getter),
     ],
+    assignment_id: int,
 ):
-    return await crud.get_tasks(session=session)
+    return await crud.get_tasks(session=session, assignment_id=assignment_id)
 
 
 @router.put("/{task_id}/")
 async def update_task(
-    session: Annotated[AsyncSession, Depends(db_helper.dependency_session_getter)],
+    session: Annotated[
+        AsyncSession,
+        Depends(db_helper.dependency_session_getter),
+    ],
     task_update: TaskUpdate,
-    task: TaskRead,
+    task_id: int,
 ):
     return await crud.update_task(
         session=session,
-        task=task,
+        task_id=task_id,
         task_update=task_update,
     )
 
@@ -83,11 +87,11 @@ async def update_task_partial(
         Depends(db_helper.dependency_session_getter),
     ],
     task_update: TaskUpdatePartial,
-    task: TaskRead,
+    task_id: int,
 ):
     return await crud.update_task(
         session=session,
-        task=task,
+        task_id=task_id,
         task_update=task_update,
         partial=True,
     )
@@ -102,6 +106,6 @@ async def delete_task(
         AsyncSession,
         Depends(db_helper.dependency_session_getter),
     ],
-    task: TaskRead,
+    task_id: int,
 ) -> None:
-    await crud.delete_task(session=session, task=task)
+    await crud.delete_task(session=session, task_id=task_id)

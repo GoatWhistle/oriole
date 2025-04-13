@@ -71,11 +71,11 @@ async def update_assignment(
         Depends(db_helper.dependency_session_getter),
     ],
     assignment_update: AssignmentUpdate,
-    assignment: AssignmentRead,
+    assignment_id: int,
 ):
     return await crud.update_assignment(
         session=session,
-        assignment=assignment,
+        assignment_id=assignment_id,
         assignment_update=assignment_update,
     )
 
@@ -87,11 +87,11 @@ async def update_assignment_partial(
         Depends(db_helper.dependency_session_getter),
     ],
     assignment_update: AssignmentUpdatePartial,
-    assignment: AssignmentRead,
+    assignment_id: int,
 ):
     return await crud.update_assignment(
         session=session,
-        assignment=assignment,
+        assignment_id=assignment_id,
         assignment_update=assignment_update,
         partial=True,
     )
@@ -106,6 +106,6 @@ async def delete_assignment(
         AsyncSession,
         Depends(db_helper.dependency_session_getter),
     ],
-    assignment: AssignmentRead,
+    assignment_id: int,
 ) -> None:
-    await crud.delete_assignment(session=session, assignment=assignment)
+    await crud.delete_assignment(session=session, assignment_id=assignment_id)
