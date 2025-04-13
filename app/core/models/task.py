@@ -10,6 +10,7 @@ from sqlalchemy.orm import (
     mapped_column,
     relationship,
 )
+from utils.number_optimizer import get_number_one_bit_less as num_opt
 
 if TYPE_CHECKING:
     from .assignment import Assignment
@@ -17,8 +18,9 @@ if TYPE_CHECKING:
 
 
 class Task(Base, IdIntPkMixin):
-    name: Mapped[str] = mapped_column(String(100))
-    text: Mapped[str] = mapped_column()
+    title: Mapped[str] = mapped_column(String(num_opt(100)))
+    description: Mapped[str] = mapped_column(String(num_opt(200)))
+
     correct_answer: Mapped[str] = mapped_column()
 
     assignment_id: Mapped[int] = mapped_column(ForeignKey("assignments.id"))

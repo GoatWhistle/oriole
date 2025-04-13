@@ -1,4 +1,3 @@
-from core.models.account import Account
 from .base import Base
 from .mixins.id_int_pk import IdIntPkMixin
 from typing import TYPE_CHECKING
@@ -9,6 +8,7 @@ from sqlalchemy.orm import (
     mapped_column,
     relationship,
 )
+from utils.number_optimizer import get_number_one_bit_less as num_opt
 
 if TYPE_CHECKING:
     from .group import Group
@@ -17,8 +17,9 @@ if TYPE_CHECKING:
 
 
 class Assignment(Base, IdIntPkMixin):
-    title: Mapped[str] = mapped_column(String(100))
-    description: Mapped[str] = mapped_column()
+    title: Mapped[str] = mapped_column(String(num_opt(100)))
+    description: Mapped[str] = mapped_column(String(num_opt(200)))
+
     is_contest: Mapped[bool] = mapped_column()
 
     admin_id: Mapped[int] = mapped_column(ForeignKey("user_profiles.user_id"))
