@@ -1,18 +1,20 @@
-from typing import TYPE_CHECKING, Optional
+from typing import Sequence
 
-from pydantic import BaseModel
-from sqlalchemy.sql.annotation import Annotated
+from pydantic import BaseModel, ConfigDict
 
-if TYPE_CHECKING:
-    from .group import Group
-    from .task import TaskRead
+from enum import IntEnum
+
+
+class AccountRole(IntEnum):
+    TEACHER = 0
+    STUDENT = 1
 
 
 class Account(BaseModel):
-    user_id: Annotated[int]
+    user_id: int
 
-    role: Annotated[int]
+    role: AccountRole
 
-    group_id: Annotated[int]
+    group_id: int
 
-    done_tasks: Annotated[list[Optional[int]]]
+    done_tasks: Sequence[int]
