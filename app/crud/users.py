@@ -1,6 +1,5 @@
 from typing import Sequence
 from sqlalchemy import select, and_
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.engine import Result
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -10,7 +9,10 @@ from core.schemas.group import GroupRead
 from core.schemas.task import TaskRead
 from core.schemas.assignment import AssignmentRead
 
-from core.exceptions.user import get_user_or_404
+from core.exceptions.user import (
+    get_user_or_404,
+    check_teacher_or_403,
+)
 from core.schemas.user import (
     UserCreate,
     UserRead,
@@ -33,7 +35,8 @@ async def get_user(
     session: AsyncSession,
     user_id: int,
 ) -> User | None:
-    return await session.get(User, user_id)
+    user = await get_user_or_404(session=session, user_id=user_id)
+    return UserRead.model_validate(user)
 
 
 async def update_user(
@@ -120,8 +123,21 @@ async def add_user_to_group(
     session: AsyncSession,
     user_id: int,
     group_id: int,
+    current_user: User,
 ) -> None:
     user = await get_user_or_404(session, user_id)
+    user = await check_teacher_or_403(session, user_id)
+
+    existing = await session.execute(
+        select(Account).where(
+            (Account.user_id == user_id) & (Account.group_id == group_id)
+        )
+    )
+    # if existing.scalar_one_or_none():
+    #     raise HTTPException(
+    #         status_code=status.HTTP_409_CONFLICT, detail="User already in this group"
+    #     )
+
     account = Account(user_id=user_id, group_id=group_id)
     session.add(account)
     await session.commit()
