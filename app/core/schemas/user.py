@@ -11,7 +11,6 @@ class UserProfile(BaseModel):
     patronymic: Annotated[
         Optional[constr(max_length=63)], Field(example="Сергеевич")
     ] = None
-    email: Annotated[EmailStr, Field(example="user@example.com")]
 
 
 class UserCreate(schemas.BaseUserCreate, UserProfile):
@@ -42,3 +41,7 @@ class UserRead(schemas.BaseUser[UserIdType], UserProfile):
 class UserRegisteredNotification(BaseModel):
     user_id: int
     ts: int
+
+
+class UserRegister(schemas.BaseUserCreate):
+    pass
