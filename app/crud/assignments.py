@@ -4,7 +4,7 @@ from sqlalchemy import select
 from sqlalchemy.engine import Result
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.exceptions.assignment import get_assignment_or_404
+from core.exceptions.assignment import check_assignment_exists
 
 from core.models import Task, Assignment
 
@@ -34,9 +34,9 @@ async def get_assignment(
     session: AsyncSession,
     assignment_id: int,
 ) -> AssignmentRead:
-    assignment = await get_assignment_or_404(
-        session=session, assignment_id=assignment_id
-    )
+    await check_assignment_exists(session=session, assignment_id=assignment_id)
+    assignment = session.get(Assignment, assignment_id)
+
     return AssignmentRead.model_validate(assignment)
 
 
@@ -62,9 +62,9 @@ async def update_assignment(
     assignment_update: AssignmentUpdate | AssignmentUpdatePartial,
     partial: bool = False,
 ) -> AssignmentRead:
-    assignment = await get_assignment_or_404(
-        session=session, assignment_id=assignment_id
-    )
+    await check_assignment_exists(session=session, assignment_id=assignment_id)
+    assignment = session.get(Assignment, assignment_id)
+
     for name, value in assignment_update.model_dump(exclude_unset=partial).items():
         setattr(assignment, name, value)
 
@@ -78,9 +78,9 @@ async def delete_assignment(
     session: AsyncSession,
     assignment_id: int,
 ) -> None:
-    assignment = await get_assignment_or_404(
-        session=session, assignment_id=assignment_id
-    )
+    await check_assignment_exists(session=session, assignment_id=assignment_id)
+    assignment = session.get(Assignment, assignment_id)
+
     await session.delete(assignment)
     await session.commit()
 

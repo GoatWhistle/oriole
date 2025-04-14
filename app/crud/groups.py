@@ -4,7 +4,7 @@ from sqlalchemy import select
 from sqlalchemy.engine import Result
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.exceptions.group import get_group_or_404
+from core.exceptions.group import check_group_exists
 
 from core.schemas.assignment import AssignmentRead
 from core.schemas.user import UserRead
@@ -51,7 +51,9 @@ async def get_group(
     session: AsyncSession,
     group_id: int,
 ) -> GroupRead:
-    group = await get_group_or_404(session=session, group_id=group_id)
+    await check_group_exists(session=session, group_id=group_id)
+    group = await session.get(Group, group_id)
+
     return GroupRead.model_validate(group)
 
 
@@ -75,7 +77,8 @@ async def update_group(
     group_update: GroupUpdate | GroupUpdatePartial,
     partial: bool = False,
 ) -> GroupRead:
-    group = await get_group_or_404(session=session, group_id=group_id)
+    await check_group_exists(session=session, group_id=group_id)
+    group = await session.get(Group, group_id)
 
     for key, value in group_update.model_dump(exclude_unset=partial).items():
         setattr(group, key, value)
@@ -90,7 +93,8 @@ async def delete_group(
     session: AsyncSession,
     group_id: int,
 ) -> None:
-    group = await get_group_or_404(session=session, group_id=group_id)
+    await check_group_exists(session=session, group_id=group_id)
+    group = await session.get(Group, group_id)
     await session.delete(group)
     await session.commit()
 

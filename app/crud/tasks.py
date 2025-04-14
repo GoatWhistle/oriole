@@ -4,7 +4,7 @@ from sqlalchemy import select
 from sqlalchemy.engine import Result
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.exceptions.task import get_task_or_404
+from core.exceptions.task import check_task_exists
 
 from core.models import Task
 
@@ -32,7 +32,9 @@ async def get_task(
     session: AsyncSession,
     task_id: int,
 ) -> TaskRead:
-    task = await get_task_or_404(session=session, task_id=task_id)
+    await check_task_exists(session=session, task_id=task_id)
+    task = await session.get(Task, task_id)
+
     return TaskRead.model_validate(task)
 
 
@@ -56,7 +58,8 @@ async def update_task(
     task_update: TaskUpdate | TaskUpdatePartial,
     partial: bool = False,
 ) -> TaskRead:
-    task = await get_task_or_404(session=session, task_id=task_id)
+    await check_task_exists(session=session, task_id=task_id)
+    task = await session.get(Task, task_id)
 
     for name, value in task_update.model_dump(exclude_unset=partial).items():
         setattr(task, name, value)
@@ -71,6 +74,8 @@ async def delete_task(
     session: AsyncSession,
     task_id: int,
 ) -> None:
-    task = await get_task_or_404(session=session, task_id=task_id)
+    await check_task_exists(session=session, task_id=task_id)
+    task = await session.get(Task, task_id)
+
     await session.delete(task)
     await session.commit()
