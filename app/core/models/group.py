@@ -21,6 +21,4 @@ class Group(Base, IdIntPkMixin):
     description: Mapped[str] = mapped_column(String(num_opt(200)))
 
     accounts: Mapped[list["Account"]] = relationship(back_populates="group")
-    assignments: Mapped[list[Optional["Assignment"]]] = relationship(
-        back_populates="group"
-    )
+    assignments: Mapped[list["Assignment"]] = relationship(back_populates="group")

@@ -25,4 +25,4 @@ class Account(Base, IdIntPkMixin):
     group_id: Mapped[int] = mapped_column(ForeignKey("groups.id"))
     group: Mapped["Group"] = relationship(back_populates="accounts")
 
-    done_tasks: Mapped[list[Optional["Task"]]] = relationship(back_populates="account")
+    done_tasks: Mapped[list["Task"]] = relationship(back_populates="account")

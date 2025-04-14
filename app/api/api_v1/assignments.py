@@ -18,7 +18,7 @@ from core.schemas.assignment import (
 )
 from crud import assignments as crud
 
-router = APIRouter(tags=settings.api.v1.assignments[1:].capitalize())
+router = APIRouter(tags=[settings.api.v1.assignments[1:].capitalize()])
 
 
 @router.post(

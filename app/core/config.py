@@ -33,7 +33,7 @@ class ApiV1Prefix(BaseModel):
     tasks: str = "/tasks"
     auth: str = "/auth"
     messages: str = "/messages"
-    learn = "/learn"
+    learn: str = "/learn"
 
 
 class ApiPrefix(BaseModel):

@@ -52,7 +52,7 @@ router.include_router(
 )
 async def get_user_by_id(
     user_id: int,
-    session: AsyncSession = Depends(db_helper.session_dependency),
+    session: AsyncSession = Depends(db_helper.dependency_session_getter),
 ):
     return await crud.get_user(session=session, user_id=user_id)
 
@@ -65,7 +65,7 @@ async def update_user_profile(
     user_id: int,
     profile_update: UserProfileUpdatePartial,
     current_user: User = Depends(current_active_user),
-    session: AsyncSession = Depends(db_helper.session_dependency),
+    session: AsyncSession = Depends(db_helper.dependency_session_getter),
 ):
     if user_id != current_user.id and not current_user.is_superuser:
         raise HTTPException(
@@ -87,7 +87,7 @@ async def update_user_profile(
 )
 async def read_user_groups(
     user_id: int,
-    session: AsyncSession = Depends(db_helper.session_dependency),
+    session: AsyncSession = Depends(db_helper.dependency_session_getter),
 ):
     return await crud.get_user_groups(session=session, user_id=user_id)
 
@@ -98,7 +98,7 @@ async def read_user_groups(
 )
 async def read_user_assignments(
     user_id: int,
-    session: AsyncSession = Depends(db_helper.session_dependency),
+    session: AsyncSession = Depends(db_helper.dependency_session_getter),
 ):
     return await crud.get_user_assignments(session=session, user_id=user_id)
 
@@ -109,7 +109,7 @@ async def read_user_assignments(
 )
 async def read_user_tasks(
     user_id: int,
-    session: AsyncSession = Depends(db_helper.session_dependency),
+    session: AsyncSession = Depends(db_helper.dependency_session_getter),
 ):
     return await crud.get_user_tasks(session=session, user_id=user_id)
 
@@ -122,7 +122,7 @@ async def add_user_group(
     user_id: int,
     group_id: int,
     current_user: User = Depends(current_active_user),
-    session: AsyncSession = Depends(db_helper.session_dependency),
+    session: AsyncSession = Depends(db_helper.dependency_session_getter),
 ):
     await crud.add_user_to_group(
         session=session,
@@ -140,7 +140,7 @@ async def remove_user_from_group(
     user_id: int,
     group_id: int,
     current_user: User = Depends(current_active_user),
-    session: AsyncSession = Depends(db_helper.session_dependency),
+    session: AsyncSession = Depends(db_helper.dependency_session_getter),
 ):
     user = await check_teacher_or_403(session, user_id)
 

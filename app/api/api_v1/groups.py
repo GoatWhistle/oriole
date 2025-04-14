@@ -22,7 +22,7 @@ from crud import groups as crud
 from core.schemas.assignment import AssignmentRead
 from core.schemas.user import UserRead
 
-router = APIRouter(tags=settings.api.v1.groups[1:].capitalize())
+router = APIRouter(tags=[settings.api.v1.groups[1:].capitalize()])
 
 
 @router.post(
