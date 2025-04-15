@@ -13,55 +13,6 @@ from core.exceptions.user import (
     get_user_or_404_with_return,
     check_teacher_or_403,
 )
-from core.schemas.user import (
-    UserCreate,
-    UserRead,
-    UserUpdate,
-)
-
-
-async def create_user(
-    session: AsyncSession,
-    user_in: UserCreate,
-) -> UserRead:
-    user = User(**user_in.model_dump())
-    session.add(user)
-    await session.commit()
-    await session.refresh(user)
-    return UserRead.model_validate(user)
-
-
-async def get_user(
-    session: AsyncSession,
-    user_id: int,
-) -> User | None:
-    user = await get_user_or_404_with_return(session=session, user_id=user_id)
-    return UserRead.model_validate(user)
-
-
-async def update_user(
-    session: AsyncSession,
-    user_id: int,
-    user_update: UserUpdate,
-    partial: bool = False,
-) -> UserRead:
-    user = await get_user_or_404_with_return(session, user_id)
-
-    for key, value in user_update.model_dump(exclude_unset=partial).items():
-        setattr(user, key, value)
-
-    await session.commit()
-    await session.refresh(user)
-    return UserRead.model_validate(user)
-
-
-async def delete_user(
-    session: AsyncSession,
-    user_id: int,
-) -> None:
-    user = await get_user_or_404_with_return(session, user_id)
-    await session.delete(user)
-    await session.commit()
 
 
 async def get_user_groups(

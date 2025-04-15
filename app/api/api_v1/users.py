@@ -17,12 +17,6 @@ from core.exceptions.user import (
     check_teacher_or_403,
 )
 
-from core.schemas.user import (
-    UserRead,
-    UserUpdate,
-    UserProfileUpdatePartial,
-)
-
 from core.schemas.assignment import AssignmentRead
 from core.schemas.group import GroupRead
 from core.schemas.task import TaskRead

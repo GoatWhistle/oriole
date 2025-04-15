@@ -11,7 +11,6 @@ from core.models import db_helper
 from crud import auth as crud
 
 from core.schemas.user import (
-    UserCreate,
     RegisterUser,
     UserAuthRead,
 )

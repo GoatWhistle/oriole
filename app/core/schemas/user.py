@@ -1,15 +1,19 @@
-from pydantic import BaseModel, EmailStr, Field, constr, ConfigDict
-from typing import Annotated, Optional, Union
-from fastapi_users import schemas
-
-from core.types.user_id import UserIdType
+from pydantic import BaseModel, EmailStr, Field, ConfigDict
+from typing import Annotated, Optional
 
 
 class UserProfile(BaseModel):
-    user_id: int
     name: Annotated[str, Field(max_length=31)]
     surname: Annotated[str, Field(max_length=31)]
     patronymic: Annotated[Optional[str], Field(max_length=63)] = None
+
+
+class UserProfileRead(UserProfile):
+    user_id: int
+
+    model_config = ConfigDict(
+        from_attributes=True,
+    )
 
 
 class UserAuth(BaseModel):
@@ -37,33 +41,3 @@ class RegisterUser(BaseModel):
     name: Annotated[str, Field(max_length=31)]
     surname: Annotated[str, Field(max_length=31)]
     patronymic: Annotated[Optional[str], Field(max_length=63)] = None
-
-
-class UserCreate(BaseModel):
-    pass
-
-
-class UserProfileUpdatePartial(BaseModel):
-    name: Annotated[Optional[str], Field(max_length=31)] = None
-    surname: Annotated[Optional[str], Field(max_length=31)] = None
-    patronymic: Annotated[Optional[str], Field(max_length=63)] = None
-
-
-class UserUpdate(UserProfileUpdatePartial):
-    pass
-
-
-class UserRead(schemas.BaseUser[UserIdType], UserProfile):
-    id: int
-
-    accounts: list[Optional[int]]
-    done_tasks: list[Optional[int]]
-
-    model_config = ConfigDict(
-        from_attributes=True,
-    )
-
-
-class UserRegisteredNotification(BaseModel):
-    user_id: int
-    ts: int

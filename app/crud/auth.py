@@ -1,27 +1,12 @@
-from fastapi import Depends
-
-from typing import Sequence, Annotated
-from sqlalchemy import select, and_
-from sqlalchemy.engine import Result
+from sqlalchemy import select
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.models import User, UserProfile, Group, Task, Account, Assignment
-from core.schemas.group import GroupRead
-from core.schemas.task import TaskRead
-from core.schemas.assignment import AssignmentRead
+from core.models import User, UserProfile
 
 from utils.JWT import hash_password
 
-from core.exceptions.user import (
-    get_user_or_404_with_return,
-    check_teacher_or_403,
-    if_already_registered,
-)
 from core.schemas.user import (
-    UserCreate,
-    UserRead,
-    UserUpdate,
     UserAuth,
     RegisterUser,
     UserAuthRead,
