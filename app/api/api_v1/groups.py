@@ -20,7 +20,7 @@ from core.schemas.group import (
 from crud import groups as crud
 
 from core.schemas.assignment import AssignmentRead
-from core.schemas.user import UserRead
+from core.schemas.user import UserProfile
 
 
 router = APIRouter(tags=[settings.api.v1.groups[1:].capitalize()])
@@ -157,7 +157,7 @@ async def delete_group(
 
 @router.get(
     "/{group_id}/users/",
-    response_model=Sequence[UserRead],
+    response_model=Sequence[UserProfile],
 )
 async def get_users_in_group(
     session: Annotated[

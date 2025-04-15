@@ -6,7 +6,9 @@ from sqlalchemy import select
 
 from core.models import User
 
-from core.schemas.user import UserCreate, UserRead, UserUpdate, UserAuth, RegisterUser
+from core.schemas.user import (
+    RegisterUser,
+)
 
 
 async def get_user_or_404_with_return(

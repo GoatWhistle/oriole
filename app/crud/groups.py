@@ -12,7 +12,7 @@ from core.exceptions.group import (
 from core.schemas.account import AccountRole
 
 from core.schemas.assignment import AssignmentRead
-from core.schemas.user import UserRead
+from core.schemas.user import UserProfile
 
 from core.schemas.group import (
     GroupCreate,
@@ -145,7 +145,7 @@ async def get_users_in_group(
     session: AsyncSession,
     user_id: int,
     group_id: int,
-) -> Sequence[UserRead]:
+) -> Sequence[UserProfile]:
     await check_group_exists(session=session, group_id=group_id)
     await check_user_in_group(session=session, user_id=user_id, group_id=group_id)
 
@@ -154,7 +154,7 @@ async def get_users_in_group(
     result = await session.execute(statement)
     users = list(result.scalars().all())
 
-    return [UserRead.model_validate(user) for user in users]
+    return [UserProfile.model_validate(user) for user in users]
 
 
 async def get_assignments_in_group(
