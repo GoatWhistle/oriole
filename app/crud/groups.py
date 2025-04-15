@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.exceptions.group import (
     check_group_exists,
-    check_admin_permission,
+    check_admin_permission_in_group,
     check_user_in_group,
 )
 from core.schemas.account import AccountRole
@@ -81,8 +81,8 @@ async def get_group(
 ) -> GroupRead:
     await check_group_exists(session=session, group_id=group_id)
     await check_user_in_group(session=session, user_id=user_id, group_id=group_id)
-    group = await session.get(Group, group_id)
 
+    group = await session.get(Group, group_id)
     return GroupRead.model_validate(group)
 
 
@@ -108,10 +108,12 @@ async def update_group(
     partial: bool = False,
 ) -> GroupRead:
     await check_group_exists(session=session, group_id=group_id)
+    await check_user_in_group(session=session, user_id=user_id, group_id=group_id)
+    await check_admin_permission_in_group(
+        session=session, user_id=user_id, group_id=group_id
+    )
 
     group = await session.get(Group, group_id)
-
-    await check_admin_permission(user_id=user_id, group=group)
 
     for key, value in group_update.model_dump(exclude_unset=partial).items():
         setattr(group, key, value)
@@ -128,8 +130,12 @@ async def delete_group(
     group_id: int,
 ) -> None:
     await check_group_exists(session=session, group_id=group_id)
+    await check_user_in_group(session=session, user_id=user_id, group_id=group_id)
+    await check_admin_permission_in_group(
+        session=session, user_id=user_id, group_id=group_id
+    )
+
     group = await session.get(Group, group_id)
-    await check_admin_permission(user_id=user_id, group=group)
 
     await session.delete(group)
     await session.commit()
@@ -177,7 +183,9 @@ async def create_link(
     group_id: int,
 ):
     await check_group_exists(session=session, group_id=group_id)
-    group = await session.get(Group, group_id)
-    await check_admin_permission(user_id=user_id, group=group)
+    await check_user_in_group(session=session, user_id=user_id, group_id=group_id)
+    await check_admin_permission_in_group(
+        session=session, user_id=user_id, group_id=group_id
+    )
 
     return {"link": f"http://oriole.com/join/{group_id}"}
