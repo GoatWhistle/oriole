@@ -6,14 +6,25 @@ from core.types.user_id import UserIdType
 
 
 class UserProfile(BaseModel):
-    name: Annotated[constr(max_length=31), Field(example="Иван")]
-    surname: Annotated[constr(max_length=31), Field(example="Петров")]
-    patronymic: Annotated[
-        Optional[constr(max_length=63)], Field(example="Сергеевич")
-    ] = None
+    user_id: int
+    name: Annotated[str, Field(max_length=31)]
+    surname: Annotated[str, Field(max_length=31)]
+    patronymic: Annotated[Optional[str], Field(max_length=63)] = None
 
 
-class UserCreate(schemas.BaseUserCreate, UserProfile):
+class UserAuth(BaseModel):
+    email: Annotated[str, Field(max_length=63)]
+    hashed_password: Annotated[str, Field(max_length=2047)]
+    is_active: bool = False
+    is_superuser: bool = False
+    is_verified: bool = False
+
+
+class RegisterUser(UserAuth, UserProfile):
+    pass
+
+
+class UserCreate(BaseModel, UserProfile):
     pass
 
 
@@ -23,7 +34,7 @@ class UserProfileUpdatePartial(BaseModel):
     patronymic: Annotated[Optional[str], Field(max_length=63)] = None
 
 
-class UserUpdate(schemas.BaseUserUpdate, UserProfileUpdatePartial):
+class UserUpdate(UserProfileUpdatePartial):
     pass
 
 
@@ -41,7 +52,3 @@ class UserRead(schemas.BaseUser[UserIdType], UserProfile):
 class UserRegisteredNotification(BaseModel):
     user_id: int
     ts: int
-
-
-class UserRegister(schemas.BaseUserCreate):
-    pass

@@ -1,46 +1,31 @@
-from fastapi import APIRouter
-
-from api.api_v1.fastapi_users import fastapi_users
-from core.models import UserProfile
-from .dependencies.authentication.backend import authentication_backend
+from fastapi import (
+    APIRouter,
+    Depends,
+    status,
+)
+from sqlalchemy.ext.asyncio import AsyncSession
+from typing import Annotated
 
 from core.config import settings
+from core.models import db_helper
+from crud import auth as crud
+
 from core.schemas.user import (
-    UserRead,
-    UserRegister,
+    UserCreate,
 )
 
 router = APIRouter(
     prefix=settings.api.v1.auth,
-    tags=["Auth"],
-)
-
-# /login
-# /logout
-router.include_router(
-    router=fastapi_users.get_auth_router(
-        authentication_backend,
-        requires_verification=True,
-    ),
 )
 
 
-# /register
-router.include_router(
-    router=fastapi_users.get_register_router(
-        UserProfile,
-        UserRegister,
-    ),
+@router.post(
+    "/register",
+    response_model=UserCreate,
+    status_code=status.HTTP_201_CREATED,
 )
-
-# /request-verify-token
-# /verify
-router.include_router(
-    router=fastapi_users.get_verify_router(UserRead),
-)
-
-# /forgot-password
-# /reset-password
-router.include_router(
-    router=fastapi_users.get_reset_password_router(),
-)
+async def register_user(
+    user_data: UserCreate,
+    db: AsyncSession = Depends(db_helper.dependency_session_getter),
+):
+    return await crud.register_user(db, user_data)

@@ -10,7 +10,7 @@ from core.schemas.task import TaskRead
 from core.schemas.assignment import AssignmentRead
 
 from core.exceptions.user import (
-    get_user_or_404,
+    get_user_or_404_with_return,
     check_teacher_or_403,
 )
 from core.schemas.user import (
@@ -35,7 +35,7 @@ async def get_user(
     session: AsyncSession,
     user_id: int,
 ) -> User | None:
-    user = await get_user_or_404(session=session, user_id=user_id)
+    user = await get_user_or_404_with_return(session=session, user_id=user_id)
     return UserRead.model_validate(user)
 
 
@@ -45,7 +45,7 @@ async def update_user(
     user_update: UserUpdate,
     partial: bool = False,
 ) -> UserRead:
-    user = await get_user_or_404(session, user_id)
+    user = await get_user_or_404_with_return(session, user_id)
 
     for key, value in user_update.model_dump(exclude_unset=partial).items():
         setattr(user, key, value)
@@ -59,7 +59,7 @@ async def delete_user(
     session: AsyncSession,
     user_id: int,
 ) -> None:
-    user = await get_user_or_404(session, user_id)
+    user = await get_user_or_404_with_return(session, user_id)
     await session.delete(user)
     await session.commit()
 
@@ -125,7 +125,7 @@ async def add_user_to_group(
     group_id: int,
     current_user: User,
 ) -> None:
-    user = await get_user_or_404(session, user_id)
+    user = await get_user_or_404_with_return(session, user_id)
     user = await check_teacher_or_403(session, user_id)
 
     existing = await session.execute(

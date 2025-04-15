@@ -17,7 +17,7 @@ from api.api_v1.fastapi_users import (
 )
 
 from core.exceptions.user import (
-    get_user_or_404,
+    get_user_or_404_with_return,
     check_teacher_or_403,
 )
 
@@ -35,14 +35,6 @@ from crud import users as crud
 
 router = APIRouter(
     prefix=settings.api.v1.users,
-    tags=["Users"],
-)
-
-router.include_router(
-    router=fastapi_users.get_users_router(
-        UserRead,
-        UserUpdate,
-    ),
 )
 
 
