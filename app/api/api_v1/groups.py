@@ -7,8 +7,6 @@ from fastapi import (
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Annotated, Sequence
 
-from watchfiles import awatch
-
 from core.config import settings
 from core.models import db_helper, User
 
@@ -23,6 +21,7 @@ from crud import groups as crud
 
 from core.schemas.assignment import AssignmentRead
 from core.schemas.user import UserRead
+
 
 router = APIRouter(tags=[settings.api.v1.groups[1:].capitalize()])
 
@@ -51,7 +50,6 @@ async def create_group(
     )
 
 
-# TODO: import get_current_user
 @router.get(
     "/{group_id}/",
     response_model=GroupRead,
@@ -74,7 +72,6 @@ async def get_group(
     )
 
 
-# TODO: import get_current_user
 @router.get(
     "/",
     response_model=Sequence[GroupRead],
@@ -92,7 +89,6 @@ async def get_groups(
     return await crud.get_groups(session=session, user_id=current_user.id)
 
 
-# TODO: import get_current_user
 @router.put("/{group_id}/")
 async def update_group(
     session: Annotated[
@@ -115,7 +111,6 @@ async def update_group(
     )
 
 
-# TODO: import get_current_user
 @router.patch("/{group_id}/")
 async def update_group_partial(
     session: Annotated[
@@ -138,7 +133,6 @@ async def update_group_partial(
     )
 
 
-# TODO: import get_current_user
 @router.delete(
     "/{group_id}/",
     status_code=status.HTTP_204_NO_CONTENT,
@@ -161,7 +155,6 @@ async def delete_group(
     )
 
 
-# TODO: import get_current_user
 @router.get(
     "/{group_id}/users/",
     response_model=Sequence[UserRead],
@@ -184,7 +177,6 @@ async def get_users_in_group(
     )
 
 
-# TODO: import get_current_user
 @router.get(
     "/{group_id}/assignments/",
     response_model=Sequence[AssignmentRead],
@@ -207,7 +199,6 @@ async def get_assignments_in_group(
     )
 
 
-# TODO: import get_current_user
 @router.get("/{group_id}/create_link/")
 async def create_link(
     session: Annotated[

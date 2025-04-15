@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Annotated, Sequence
 
 from core.config import settings
-from core.models import db_helper
+from core.models import db_helper, User
 
 from core.schemas.task import (
     TaskCreate,
@@ -19,6 +19,8 @@ from core.schemas.task import (
 from crud import tasks as crud
 
 router = APIRouter(tags=[settings.api.v1.assignments[1:].capitalize()])
+
+# TODO: import get_current_user
 
 
 @router.post(
@@ -31,9 +33,17 @@ async def create_task(
         AsyncSession,
         Depends(db_helper.dependency_session_getter),
     ],
+    current_user: Annotated[
+        User,
+        Depends(get_current_user),
+    ],
     task_in: TaskCreate,
 ):
-    return await crud.create_task(session=session, task_in=task_in)
+    return await crud.create_task(
+        session=session,
+        user_id=current_user.id,
+        task_in=task_in,
+    )
 
 
 @router.get(
@@ -45,9 +55,17 @@ async def get_task(
         AsyncSession,
         Depends(db_helper.dependency_session_getter),
     ],
+    current_user: Annotated[
+        User,
+        Depends(get_current_user),
+    ],
     task_id: int,
 ):
-    return await crud.get_task(session=session, task_id=task_id)
+    return await crud.get_task(
+        session=session,
+        user_id=current_user.id,
+        task_id=task_id,
+    )
 
 
 @router.get(
@@ -59,9 +77,17 @@ async def get_tasks(
         AsyncSession,
         Depends(db_helper.dependency_session_getter),
     ],
+    current_user: Annotated[
+        User,
+        Depends(get_current_user),
+    ],
     assignment_id: int,
 ):
-    return await crud.get_tasks(session=session, assignment_id=assignment_id)
+    return await crud.get_tasks(
+        session=session,
+        user_id=current_user.id,
+        assignment_id=assignment_id,
+    )
 
 
 @router.put("/{task_id}/")
@@ -70,11 +96,16 @@ async def update_task(
         AsyncSession,
         Depends(db_helper.dependency_session_getter),
     ],
+    current_user: Annotated[
+        User,
+        Depends(get_current_user),
+    ],
     task_update: TaskUpdate,
     task_id: int,
 ):
     return await crud.update_task(
         session=session,
+        user_id=current_user.id,
         task_id=task_id,
         task_update=task_update,
     )
@@ -86,11 +117,16 @@ async def update_task_partial(
         AsyncSession,
         Depends(db_helper.dependency_session_getter),
     ],
+    current_user: Annotated[
+        User,
+        Depends(get_current_user),
+    ],
     task_update: TaskUpdatePartial,
     task_id: int,
 ):
     return await crud.update_task(
         session=session,
+        user_id=current_user.id,
         task_id=task_id,
         task_update=task_update,
         partial=True,
@@ -106,6 +142,14 @@ async def delete_task(
         AsyncSession,
         Depends(db_helper.dependency_session_getter),
     ],
+    current_user: Annotated[
+        User,
+        Depends(get_current_user),
+    ],
     task_id: int,
 ) -> None:
-    await crud.delete_task(session=session, task_id=task_id)
+    await crud.delete_task(
+        session=session,
+        user_id=current_user.id,
+        task_id=task_id,
+    )
