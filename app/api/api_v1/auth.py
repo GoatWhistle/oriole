@@ -12,6 +12,8 @@ from crud import auth as crud
 
 from core.schemas.user import (
     UserCreate,
+    RegisterUser,
+    UserAuthRead,
 )
 
 router = APIRouter(
@@ -21,11 +23,11 @@ router = APIRouter(
 
 @router.post(
     "/register",
-    response_model=UserCreate,
+    response_model=UserAuthRead,
     status_code=status.HTTP_201_CREATED,
 )
 async def register_user(
-    user_data: UserCreate,
+    user_data: RegisterUser,
     db: AsyncSession = Depends(db_helper.dependency_session_getter),
 ):
     return await crud.register_user(db, user_data)

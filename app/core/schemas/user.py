@@ -1,5 +1,5 @@
 from pydantic import BaseModel, EmailStr, Field, constr, ConfigDict
-from typing import Annotated, Optional, TYPE_CHECKING
+from typing import Annotated, Optional, Union
 from fastapi_users import schemas
 
 from core.types.user_id import UserIdType
@@ -13,18 +13,33 @@ class UserProfile(BaseModel):
 
 
 class UserAuth(BaseModel):
-    email: Annotated[str, Field(max_length=63)]
-    hashed_password: Annotated[str, Field(max_length=2047)]
+    email: Annotated[EmailStr, Field(max_length=63)]
+    hashed_password: Annotated[str, Field(max_length=1023)]
     is_active: bool = False
     is_superuser: bool = False
     is_verified: bool = False
 
 
-class RegisterUser(UserAuth, UserProfile):
-    pass
+class UserAuthRead(UserAuth):
+    id: int
+
+    model_config = ConfigDict(
+        from_attributes=True,
+    )
 
 
-class UserCreate(BaseModel, UserProfile):
+class RegisterUser(BaseModel):
+    email: Annotated[EmailStr, Field(max_length=63)]
+    hashed_password: Annotated[str, Field(max_length=1023)]
+    is_active: bool = False
+    is_superuser: bool = False
+    is_verified: bool = False
+    name: Annotated[str, Field(max_length=31)]
+    surname: Annotated[str, Field(max_length=31)]
+    patronymic: Annotated[Optional[str], Field(max_length=63)] = None
+
+
+class UserCreate(BaseModel):
     pass
 
 

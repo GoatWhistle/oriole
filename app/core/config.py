@@ -53,15 +53,16 @@ class ApiPrefix(BaseModel):
 
 
 class AuthJWT(BaseModel):
-    private_key_path: Path = BASE_DIR / "certs" / "jwt-private.pem"
-    public_key_path: Path = BASE_DIR / "certs" / "jwt-public.pem"
-    algorithm: str = "RS256"
+    pass
+    # private_key_path: Path = BASE_DIR / "certs" / "jwt-private.pem"
+    # public_key_path: Path = BASE_DIR / "certs" / "jwt-public.pem"
+    # algorithm: str = "RS256"
 
 
-class AccessToken(BaseModel):
-    lifetime_seconds: int = 3600
-    reset_password_token_secret: str
-    verification_token_secret: str
+# class AccessToken(BaseModel):
+#     lifetime_seconds: int = 3600
+#     reset_password_token_secret: str
+#     verification_token_secret: str
 
 
 class Settings(BaseSettings):
@@ -74,8 +75,8 @@ class Settings(BaseSettings):
     run: RunConfig = RunConfig()
     db: DbConfig
     api: ApiPrefix = ApiPrefix()
-    auth_jwt: AuthJWT = AuthJWT()
-    access_token: AccessToken
+    # auth_jwt: AuthJWT = AuthJWT()
+    # access_token: AccessToken
 
 
 settings = Settings()

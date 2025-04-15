@@ -1,10 +1,7 @@
 from typing import TYPE_CHECKING, Optional
 
-from fastapi_users_db_sqlalchemy import (
-    SQLAlchemyUserDatabase,
-    SQLAlchemyBaseUserTable,
-)
-from sqlalchemy.orm import Mapped, relationship
+from sqlalchemy.orm import Mapped, relationship, mapped_column
+from sqlalchemy import String, Boolean
 
 from core.models.user_profile import UserProfile
 from core.types.user_id import UserIdType
@@ -15,9 +12,13 @@ if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
 
 
-class User(Base, IdIntPkMixin, SQLAlchemyBaseUserTable[UserIdType]):
-    profile: Mapped["UserProfile"] = relationship(back_populates="user")
+class User(Base, IdIntPkMixin):
+    email: Mapped[str] = mapped_column(
+        String(length=127), unique=True, index=True, nullable=False
+    )
+    hashed_password: Mapped[str] = mapped_column(String(length=1023), nullable=False)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    is_superuser: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    is_verified: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
-    @classmethod
-    def get_db(cls, session: "AsyncSession"):
-        return SQLAlchemyUserDatabase(session, cls)
+    profile: Mapped["UserProfile"] = relationship(back_populates="user")

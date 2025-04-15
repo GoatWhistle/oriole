@@ -6,7 +6,7 @@ from sqlalchemy.engine import Result
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.models import User, Group, Task, Account, Assignment
+from core.models import User, UserProfile, Group, Task, Account, Assignment
 from core.schemas.group import GroupRead
 from core.schemas.task import TaskRead
 from core.schemas.assignment import AssignmentRead
@@ -22,21 +22,21 @@ from core.schemas.user import (
     UserCreate,
     UserRead,
     UserUpdate,
-    UserProfile,
     UserAuth,
     RegisterUser,
+    UserAuthRead,
 )
 
 
 async def register_user(
     session: AsyncSession,
     user_data: RegisterUser,
-) -> RegisterUser:
+) -> UserAuth:
 
-    if not await if_already_registered(session, user_data):
+    if True:  # ot await if_already_registered(session, user_data) or
         user = User(
             email=user_data.email,
-            hashed_password=hash_password(user_data.hashed_password),
+            hashed_password=str(hash_password(user_data.hashed_password)),
             is_active=True,
             is_superuser=False,
             is_verified=False,
@@ -45,9 +45,12 @@ async def register_user(
         session.add(user)
         await session.flush()
 
-        user_by_email = await session.get(User, user_data.email)
+        statement = select(User).filter_by(email=user_data.email)
+
+        user_by_email = await session.scalars(statement)
+        user_by_email = user_by_email.all()
         profile = UserProfile(
-            user_id=user_by_email.id,
+            user_id=user_by_email[0].id,
             name=user_data.name,
             surname=user_data.surname,
             patronymic=user_data.patronymic,
@@ -55,6 +58,4 @@ async def register_user(
         session.add(profile)
 
         await session.commit()
-        await session.refresh(user)
-
-        return RegisterUser.model_validate(user)
+        return UserAuthRead.model_validate(user)

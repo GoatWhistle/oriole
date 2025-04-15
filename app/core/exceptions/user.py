@@ -6,7 +6,7 @@ from sqlalchemy import select
 
 from core.models import User
 
-from core.schemas.user import UserCreate, UserRead, UserUpdate, UserAuth
+from core.schemas.user import UserCreate, UserRead, UserUpdate, UserAuth, RegisterUser
 
 
 async def get_user_or_404_with_return(
@@ -34,7 +34,7 @@ async def check_teacher_or_403(session: AsyncSession, user_id: int) -> Type[User
 
 async def if_already_registered(
     session: AsyncSession,
-    user_data: UserAuth,
+    user_data: RegisterUser,
 ) -> None:
     user = await session.get(User, user_data)
     if user:
