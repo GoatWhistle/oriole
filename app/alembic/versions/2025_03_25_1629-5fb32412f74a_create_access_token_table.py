@@ -28,6 +28,7 @@ def upgrade() -> None:
         sa.Column("token", sa.String(length=43), nullable=False),
         sa.Column(
             "created_at",
+            sa.String(),
             nullable=False,
         ),
         sa.ForeignKeyConstraint(
