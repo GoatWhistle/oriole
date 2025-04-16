@@ -1,33 +1,28 @@
-from typing import TYPE_CHECKING
-
-from fastapi_users_db_sqlalchemy.access_token import (
-    SQLAlchemyAccessTokenDatabase,
-    SQLAlchemyBaseAccessTokenTable,
-)
 from sqlalchemy import (
+    String,
     Integer,
-    ForeignKey,
 )
 
 from sqlalchemy.orm import (
     Mapped,
+    relationship,
     mapped_column,
 )
+from datetime import datetime
+from pytz import utc
 
-from core.types.user_id import UserIdType
 from .base import Base
+from .mixins.id_int_pk import IdIntPkMixin
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncSession
+    from .user import User
 
 
-class AccessToken(Base, SQLAlchemyBaseAccessTokenTable[UserIdType]):
-    user_id: Mapped[UserIdType] = mapped_column(
-        Integer,
-        ForeignKey("users.id", ondelete="cascade"),
-        nullable=False,
+class AccessToken(Base, IdIntPkMixin):
+    token: Mapped[str] = mapped_column(String(length=511), nullable=False)
+    created_at: Mapped[int] = mapped_column(
+        String(length=15), default=str(datetime.now(utc)), nullable=False
     )
 
-    @classmethod
-    def get_db(cls, session: "AsyncSession"):
-        return SQLAlchemyAccessTokenDatabase(session, cls)
+    user: Mapped["User"] = relationship(back_populates="tokens")

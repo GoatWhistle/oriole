@@ -21,7 +21,7 @@ class UserAuth(BaseModel):
     hashed_password: Annotated[str, Field(max_length=1023)]
     is_active: bool = False
     is_superuser: bool = False
-    is_verified: bool = False
+    is_verified: bool = True  # pls change to False later
 
 
 class UserAuthRead(UserAuth):
@@ -33,11 +33,13 @@ class UserAuthRead(UserAuth):
 
 
 class RegisterUser(BaseModel):
+    model_config = ConfigDict(strict=True)
+
     email: Annotated[EmailStr, Field(max_length=63)]
     hashed_password: Annotated[str, Field(max_length=1023)]
     is_active: bool = False
     is_superuser: bool = False
-    is_verified: bool = False
+    is_verified: bool = True  # pls change to False later
     name: Annotated[str, Field(max_length=31)]
     surname: Annotated[str, Field(max_length=31)]
     patronymic: Annotated[Optional[str], Field(max_length=63)] = None

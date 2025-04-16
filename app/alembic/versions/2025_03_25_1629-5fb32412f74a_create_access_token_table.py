@@ -8,8 +8,6 @@ Create Date: 2025-03-25 16:29:51.724392
 
 from typing import Sequence, Union
 
-import fastapi_users_db_sqlalchemy
-
 from alembic import op
 import sqlalchemy as sa
 
@@ -30,7 +28,6 @@ def upgrade() -> None:
         sa.Column("token", sa.String(length=43), nullable=False),
         sa.Column(
             "created_at",
-            fastapi_users_db_sqlalchemy.generics.TIMESTAMPAware(timezone=True),
             nullable=False,
         ),
         sa.ForeignKeyConstraint(

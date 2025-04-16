@@ -1,15 +1,13 @@
-from typing import TYPE_CHECKING, Optional
-
 from sqlalchemy.orm import Mapped, relationship, mapped_column
 from sqlalchemy import String, Boolean
 
-from core.models.user_profile import UserProfile
-from core.types.user_id import UserIdType
 from .base import Base
 from .mixins.id_int_pk import IdIntPkMixin
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncSession
+    from .access_token import AccessToken
+    from .user_profile import UserProfile
 
 
 class User(Base, IdIntPkMixin):
@@ -22,3 +20,4 @@ class User(Base, IdIntPkMixin):
     is_verified: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
     profile: Mapped["UserProfile"] = relationship(back_populates="user")
+    token: Mapped["AccessToken"] = relationship(back_populates="user", uselist=False)
