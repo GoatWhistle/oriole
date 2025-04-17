@@ -43,3 +43,7 @@ class RegisterUser(BaseModel):
     name: Annotated[str, Field(max_length=31)]
     surname: Annotated[str, Field(max_length=31)]
     patronymic: Annotated[Optional[str], Field(max_length=63)] = None
+
+
+class UserLogin(RegisterUser):
+    pass

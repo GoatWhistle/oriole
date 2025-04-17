@@ -4,15 +4,20 @@ from fastapi import (
     status,
 )
 from sqlalchemy.ext.asyncio import AsyncSession
-from typing import Annotated
 
 from core.config import settings
+from core.schemas.token import AccessToken
 from core.models import db_helper
 from crud import auth as crud
 
 from core.schemas.user import (
     RegisterUser,
     UserAuthRead,
+    UserLogin,
+)
+from crud.auth import (
+    validate_registered_user,
+    get_current_active_auth_user,
 )
 
 router = APIRouter(
@@ -30,3 +35,23 @@ async def register_user(
     db: AsyncSession = Depends(db_helper.dependency_session_getter),
 ):
     return await crud.register_user(db, user_data)
+
+
+@router.post("/login/", response_model=AccessToken)
+async def login_user(
+    user_data: UserLogin = Depends(validate_registered_user),
+    db: AsyncSession = Depends(db_helper.dependency_session_getter),
+):
+    return await crud.login_user(db, user_data)
+
+
+@router.get("/users/me")
+def auth_user_get_self_info(
+    user_data: UserLogin = Depends(get_current_active_auth_user),
+):
+    return {
+        "name": user_data.name,
+        "surname": user_data.surname,
+        "patronymic": user_data.patronymic,
+        "email": user_data.email,
+    }

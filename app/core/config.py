@@ -35,7 +35,6 @@ class ApiV1Prefix(BaseModel):
     assignments: str = "/assignments"
     tasks: str = "/tasks"
     auth: str = "/auth"
-    messages: str = "/messages"
     learn: str = "/learn"
 
 
@@ -43,26 +42,12 @@ class ApiPrefix(BaseModel):
     prefix: str = "/api"
     v1: ApiV1Prefix = ApiV1Prefix()
 
-    @property
-    def bearer_token_url(self) -> str:
-        # api/v1/auth/login
-        parts = (self.prefix, self.v1.prefix, self.v1.auth, "/login")
-        path = "".join(parts)
-        # return path[1:]
-        return path.removeprefix("/")
-
 
 class AuthJWT(BaseModel):
-    pass
-    # private_key_path: Path = BASE_DIR / "certs" / "jwt-private.pem"
-    # public_key_path: Path = BASE_DIR / "certs" / "jwt-public.pem"
-    # algorithm: str = "RS256"
-
-
-# class AccessToken(BaseModel):
-#     lifetime_seconds: int = 3600
-#     reset_password_token_secret: str
-#     verification_token_secret: str
+    private_key_path: Path = BASE_DIR / "jwt-private.pem"
+    public_key_path: Path = BASE_DIR / "jwt-public.pem"
+    algorithm: str = "RS256"
+    lifetime_seconds: int = 3600
 
 
 class Settings(BaseSettings):
@@ -75,8 +60,7 @@ class Settings(BaseSettings):
     run: RunConfig = RunConfig()
     db: DbConfig
     api: ApiPrefix = ApiPrefix()
-    # auth_jwt: AuthJWT = AuthJWT()
-    # access_token: AccessToken
+    auth_jwt: AuthJWT = AuthJWT()
 
 
 settings = Settings()

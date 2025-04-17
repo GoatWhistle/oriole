@@ -23,6 +23,15 @@ async def get_user_or_404_with_return(
     return user
 
 
+async def get_user_or_404(session: AsyncSession, user_id: int) -> Type[User]:
+    user = await session.get(User, user_id)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"User {user_id} not found",
+        )
+
+
 # TODO: добавить роль teacher
 async def check_teacher_or_403(session: AsyncSession, user_id: int) -> Type[User]:
     user = await session.get(User, user_id)
@@ -32,15 +41,3 @@ async def check_teacher_or_403(session: AsyncSession, user_id: int) -> Type[User
             detail="Operation requires teacher or admin privileges",
         )
     return user
-
-
-async def if_already_registered(
-    session: AsyncSession,
-    user_data: RegisterUser,
-) -> None:
-    user = await session.get(User, user_data)
-    if user:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"User with '{user_data.email}' email has already registered",
-        )
