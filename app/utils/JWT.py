@@ -1,10 +1,8 @@
 import bcrypt
 import jwt
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from pytz import utc
-
-from asyncpg.pgproto.pgproto import timedelta
 
 from core.config import settings
 
@@ -20,7 +18,7 @@ def encode_jwt(
     expire = current_time_utc + timedelta(seconds=lifetime_seconds)
 
     to_encode.update(
-        expire=expire,
+        expire=int(expire.timestamp()),
         created_at=current_time_utc,
     )
     encoded = jwt.encode(

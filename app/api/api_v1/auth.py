@@ -37,21 +37,19 @@ async def register_user(
     return await crud.register_user(db, user_data)
 
 
-@router.post("/login/", response_model=AccessToken)
+@router.post("/login")
 async def login_user(
-    user_data: UserLogin = Depends(validate_registered_user),
+    user_data: UserLogin,
     db: AsyncSession = Depends(db_helper.dependency_session_getter),
-):
+) -> AccessToken:
     return await crud.login_user(db, user_data)
 
 
 @router.get("/users/me")
-def auth_user_get_self_info(
-    user_data: UserLogin = Depends(get_current_active_auth_user),
+async def auth_user_get_self_info(
+    user_data: UserLogin,
 ):
     return {
-        "name": user_data.name,
-        "surname": user_data.surname,
-        "patronymic": user_data.patronymic,
+        "id": user_data.id,
         "email": user_data.email,
     }

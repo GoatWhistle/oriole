@@ -20,4 +20,4 @@ class User(Base, IdIntPkMixin):
     is_verified: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
     profile: Mapped["UserProfile"] = relationship(back_populates="user")
-    token: Mapped["AccessToken"] = relationship(back_populates="user")
+    access_token: Mapped["AccessToken"] = relationship(back_populates="user")

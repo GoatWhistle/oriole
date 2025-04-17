@@ -1,7 +1,4 @@
-from sqlalchemy import (
-    String,
-    ForeignKey,
-)
+from sqlalchemy import String, ForeignKey, TIMESTAMP
 
 from sqlalchemy.orm import (
     Mapped,
@@ -23,9 +20,9 @@ class AccessToken(Base):
         ForeignKey("users.id"),
         primary_key=True,
     )
-    token: Mapped[str] = mapped_column(String(length=511), nullable=False)
-    created_at: Mapped[int] = mapped_column(
-        String(length=15), default=str(datetime.now(utc)), nullable=False
-    )
+    user: Mapped["User"] = relationship(back_populates="access_token")
 
-    user: Mapped["User"] = relationship(back_populates="tokens")
+    token: Mapped[str] = mapped_column(String(length=511), nullable=False)
+    created_at: Mapped[TIMESTAMP] = mapped_column(
+        TIMESTAMP, default=datetime.now(utc).timestamp(), nullable=False
+    )

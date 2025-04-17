@@ -1,3 +1,5 @@
+from os import access
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -43,9 +45,6 @@ async def register_user(
         user = User(
             email=user_data.email,
             hashed_password=hash_password(user_data.hashed_password),
-            is_active=True,
-            is_superuser=False,
-            is_verified=False,
         )
 
         session.add(user)
@@ -160,18 +159,20 @@ async def login_user(
     statement = select(User).filter_by(email=user_data.email)
 
     user_by_email = await session.scalars(statement)
-    user_by_email = user_by_email.all()
+    user_by_email = user_by_email.all()[0]
 
     jwt_payload = {
-        "name": user_data.name,
-        "surname": user_data.surname,
-        "patronymic": user_data.patronymic,
+        "id": user_by_email.id,
         "email": user_data.email,
     }
     token = encode_jwt(jwt_payload)
-    return AccessToken(
-        user_id=user_by_email[0].id,
+
+    access_token = AccessToken(
+        user_id=user_by_email.id,
         access_token=token,
-        created_at=datetime.now(utc),
-        token_type="Bearer",
+        created_at=int(datetime.now(utc).timestamp()),
     )
+    session.add(access_token)
+    await session.commit()
+
+    return AccessToken.model_validate(access_token)
