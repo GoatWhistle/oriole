@@ -4,6 +4,7 @@ from fastapi import (
     status,
 )
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.sql.annotation import Annotated
 
 from core.config import settings
 from core.schemas.token import AccessToken
@@ -37,9 +38,13 @@ async def register_user(
     return await crud.register_user(db, user_data)
 
 
-@router.post("/login")
+@router.post(
+    "/login/",
+    response_model=AccessToken,
+    status_code=status.HTTP_201_CREATED,
+)
 async def login_user(
-    user_data: UserLogin = Depends(validate_registered_user),
+    user_data: UserLogin,
     db: AsyncSession = Depends(db_helper.dependency_session_getter),
 ) -> AccessToken:
     return await crud.login_user(db, user_data)

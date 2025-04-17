@@ -21,8 +21,8 @@ from jwt.exceptions import InvalidTokenError
 from datetime import datetime
 from pytz import utc
 
-from core.schemas.token import AccessToken
-from core.models import User, UserProfile
+from core.schemas.token import AccessToken as AccessTokenSchema
+from core.models import User, UserProfile, AccessToken
 
 from utils.JWT import hash_password
 
@@ -98,17 +98,20 @@ async def get_current_auth_user(
             detail="token invalid (email not found in payload)",
         )
 
-    user_by_email = await session.get(User, email)
-    if not user_by_email:
+    statement = select(User).filter_by(email=email)
+    user_from_db = await session.scalars(statement)
+    user_from_db = user_from_db.all()[0]
+
+    if not user_from_db:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="token invalid (user not found)",
         )
-    return user_by_email
+    return UserAuthRead.model_validate(user_from_db)
 
 
 def get_current_active_auth_user(
-    user_data: UserLogin = Depends(get_current_auth_user),
+    user_data: UserAuthRead = Depends(get_current_auth_user),
 ):
     if user_data.is_active:
         return user_data
@@ -120,42 +123,46 @@ def get_current_active_auth_user(
 
 async def validate_registered_user(
     session: AsyncSession,
-    user_data = UserLogin,
+    user_data: UserLogin,
 ):
     email = user_data.email
     password = user_data.password
+
+    statement = select(User).filter_by(email=email)
+    user_from_db = await session.scalars(statement)
+    user_from_db = user_from_db.all()[0]
 
     unauthed_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Invalid login or password",
     )
 
-    if not (user_by_email := await session.get(User, email)):
+    if not (user_from_db):
         raise unauthed_exception
 
     if not validate_password(
-        password=password, hashed_password=user_by_email.hashed_password
+        password=password, hashed_password=user_from_db.hashed_password
     ):
         raise unauthed_exception
-    if not user_by_email.is_active:
+    if not user_from_db.is_active:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="User is inactive",
         )
 
-    if not user_by_email.is_verified:
+    if not user_from_db.is_verified:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="User is unverified",
         )
 
-    return UserLogin.model_validate(user_by_email)
+    return UserLogin.model_validate(user_from_db)
 
 
 async def login_user(
     session: AsyncSession,
     user_data: UserLogin,
-) -> AccessToken:
+) -> AccessTokenSchema:
     statement = select(User).filter_by(email=user_data.email)
 
     user_by_email = await session.scalars(statement)
@@ -175,4 +182,4 @@ async def login_user(
     session.add(access_token)
     await session.commit()
 
-    return AccessToken.model_validate(access_token)
+    return AccessTokenSchema.model_validate(access_token)

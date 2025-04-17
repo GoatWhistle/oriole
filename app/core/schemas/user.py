@@ -48,5 +48,3 @@ class RegisterUser(BaseModel):
 class UserLogin(BaseModel):
     email: Annotated[EmailStr, Field(max_length=63)]
     password: Annotated[str, Field(max_length=127)]
-    is_active: bool
-    is_verified: bool

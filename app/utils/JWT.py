@@ -19,7 +19,7 @@ def encode_jwt(
 
     to_encode.update(
         expire=int(expire.timestamp()),
-        created_at=current_time_utc,
+        created_at=int(current_time_utc.timestamp()),
     )
     encoded = jwt.encode(
         to_encode,
