@@ -72,46 +72,12 @@ async def register_user(
         )
 
 
-async def validate_registered_user(
-    session: AsyncSession,
-    email: str = Form(),
-    password: str = Form(),
-):
-    unauthed_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Invalid login or password",
-    )
-
-    if not (user_by_email := await session.get(User, email)):
-        raise unauthed_exception
-
-    if not validate_password(
-        password=password, hashed_password=user_by_email.hashed_password
-    ):
-        raise unauthed_exception
-    if not user_by_email.is_active:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="User is inactive",
-        )
-
-    if not user_by_email.is_verified:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="User is unverified",
-        )
-
-    return user_by_email
-
-
 def get_current_token_payload(
     credentials: HTTPAuthorizationCredentials = Depends(http_bearer),
-) -> UserLogin:
+) -> dict:
     token = credentials.credentials
     try:
-        payload = decode_jwt(
-            token=token,
-        )
+        payload = decode_jwt(token=token)
         return payload
 
     except InvalidTokenError as e:
@@ -124,7 +90,7 @@ def get_current_token_payload(
 async def get_current_auth_user(
     session: AsyncSession,
     payload: dict = Depends(get_current_token_payload),
-) -> UserLogin:
+) -> UserAuth:
     email: str | None = payload.get("email")
     if email is None:
         raise HTTPException(
@@ -152,6 +118,40 @@ def get_current_active_auth_user(
     )
 
 
+async def validate_registered_user(
+    session: AsyncSession,
+    user_data = UserLogin,
+):
+    email = user_data.email
+    password = user_data.password
+
+    unauthed_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Invalid login or password",
+    )
+
+    if not (user_by_email := await session.get(User, email)):
+        raise unauthed_exception
+
+    if not validate_password(
+        password=password, hashed_password=user_by_email.hashed_password
+    ):
+        raise unauthed_exception
+    if not user_by_email.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="User is inactive",
+        )
+
+    if not user_by_email.is_verified:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="User is unverified",
+        )
+
+    return UserLogin.model_validate(user_by_email)
+
+
 async def login_user(
     session: AsyncSession,
     user_data: UserLogin,
@@ -162,7 +162,7 @@ async def login_user(
     user_by_email = user_by_email.all()[0]
 
     jwt_payload = {
-        "id": user_by_email.id,
+        "sub": user_by_email.id,
         "email": user_data.email,
     }
     token = encode_jwt(jwt_payload)

@@ -21,6 +21,7 @@ from crud import groups as crud
 
 from core.schemas.assignment import AssignmentRead
 from core.schemas.user import UserProfile
+from crud.auth import get_current_active_auth_user
 
 
 router = APIRouter(tags=[settings.api.v1.groups[1:].capitalize()])
@@ -39,7 +40,7 @@ async def create_group(
     ],
     current_user: Annotated[
         User,
-        Depends(get_current_user),
+        Depends(get_current_active_auth_user),
     ],
     group_in: GroupCreate,
 ):
@@ -61,7 +62,7 @@ async def get_group(
     ],
     current_user: Annotated[
         User,
-        Depends(get_current_user),
+        Depends(get_current_active_auth_user),
     ],
     group_id: int,
 ):
@@ -83,7 +84,7 @@ async def get_groups(
     ],
     current_user: Annotated[
         User,
-        Depends(get_current_user),
+        Depends(get_current_active_auth_user),
     ],
 ):
     return await crud.get_groups(session=session, user_id=current_user.id)
@@ -97,7 +98,7 @@ async def update_group(
     ],
     current_user: Annotated[
         User,
-        Depends(get_current_user),
+        Depends(get_current_active_auth_user),
     ],
     group_id: int,
     group_update: GroupUpdate,
@@ -119,7 +120,7 @@ async def update_group_partial(
     ],
     current_user: Annotated[
         User,
-        Depends(get_current_user),
+        Depends(get_current_active_auth_user),
     ],
     group_id: int,
     group_update: GroupUpdatePartial,
@@ -144,7 +145,7 @@ async def delete_group(
     ],
     current_user: Annotated[
         User,
-        Depends(get_current_user),
+        Depends(get_current_active_auth_user),
     ],
     group_id: int,
 ) -> None:
@@ -166,7 +167,7 @@ async def get_users_in_group(
     ],
     current_user: Annotated[
         User,
-        Depends(get_current_user),
+        Depends(get_current_active_auth_user),
     ],
     group_id: int,
 ):
@@ -188,7 +189,7 @@ async def get_assignments_in_group(
     ],
     current_user: Annotated[
         User,
-        Depends(get_current_user),
+        Depends(get_current_active_auth_user),
     ],
     group_id: int,
 ):
@@ -207,7 +208,7 @@ async def create_link(
     ],
     current_user: Annotated[
         User,
-        Depends(get_current_user),
+        Depends(get_current_active_auth_user),
     ],
     group_id: int,
 ):
