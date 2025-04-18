@@ -22,7 +22,7 @@ from datetime import datetime
 from pytz import utc
 
 from core.schemas.token import AccessToken as AccessTokenSchema
-from core.models import User, UserProfile, AccessToken
+from core.models import User, UserProfile, AccessToken, db_helper
 
 from utils.JWT import hash_password
 
@@ -53,9 +53,9 @@ async def register_user(
         statement = select(User).filter_by(email=user_data.email)
 
         user_by_email = await session.scalars(statement)
-        user_by_email = user_by_email.all()
+        user_by_email = user_by_email.first()
         profile = UserProfile(
-            user_id=user_by_email[0].id,
+            user_id=user_by_email.id,
             name=user_data.name,
             surname=user_data.surname,
             patronymic=user_data.patronymic,
@@ -100,7 +100,7 @@ async def get_current_auth_user(
 
     statement = select(User).filter_by(email=email)
     user_from_db = await session.scalars(statement)
-    user_from_db = user_from_db.all()[0]
+    user_from_db = user_from_db.first()
 
     if not user_from_db:
         raise HTTPException(
@@ -122,15 +122,15 @@ def get_current_active_auth_user(
 
 
 async def validate_registered_user(
-    session: AsyncSession,
     user_data: UserLogin,
+    session: AsyncSession = Depends(db_helper.dependency_session_getter),
 ):
     email = user_data.email
     password = user_data.password
 
     statement = select(User).filter_by(email=email)
     user_from_db = await session.scalars(statement)
-    user_from_db = user_from_db.all()[0]
+    user_from_db = user_from_db.first()
 
     unauthed_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -141,7 +141,7 @@ async def validate_registered_user(
         raise unauthed_exception
 
     if not validate_password(
-        password=password, hashed_password=user_from_db.hashed_password
+        password=password, hashed_password=str(user_from_db.hashed_password)
     ):
         raise unauthed_exception
     if not user_from_db.is_active:

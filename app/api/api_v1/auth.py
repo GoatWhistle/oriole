@@ -44,7 +44,7 @@ async def register_user(
     status_code=status.HTTP_201_CREATED,
 )
 async def login_user(
-    user_data: UserLogin,
+    user_data: UserLogin = Depends(validate_registered_user),
     db: AsyncSession = Depends(db_helper.dependency_session_getter),
 ) -> AccessToken:
     return await crud.login_user(db, user_data)
