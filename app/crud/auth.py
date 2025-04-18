@@ -156,7 +156,7 @@ async def validate_registered_user(
             detail="User is unverified",
         )
 
-    return UserLogin.model_validate(user_from_db)
+    return UserLogin.model_validate(user_data)
 
 
 async def login_user(
