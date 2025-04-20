@@ -17,7 +17,6 @@ from core.schemas.user import (
 )
 from crud.auth import (
     validate_registered_user,
-    get_current_active_auth_user,
 )
 
 router = APIRouter(

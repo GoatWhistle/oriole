@@ -1,5 +1,5 @@
 from typing import Any, Coroutine
-
+from sqlalchemy.engine import Result
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -112,11 +112,15 @@ async def get_current_auth_user(
     return UserAuthRead.model_validate(user_from_db)
 
 
-def get_current_active_auth_user(
+async def get_current_active_auth_user_id(
+    session: AsyncSession = Depends(db_helper.dependency_session_getter),
     user_data: UserAuthRead = Depends(get_current_auth_user),
-):
+) -> int | Mapped[int]:
     if user_data.is_active:
-        return user_data
+        statement = select(User).where(User.email == user_data.email)
+        result: Result = await session.execute(statement)
+        user = result.scalars().first()
+        return user.id
     raise HTTPException(
         status_code=status.HTTP_403_FORBIDDEN,
         detail="User inactive",
@@ -185,12 +189,3 @@ async def login_user(
     await session.commit()
 
     return AccessTokenSchema.model_validate(access_token)
-
-
-async def get_user_id_from_auth(
-    session: AsyncSession, user_auth: UserAuthRead
-) -> int | Mapped[int]:
-    statement = select(User).where(User.email == user_auth.email)
-    result = await session.execute(statement)
-    user = result.scalars().first()
-    return user.id

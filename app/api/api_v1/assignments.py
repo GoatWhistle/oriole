@@ -19,7 +19,7 @@ from core.schemas.assignment import (
 from core.schemas.user import UserAuthRead
 from crud import assignments as crud
 
-from crud.auth import get_user_id_from_auth, get_current_active_auth_user
+from crud.auth import get_current_active_auth_user_id
 
 router = APIRouter(
     prefix=settings.api.v1.assignments,
@@ -37,15 +37,15 @@ async def create_assignment(
         AsyncSession,
         Depends(db_helper.dependency_session_getter),
     ],
-    current_user: Annotated[
-        UserAuthRead,
-        Depends(get_current_active_auth_user),
+    current_user_id: Annotated[
+        int,
+        Depends(get_current_active_auth_user_id),
     ],
     assignment_in: AssignmentCreate,
 ):
     return await crud.create_assignment(
         session=session,
-        user_id=get_user_id_from_auth(session=session, user_auth=current_user),
+        user_id=current_user_id,
         assignment_in=assignment_in,
     )
 
@@ -59,15 +59,15 @@ async def get_assignment(
         AsyncSession,
         Depends(db_helper.dependency_session_getter),
     ],
-    current_user: Annotated[
-        UserAuthRead,
-        Depends(get_current_active_auth_user),
+    current_user_id: Annotated[
+        int,
+        Depends(get_current_active_auth_user_id),
     ],
     assignment_id: int,
 ):
     return await crud.get_assignment(
         session=session,
-        user_id=get_user_id_from_auth(session=session, user_auth=current_user),
+        user_id=current_user_id,
         assignment_id=assignment_id,
     )
 
@@ -81,15 +81,15 @@ async def get_assignments(
         AsyncSession,
         Depends(db_helper.dependency_session_getter),
     ],
-    current_user: Annotated[
-        UserAuthRead,
-        Depends(get_current_active_auth_user),
+    current_user_id: Annotated[
+        int,
+        Depends(get_current_active_auth_user_id),
     ],
     group_id: int,
 ):
     return await crud.get_assignments(
         session=session,
-        user_id=get_user_id_from_auth(session=session, user_auth=current_user),
+        user_id=current_user_id,
         group_id=group_id,
     )
 
@@ -100,16 +100,16 @@ async def update_assignment(
         AsyncSession,
         Depends(db_helper.dependency_session_getter),
     ],
-    current_user: Annotated[
-        UserAuthRead,
-        Depends(get_current_active_auth_user),
+    current_user_id: Annotated[
+        int,
+        Depends(get_current_active_auth_user_id),
     ],
     assignment_update: AssignmentUpdate,
     assignment_id: int,
 ):
     return await crud.update_assignment(
         session=session,
-        user_id=get_user_id_from_auth(session=session, user_auth=current_user),
+        user_id=current_user_id,
         assignment_id=assignment_id,
         assignment_update=assignment_update,
     )
@@ -121,16 +121,16 @@ async def update_assignment_partial(
         AsyncSession,
         Depends(db_helper.dependency_session_getter),
     ],
-    current_user: Annotated[
-        UserAuthRead,
-        Depends(get_current_active_auth_user),
+    current_user_id: Annotated[
+        int,
+        Depends(get_current_active_auth_user_id),
     ],
     assignment_update: AssignmentUpdatePartial,
     assignment_id: int,
 ):
     return await crud.update_assignment(
         session=session,
-        user_id=get_user_id_from_auth(session=session, user_auth=current_user),
+        user_id=current_user_id,
         assignment_id=assignment_id,
         assignment_update=assignment_update,
         partial=True,
@@ -146,14 +146,14 @@ async def delete_assignment(
         AsyncSession,
         Depends(db_helper.dependency_session_getter),
     ],
-    current_user: Annotated[
-        UserAuthRead,
-        Depends(get_current_active_auth_user),
+    current_user_id: Annotated[
+        int,
+        Depends(get_current_active_auth_user_id),
     ],
     assignment_id: int,
 ) -> None:
     await crud.delete_assignment(
         session=session,
-        user_id=get_user_id_from_auth(session=session, user_auth=current_user),
+        user_id=current_user_id,
         assignment_id=assignment_id,
     )
