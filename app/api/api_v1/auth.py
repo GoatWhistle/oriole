@@ -4,7 +4,6 @@ from fastapi import (
     status,
 )
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.sql.annotation import Annotated
 
 from core.config import settings
 from core.schemas.token import AccessToken

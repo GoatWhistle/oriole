@@ -6,8 +6,8 @@ from enum import IntEnum
 
 
 class AccountRole(IntEnum):
-    TEACHER = 0
-    STUDENT = 1
+    OWNER = 0
+    MEMBER = 1
 
 
 class Account(BaseModel):
