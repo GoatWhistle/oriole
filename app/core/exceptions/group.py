@@ -22,9 +22,10 @@ async def check_group_exists(
 
 async def check_user_in_group(
     session: AsyncSession,
-    user_id: int,
+    user_id: Mapped[int] | int,
     group_id: Mapped[int] | int,
 ) -> None:
+
     statement = select(Account).where(
         Account.user_id == user_id, Account.group_id == group_id
     )
@@ -34,22 +35,19 @@ async def check_user_in_group(
     if not account:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail=f"User {user_id} is not a member of this group {group_id}.",
+            detail=f"User {user_id} is not a member of group {group_id}.",
         )
 
 
 async def check_admin_permission_in_group(
     session: AsyncSession,
-    user_id: int,
+    user_id: Mapped[int] | int,
     group_id: Mapped[int] | int,
 ) -> None:
     group = await session.get(Group, group_id)
-    admin_accounts = [
-        account
-        for account in group.accounts
-        if account.role == AccountRole.TEACHER.value
-    ]
-    if not any(account.user_id == user_id for account in admin_accounts):
+    account = next((acc for acc in group.accounts if acc.user_id == user_id), None)
+
+    if not account or account.role != AccountRole.OWNER.value:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail=f"User {user_id} does not have permission to perform this action in group {group_id}.",
