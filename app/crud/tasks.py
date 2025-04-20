@@ -12,6 +12,7 @@ from core.schemas.task import (
     TaskUpdate,
     TaskUpdatePartial,
 )
+from core.exceptions.user import check_user_exists
 from core.exceptions.task import check_task_exists
 from core.exceptions.assignment import check_assignment_exists
 
@@ -27,9 +28,9 @@ async def create_task(
     user_id: int,
     task_in: TaskCreate,
 ) -> TaskRead:
+    await check_user_exists(session=session, user_id=user_id)
     await check_assignment_exists(session=session, assignment_id=task_in.assignment_id)
     assignment = await session.get(Assignment, task_in.assignment_id)
-
     await check_group_exists(session=session, group_id=assignment.group_id)
     await check_user_in_group(
         session=session,
@@ -55,6 +56,7 @@ async def get_task(
     user_id: int,
     task_id: int,
 ) -> TaskRead:
+    await check_user_exists(session=session, user_id=user_id)
     await check_task_exists(session=session, task_id=task_id)
     task = await session.get(Task, task_id)
 
@@ -76,6 +78,7 @@ async def get_tasks(
     user_id: int,
     assignment_id: int,
 ) -> Sequence[TaskRead]:
+    await check_user_exists(session=session, user_id=user_id)
     await check_assignment_exists(session=session, assignment_id=assignment_id)
     assignment = await session.get(Assignment, assignment_id)
 
@@ -103,6 +106,7 @@ async def update_task(
     task_update: TaskUpdate | TaskUpdatePartial,
     partial: bool = False,
 ) -> TaskRead:
+    await check_user_exists(session=session, user_id=user_id)
     await check_task_exists(session=session, task_id=task_id)
     task = await session.get(Task, task_id)
 
@@ -134,6 +138,7 @@ async def delete_task(
     user_id: int,
     task_id: int,
 ) -> None:
+    await check_user_exists(session=session, user_id=user_id)
     await check_task_exists(session=session, task_id=task_id)
     task = await session.get(Task, task_id)
 

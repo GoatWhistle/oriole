@@ -11,7 +11,6 @@ from core.schemas.assignment import AssignmentRead
 
 from core.exceptions.user import (
     get_user_or_404_with_return,
-    check_teacher_or_403,
 )
 
 

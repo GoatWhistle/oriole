@@ -23,12 +23,15 @@ from core.exceptions.group import (
     check_user_in_group,
 )
 
+from core.exceptions.user import check_user_exists
+
 
 async def create_assignment(
     session: AsyncSession,
     user_id: int,
     assignment_in: AssignmentCreate,
 ) -> AssignmentRead:
+    await check_user_exists(session=session, user_id=user_id)
     await check_group_exists(session=session, group_id=assignment_in.group_id)
     await check_user_in_group(
         session=session,
@@ -54,6 +57,7 @@ async def get_assignment(
     user_id: int,
     assignment_id: int,
 ) -> AssignmentRead:
+    await check_user_exists(session=session, user_id=user_id)
     await check_assignment_exists(session=session, assignment_id=assignment_id)
     assignment = await session.get(Assignment, assignment_id)
 
@@ -72,6 +76,7 @@ async def get_assignments(
     user_id: int,
     group_id: int,
 ) -> Sequence[AssignmentRead]:
+    await check_user_exists(session=session, user_id=user_id)
     await check_group_exists(session=session, group_id=group_id)
     await check_user_in_group(session=session, user_id=user_id, group_id=group_id)
 
@@ -94,6 +99,7 @@ async def update_assignment(
     assignment_update: AssignmentUpdate | AssignmentUpdatePartial,
     partial: bool = False,
 ) -> AssignmentRead:
+    await check_user_exists(session=session, user_id=user_id)
     await check_assignment_exists(session=session, assignment_id=assignment_id)
     assignment = await session.get(Assignment, assignment_id)
 
@@ -121,6 +127,7 @@ async def delete_assignment(
     user_id: int,
     assignment_id: int,
 ) -> None:
+    await check_user_exists(session=session, user_id=user_id)
     await check_assignment_exists(session=session, assignment_id=assignment_id)
     assignment = await session.get(Assignment, assignment_id)
 
@@ -143,6 +150,7 @@ async def get_tasks_in_assignment(
     user_id: int,
     assignment_id: int,
 ) -> Sequence[TaskRead]:
+    await check_user_exists(session=session, user_id=user_id)
     await check_assignment_exists(session=session, assignment_id=assignment_id)
     assignment = await session.get(Assignment, assignment_id)
 

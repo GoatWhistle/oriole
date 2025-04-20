@@ -9,6 +9,9 @@ from core.exceptions.group import (
     check_admin_permission_in_group,
     check_user_in_group,
 )
+
+from core.exceptions.user import check_user_exists
+
 from core.schemas.account import AccountRole
 
 from core.schemas.assignment import AssignmentRead
@@ -31,42 +34,27 @@ from core.models import (
 
 async def create_group(
     session: AsyncSession,
-    user: User,
+    user_id: int,
     group_in: GroupCreate,
 ) -> GroupRead:
 
+    await check_user_exists(session=session, user_id=user_id)
+
     group = Group(**group_in.model_dump(exclude={"accounts", "assignments"}))
-    group.admin_id = user.id
 
     session.add(group)
     await session.flush()
 
     admin_account = Account(
-        user_id=user.id, group_id=group.id, role=AccountRole.TEACHER.value
+        user_id=user_id,
+        group_id=group.id,
+        role=AccountRole.OWNER.value,
     )
-
     session.add(admin_account)
     group.accounts.append(admin_account)
+
+    user = await session.get(User, user_id)
     user.profile.accounts.append(admin_account)
-
-    if group_in.accounts:
-        result = await session.execute(
-            select(User).where(User.id.in_(group_in.accounts))
-        )
-        existing_users = result.scalars().all()
-
-        for existing_user in existing_users:
-            if existing_user.id == user.id:
-                continue
-
-            account = Account(
-                user_id=existing_user.id,
-                group_id=group.id,
-                role=AccountRole.STUDENT.value,
-            )
-            session.add(account)
-            group.accounts.append(account)
-            existing_user.profile.accounts.append(account)
 
     await session.commit()
     await session.refresh(group)
@@ -79,6 +67,7 @@ async def get_group(
     user_id: int,
     group_id: int,
 ) -> GroupRead:
+    await check_user_exists(session=session, user_id=user_id)
     await check_group_exists(session=session, group_id=group_id)
     await check_user_in_group(session=session, user_id=user_id, group_id=group_id)
 
@@ -90,6 +79,8 @@ async def get_groups(
     session: AsyncSession,
     user_id: int,
 ) -> Sequence[GroupRead]:
+    await check_user_exists(session=session, user_id=user_id)
+
     statement = (
         select(Group).join(Account).where(Account.user_id == user_id).order_by(Group.id)
     )
@@ -107,6 +98,7 @@ async def update_group(
     group_update: GroupUpdate | GroupUpdatePartial,
     partial: bool = False,
 ) -> GroupRead:
+    await check_user_exists(session=session, user_id=user_id)
     await check_group_exists(session=session, group_id=group_id)
     await check_user_in_group(session=session, user_id=user_id, group_id=group_id)
     await check_admin_permission_in_group(
@@ -129,6 +121,7 @@ async def delete_group(
     user_id: int,
     group_id: int,
 ) -> None:
+    await check_user_exists(session=session, user_id=user_id)
     await check_group_exists(session=session, group_id=group_id)
     await check_user_in_group(session=session, user_id=user_id, group_id=group_id)
     await check_admin_permission_in_group(
@@ -146,6 +139,7 @@ async def get_users_in_group(
     user_id: int,
     group_id: int,
 ) -> Sequence[UserProfile]:
+    await check_user_exists(session=session, user_id=user_id)
     await check_group_exists(session=session, group_id=group_id)
     await check_user_in_group(session=session, user_id=user_id, group_id=group_id)
 
@@ -162,6 +156,7 @@ async def get_assignments_in_group(
     user_id: int,
     group_id: int,
 ) -> Sequence[AssignmentRead]:
+    await check_user_exists(session=session, user_id=user_id)
     await check_group_exists(session=session, group_id=group_id)
     await check_user_in_group(session=session, user_id=user_id, group_id=group_id)
 
@@ -182,6 +177,7 @@ async def create_link(
     user_id: int,
     group_id: int,
 ):
+    await check_user_exists(session=session, user_id=user_id)
     await check_group_exists(session=session, group_id=group_id)
     await check_user_in_group(session=session, user_id=user_id, group_id=group_id)
     await check_admin_permission_in_group(

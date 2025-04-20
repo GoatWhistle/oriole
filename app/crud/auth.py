@@ -1,4 +1,4 @@
-from os import access
+from typing import Any, Coroutine
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -11,6 +11,8 @@ from fastapi import (
 )
 
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from sqlalchemy.orm import Mapped
+
 from utils.JWT import (
     encode_jwt,
     validate_password,
@@ -88,7 +90,7 @@ def get_current_token_payload(
 
 
 async def get_current_auth_user(
-    session: AsyncSession,
+    session: AsyncSession = Depends(db_helper.dependency_session_getter),
     payload: dict = Depends(get_current_token_payload),
 ) -> UserAuth:
     email: str | None = payload.get("email")
@@ -183,3 +185,12 @@ async def login_user(
     await session.commit()
 
     return AccessTokenSchema.model_validate(access_token)
+
+
+async def get_user_id_from_auth(
+    session: AsyncSession, user_auth: UserAuthRead
+) -> int | Mapped[int]:
+    statement = select(User).where(User.email == user_auth.email)
+    result = await session.execute(statement)
+    user = result.scalars().first()
+    return user.id
