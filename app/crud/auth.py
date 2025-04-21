@@ -44,9 +44,14 @@ async def register_user(
 ) -> UserAuth:
 
     try:
+        user_data.is_active = True
+        user_data.is_verified = True
+
         user = User(
             email=user_data.email,
             hashed_password=hash_password(user_data.hashed_password),
+            is_active=user_data.is_active,
+            is_verified=user_data.is_verified,
         )
 
         session.add(user)
@@ -117,10 +122,11 @@ async def get_current_active_auth_user_id(
     user_data: UserAuthRead = Depends(get_current_auth_user),
 ) -> int | Mapped[int]:
     if user_data.is_active:
-        statement = select(User).where(User.email == user_data.email)
-        result: Result = await session.execute(statement)
-        user = result.scalars().first()
-        return user.id
+        statement = select(User).filter_by(email=user_data.email)
+        user_from_db = await session.scalars(statement)
+        user_from_db = user_from_db.first()
+        return user_from_db.id
+
     raise HTTPException(
         status_code=status.HTTP_403_FORBIDDEN,
         detail="User inactive",
@@ -143,13 +149,14 @@ async def validate_registered_user(
         detail="Invalid login or password",
     )
 
-    if not (user_from_db):
+    if not user_from_db:
         raise unauthed_exception
 
     if not validate_password(
         password=password, hashed_password=str(user_from_db.hashed_password)
     ):
         raise unauthed_exception
+
     if not user_from_db.is_active:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -172,7 +179,7 @@ async def login_user(
     statement = select(User).filter_by(email=user_data.email)
 
     user_by_email = await session.scalars(statement)
-    user_by_email = user_by_email.all()[0]
+    user_by_email = user_by_email.first()
 
     jwt_payload = {
         "sub": user_by_email.id,
@@ -182,7 +189,7 @@ async def login_user(
 
     access_token = AccessToken(
         user_id=user_by_email.id,
-        access_token=token,
+        token=token,
         created_at=int(datetime.now(utc).timestamp()),
     )
     session.add(access_token)
