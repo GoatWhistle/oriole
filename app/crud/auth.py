@@ -188,7 +188,7 @@ async def login_user(
     user_by_email = user_by_email.first()
 
     jwt_payload = {
-        "sub": user_by_email.id,
+        "sub": str(user_by_email.id),
         "email": user_data.email,
     }
     token = encode_jwt(jwt_payload)
