@@ -195,4 +195,4 @@ async def login_user(
     session.add(access_token)
     await session.commit()
 
-    return AccessTokenSchema.model_validate(access_token)
+    return AccessTokenSchema.model_validate(access_token.__dict__)

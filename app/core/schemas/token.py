@@ -1,6 +1,9 @@
-from pydantic import BaseModel
+from typing import Annotated
+
+from pydantic import BaseModel, Field
+
 
 class AccessToken(BaseModel):
     user_id: int
-    access_token: str
+    token: str
     created_at: int
