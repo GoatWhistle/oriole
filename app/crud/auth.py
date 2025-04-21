@@ -80,8 +80,14 @@ async def register_user(
 
 
 def get_current_token_payload(
-    credentials: HTTPAuthorizationCredentials = Depends(http_bearer),
+    credentials: HTTPAuthorizationCredentials | None = Depends(http_bearer),
 ) -> dict:
+    if credentials is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Not authenticated (missing or invalid Authorization header)",
+        )
+
     token = credentials.credentials
     try:
         payload = decode_jwt(token=token)
@@ -90,7 +96,7 @@ def get_current_token_payload(
     except InvalidTokenError as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=f"invalid token error: {e}",
+            detail=f"Invalid token error: {e}",
         )
 
 
@@ -102,7 +108,7 @@ async def get_current_auth_user(
     if email is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="token invalid (email not found in payload)",
+            detail="Token invalid (email not found in payload)",
         )
 
     statement = select(User).filter_by(email=email)
@@ -112,7 +118,7 @@ async def get_current_auth_user(
     if not user_from_db:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="token invalid (user not found)",
+            detail="Token invalid (user not found)",
         )
     return UserAuthRead.model_validate(user_from_db)
 
