@@ -14,6 +14,7 @@ from core.schemas.task import (
     TaskRead,
     TaskUpdate,
     TaskUpdatePartial,
+    TaskReadPartial,
 )
 
 from crud import tasks as crud
@@ -33,7 +34,7 @@ async def create_task(
         AsyncSession,
         Depends(db_helper.dependency_session_getter),
     ],
-    current_user_id: Annotated[
+    user_id: Annotated[
         int,
         Depends(get_current_active_auth_user_id),
     ],
@@ -41,7 +42,7 @@ async def create_task(
 ):
     return await crud.create_task(
         session=session,
-        user_id=current_user_id,
+        user_id=user_id,
         task_in=task_in,
     )
 
@@ -50,53 +51,54 @@ async def create_task(
     "/{task_id}/",
     response_model=TaskRead,
 )
-async def get_task(
+async def get_task_by_id(
     session: Annotated[
         AsyncSession,
         Depends(db_helper.dependency_session_getter),
     ],
-    current_user_id: Annotated[
+    user_id: Annotated[
         int,
         Depends(get_current_active_auth_user_id),
     ],
     task_id: int,
 ):
-    return await crud.get_task(
+    return await crud.get_task_by_id(
         session=session,
-        user_id=current_user_id,
+        user_id=user_id,
         task_id=task_id,
     )
 
 
 @router.get(
     "/",
-    response_model=Sequence[TaskRead],
+    response_model=Sequence[TaskReadPartial],
 )
-async def get_tasks(
+async def get_user_tasks(
     session: Annotated[
         AsyncSession,
         Depends(db_helper.dependency_session_getter),
     ],
-    current_user_id: Annotated[
+    user_id: Annotated[
         int,
         Depends(get_current_active_auth_user_id),
     ],
-    assignment_id: int,
 ):
-    return await crud.get_tasks(
+    return await crud.get_user_tasks(
         session=session,
-        user_id=current_user_id,
-        assignment_id=assignment_id,
+        user_id=user_id,
     )
 
 
-@router.put("/{task_id}/")
+@router.put(
+    "/{task_id}/",
+    response_model=TaskRead,
+)
 async def update_task(
     session: Annotated[
         AsyncSession,
         Depends(db_helper.dependency_session_getter),
     ],
-    current_user_id: Annotated[
+    user_id: Annotated[
         int,
         Depends(get_current_active_auth_user_id),
     ],
@@ -105,19 +107,22 @@ async def update_task(
 ):
     return await crud.update_task(
         session=session,
-        user_id=current_user_id,
+        user_id=user_id,
         task_id=task_id,
         task_update=task_update,
     )
 
 
-@router.patch("/{task_id}/")
+@router.patch(
+    "/{task_id}/",
+    response_model=TaskRead,
+)
 async def update_task_partial(
     session: Annotated[
         AsyncSession,
         Depends(db_helper.dependency_session_getter),
     ],
-    current_user_id: Annotated[
+    user_id: Annotated[
         int,
         Depends(get_current_active_auth_user_id),
     ],
@@ -126,10 +131,10 @@ async def update_task_partial(
 ):
     return await crud.update_task(
         session=session,
-        user_id=current_user_id,
+        user_id=user_id,
         task_id=task_id,
         task_update=task_update,
-        partial=True,
+        is_partial=True,
     )
 
 
@@ -142,7 +147,7 @@ async def delete_task(
         AsyncSession,
         Depends(db_helper.dependency_session_getter),
     ],
-    current_user_id: Annotated[
+    user_id: Annotated[
         int,
         Depends(get_current_active_auth_user_id),
     ],
@@ -150,6 +155,30 @@ async def delete_task(
 ) -> None:
     await crud.delete_task(
         session=session,
-        user_id=current_user_id,
+        user_id=user_id,
         task_id=task_id,
+    )
+
+
+@router.patch(
+    "/complete/{task_id}",
+    response_model=TaskRead,
+)
+async def try_to_complete_task(
+    session: Annotated[
+        AsyncSession,
+        Depends(db_helper.dependency_session_getter),
+    ],
+    user_id: Annotated[
+        int,
+        Depends(get_current_active_auth_user_id),
+    ],
+    task_id: int,
+    user_answer: str,
+):
+    return await crud.try_to_complete_task(
+        session=session,
+        user_id=user_id,
+        task_id=task_id,
+        user_answer=user_answer,
     )

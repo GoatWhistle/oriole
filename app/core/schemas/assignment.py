@@ -12,8 +12,6 @@ class AssignmentBase(BaseModel):
 
     is_contest: bool
 
-    group_id: int
-
 
 class AssignmentRead(AssignmentBase):
     id: int
@@ -23,22 +21,22 @@ class AssignmentRead(AssignmentBase):
         from_attributes=True,
     )
 
+
 class AssignmentDataRead(AssignmentRead):
     tasks: Sequence[TaskRead]
 
 
 class AssignmentCreate(AssignmentBase):
+    group_id: int
+
+
+class AssignmentUpdate(AssignmentBase):
     pass
 
 
-class AssignmentUpdate(AssignmentCreate):
-    pass
-
-
-class AssignmentUpdatePartial(AssignmentCreate):
+class AssignmentUpdatePartial(AssignmentBase):
     title: Annotated[Optional[str], Field(max_length=num_opt(100))] = None
     description: Annotated[Optional[str], Field(max_length=num_opt(200))] = None
 
     is_contest: Optional[bool] = None
 
-    group_id: Optional[int] = None

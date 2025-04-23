@@ -22,7 +22,7 @@ from core.schemas.group import (
 from crud import groups as crud
 
 from core.schemas.assignment import AssignmentRead
-from core.schemas.user import UserProfile
+from core.schemas.user import UserProfileRead
 
 router = APIRouter()
 
@@ -92,7 +92,10 @@ async def get_groups(
     )
 
 
-@router.put("/{group_id}/")
+@router.put(
+    "/{group_id}/",
+    response_model=GroupRead,
+)
 async def update_group(
     session: Annotated[
         AsyncSession,
@@ -114,7 +117,10 @@ async def update_group(
     )
 
 
-@router.patch("/{group_id}/")
+@router.patch(
+    "/{group_id}/",
+    response_model=GroupRead,
+)
 async def update_group_partial(
     session: Annotated[
         AsyncSession,
@@ -160,7 +166,7 @@ async def delete_group(
 
 @router.get(
     "/{group_id}/users/",
-    response_model=Sequence[UserProfile],
+    response_model=Sequence[UserProfileRead],
 )
 async def get_users_in_group(
     session: Annotated[
@@ -233,7 +239,7 @@ async def join_by_link(
     ],
     group_id: int,
 ):
-    await join_by_link(
+    await crud.join_by_link(
         session=session,
         user_id=user_id,
         group_id=group_id,
@@ -253,7 +259,7 @@ async def promote_user_to_admin(
     promote_user_id: int,
     group_id: int,
 ):
-    await promote_user_to_admin(
+    await crud.promote_user_to_admin(
         session=session,
         user_id=user_id,
         promote_user_id=promote_user_id,
@@ -274,7 +280,7 @@ async def demote_user_to_member(
     demote_user_id: int,
     group_id: int,
 ):
-    await demote_user_to_member(
+    await crud.demote_user_to_member(
         session=session,
         user_id=user_id,
         demote_user_id=demote_user_id,
@@ -295,9 +301,28 @@ async def remove_user_from_group(
     remove_user_id: int,
     group_id: int,
 ):
-    await remove_user_from_group(
+    await crud.remove_user_from_group(
         session=session,
         user_id=user_id,
         remove_user_id=remove_user_id,
+        group_id=group_id,
+    )
+
+
+@router.delete("/{group_id}/leave/")
+async def leave_from_group(
+    session: Annotated[
+        AsyncSession,
+        Depends(db_helper.dependency_session_getter),
+    ],
+    user_id: Annotated[
+        int,
+        Depends(get_current_active_auth_user_id),
+    ],
+    group_id: int,
+):
+    await crud.leave_from_group(
+        session=session,
+        user_id=user_id,
         group_id=group_id,
     )

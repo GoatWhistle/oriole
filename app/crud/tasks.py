@@ -4,13 +4,14 @@ from sqlalchemy import select
 from sqlalchemy.engine import Result
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.models import Assignment, Task
+from core.models import Assignment, Task, Group, Account, UserReply
 
 from core.schemas.task import (
     TaskCreate,
     TaskRead,
     TaskUpdate,
     TaskUpdatePartial,
+    TaskReadPartial,
 )
 from core.exceptions.user import check_user_exists
 from core.exceptions.task import check_task_exists
@@ -50,16 +51,32 @@ async def create_task(
     await session.commit()
     await session.refresh(task)
 
-    return TaskRead.model_validate(task)
+    user_reply = UserReply(
+        account_id=user_id,
+        task_id=task.id,
+        user_answer="",
+        is_correct=False,
+    )
+    session.add(user_reply)
+    await session.commit()
+
+    return TaskRead(
+        id=task.id,
+        title=task.title,
+        description=task.description,
+        user_answer=user_reply.user_answer,
+        is_correct=user_reply.is_correct,
+    )
 
 
-async def get_task(
+async def get_task_by_id(
     session: AsyncSession,
     user_id: int,
     task_id: int,
 ) -> TaskRead:
     await check_user_exists(session=session, user_id=user_id)
     await check_task_exists(session=session, task_id=task_id)
+
     task = await session.get(Task, task_id)
 
     await check_assignment_exists(session=session, assignment_id=task.assignment_id)
@@ -72,33 +89,79 @@ async def get_task(
         group_id=assignment.group_id,
     )
 
-    return TaskRead.model_validate(task)
+    user_reply_data = await session.execute(
+        select(UserReply).where(
+            UserReply.account_id == user_id, UserReply.task_id == task.id
+        )
+    )
+    user_reply = user_reply_data.scalars().first()
+
+    return TaskRead(
+        id=task.id,
+        title=task.title,
+        description=task.description,
+        user_answer=user_reply.user_answer if user_reply else "",
+        is_correct=user_reply.is_correct if user_reply else False,
+    )
 
 
-async def get_tasks(
+async def get_user_tasks(
     session: AsyncSession,
     user_id: int,
-    assignment_id: int,
-) -> Sequence[TaskRead]:
+) -> Sequence[TaskReadPartial]:
     await check_user_exists(session=session, user_id=user_id)
-    await check_assignment_exists(session=session, assignment_id=assignment_id)
-    assignment = await session.get(Assignment, assignment_id)
 
-    await check_group_exists(session=session, group_id=assignment.group_id)
-    await check_user_in_group(
-        session=session,
-        user_id=user_id,
-        group_id=assignment.group_id,
+    statement_account = select(Account).where(Account.user_id == user_id)
+    result_account: Result = await session.execute(statement_account)
+    account = result_account.scalars().first()
+
+    if not account:
+        return []
+
+    statement_groups = select(Group).join(Account).where(Account.user_id == user_id)
+    result_groups: Result = await session.execute(statement_groups)
+    groups = result_groups.scalars().all()
+
+    if not groups:
+        return []
+
+    group_ids = [group.id for group in groups]
+
+    statement_assignments = select(Assignment).where(Assignment.group_id.in_(group_ids))
+    result_assignments: Result = await session.execute(statement_assignments)
+    assignments = result_assignments.scalars().all()
+
+    if not assignments:
+        return []
+
+    assignment_ids = [assignment.id for assignment in assignments]
+
+    statement_tasks = select(Task).where(Task.assignment_id.in_(assignment_ids))
+    result_tasks: Result = await session.execute(statement_tasks)
+    tasks = result_tasks.scalars().all()
+
+    if not tasks:
+        return []
+
+    user_reply_data = await session.execute(
+        select(UserReply).where(
+            UserReply.account_id == account.id,
+            UserReply.task_id.in_([task.id for task in tasks]),
+        )
     )
+    user_replies = {reply.task_id: reply for reply in user_reply_data.scalars().all()}
 
-    statement = (
-        select(Task).where(Task.assignment_id == assignment_id).order_by(Task.id)
-    )
-
-    result: Result = await session.execute(statement)
-    tasks = list(result.scalars().all())
-
-    return [TaskRead.model_validate(task) for task in tasks]
+    return [
+        TaskReadPartial(
+            id=task.id,
+            title=task.title,
+            description=task.description,
+            is_correct=(
+                user_replies[task.id].is_correct if task.id in user_replies else False
+            ),
+        )
+        for task in tasks
+    ]
 
 
 async def update_task(
@@ -106,7 +169,7 @@ async def update_task(
     user_id: int,
     task_id: int,
     task_update: TaskUpdate | TaskUpdatePartial,
-    partial: bool = False,
+    is_partial: bool = False,
 ) -> TaskRead:
     await check_user_exists(session=session, user_id=user_id)
     await check_task_exists(session=session, task_id=task_id)
@@ -126,13 +189,29 @@ async def update_task(
         user_id=user_id,
         group_id=assignment.group_id,
     )
-    for name, value in task_update.model_dump(exclude_unset=partial).items():
+
+    for name, value in task_update.model_dump(exclude_unset=is_partial).items():
         setattr(task, name, value)
 
     await session.commit()
     await session.refresh(task)
 
-    return TaskRead.model_validate(task)
+    user_reply_data = await session.execute(
+        select(UserReply).where(
+            UserReply.account_id == user_id, UserReply.task_id == task_id
+        )
+    )
+    user_reply = user_reply_data.scalars().first()
+
+    return TaskRead(
+        id=task.id,
+        title=task.title,
+        description=task.description,
+        user_answer=user_reply.user_answer if user_reply else "",
+        is_correct=(
+            user_reply.user_answer == task.correct_answer if user_reply else False
+        ),
+    )
 
 
 async def delete_task(
@@ -161,3 +240,44 @@ async def delete_task(
 
     await session.delete(task)
     await session.commit()
+
+
+async def try_to_complete_task(
+    session: AsyncSession,
+    user_id: int,
+    task_id: int,
+    user_answer: str,
+) -> TaskRead:
+    await check_user_exists(session=session, user_id=user_id)
+
+    await check_task_exists(session=session, task_id=task_id)
+    task = await session.get(Task, task_id)
+
+    user_reply_data = await session.execute(
+        select(UserReply).where(
+            UserReply.account_id == user_id, UserReply.task_id == task_id
+        )
+    )
+    user_reply = user_reply_data.scalars().first()
+
+    if not user_reply:
+        user_reply = UserReply(
+            account_id=user_id,
+            task_id=task_id,
+            user_answer=user_answer,
+            is_correct=(user_answer == task.correct_answer),
+        )
+        session.add(user_reply)
+    else:
+        user_reply.answer = user_answer
+
+    await session.commit()
+    await session.refresh(task)
+
+    return TaskRead(
+        id=task.id,
+        title=task.title,
+        description=task.description,
+        is_correct=(user_answer == task.correct_answer),
+        user_answer=user_answer,
+    )

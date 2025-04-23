@@ -15,7 +15,7 @@ from core.schemas.assignment import (
     AssignmentUpdate,
     AssignmentUpdatePartial,
 )
-from core.schemas.task import TaskRead
+from core.schemas.task import TaskReadPartial
 
 from crud import assignments as crud
 
@@ -47,7 +47,6 @@ async def create_assignment(
     )
 
 
-# TODO: TEST
 @router.get(
     "/{assignment_id}/",
     response_model=AssignmentRead,
@@ -90,7 +89,10 @@ async def get_user_assignments(
     )
 
 
-@router.put("/{assignment_id}/")
+@router.put(
+    "/{assignment_id}/",
+    response_model=AssignmentRead,
+)
 async def update_assignment(
     session: Annotated[
         AsyncSession,
@@ -111,7 +113,10 @@ async def update_assignment(
     )
 
 
-@router.patch("/{assignment_id}/")
+@router.patch(
+    "/{assignment_id}/",
+    response_model=AssignmentRead,
+)
 async def update_assignment_partial(
     session: Annotated[
         AsyncSession,
@@ -155,7 +160,10 @@ async def delete_assignment(
     )
 
 
-@router.get("/{assignment_id}/tasks")
+@router.get(
+    "/{assignment_id}/tasks",
+    response_model=AssignmentRead,
+)
 async def get_tasks_in_assignment(
     session: Annotated[
         AsyncSession,
@@ -166,8 +174,8 @@ async def get_tasks_in_assignment(
         Depends(get_current_active_auth_user_id),
     ],
     assignment_id: int,
-) -> Sequence[TaskRead]:
-    return await get_tasks_in_assignment(
+) -> Sequence[TaskReadPartial]:
+    return await crud.get_tasks_in_assignment(
         session=session,
         user_id=user_id,
         assignment_id=assignment_id,

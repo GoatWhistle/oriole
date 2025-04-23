@@ -9,33 +9,31 @@ class TaskBase(BaseModel):
     title: Annotated[str, Field(max_length=num_opt(100))]
     description: Annotated[str, Field(max_length=num_opt(200))]
 
-    correct_answer: str
 
-    assignment_id: int
-    account_id: int
-
-
-class TaskRead(TaskBase):
+class TaskReadPartial(TaskBase):
     id: int
+    is_correct: bool
 
     model_config = ConfigDict(
         from_attributes=True,
     )
 
 
+class TaskRead(TaskReadPartial):
+    user_answer: str
+
+
 class TaskCreate(TaskBase):
-    pass
+    assignment_id: int
+    correct_answer: str
 
 
-class TaskUpdate(TaskCreate):
-    pass
+class TaskUpdate(TaskBase):
+    correct_answer: str
 
 
-class TaskUpdatePartial(TaskCreate):
+class TaskUpdatePartial(TaskBase):
     title: Annotated[Optional[str], Field(max_length=num_opt(100))] = None
     description: Annotated[Optional[str], Field(max_length=num_opt(200))] = None
 
     correct_answer: Optional[str] = None
-
-    assignment_id: Optional[int] = None
-    account_id: Optional[int] = None
