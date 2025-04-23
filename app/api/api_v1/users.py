@@ -18,10 +18,7 @@ from core.schemas.account import AccountRole
 from crud import users as crud
 from crud.auth import get_current_active_auth_user_id
 
-router = APIRouter(
-    tags=["Users"],
-    prefix=settings.api.v1.users,
-)
+router = APIRouter()
 
 
 @router.put("/{user_id}", response_model=UserRead)

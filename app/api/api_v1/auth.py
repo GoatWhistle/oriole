@@ -19,10 +19,7 @@ from crud.auth import (
     validate_registered_user,
 )
 
-router = APIRouter(
-    tags=["Auth"],
-    prefix=settings.api.v1.auth,
-)
+router = APIRouter()
 
 
 @router.post(

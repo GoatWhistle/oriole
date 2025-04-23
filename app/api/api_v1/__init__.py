@@ -34,12 +34,12 @@ router.include_router(
 
 router.include_router(
     router=users_router,
-    tags=[settings.api.v1.tasks[1:].capitalize()]
+    tags=[settings.api.v1.users[1:].capitalize()],
     prefix=settings.api.v1.users,
 )
 
 router.include_router(
     router=auth_router,
-    tags=[settings.api.v1.tasks[1:].capitalize()]
+    tags=[settings.api.v1.auth[1:].capitalize()],
     prefix=settings.api.v1.auth,
 )
