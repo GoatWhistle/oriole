@@ -30,7 +30,9 @@ async def create_task(
 ) -> TaskRead:
     await check_user_exists(session=session, user_id=user_id)
     await check_assignment_exists(session=session, assignment_id=task_in.assignment_id)
+
     assignment = await session.get(Assignment, task_in.assignment_id)
+
     await check_group_exists(session=session, group_id=assignment.group_id)
     await check_user_in_group(
         session=session,

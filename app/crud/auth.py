@@ -1,12 +1,9 @@
-from typing import Any, Coroutine
-from sqlalchemy.engine import Result
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from fastapi import (
     HTTPException,
     status,
-    Form,
     Depends,
 )
 
@@ -72,6 +69,7 @@ async def register_user(
         await session.commit()
 
         return UserAuthRead.model_validate(user)
+
     except:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,

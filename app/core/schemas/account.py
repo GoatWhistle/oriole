@@ -1,20 +1,24 @@
 from typing import Sequence
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel
 
 from enum import IntEnum
 
 
+from core.schemas.task import TaskRead
+
+
 class AccountRole(IntEnum):
     OWNER = 0
-    MEMBER = 1
+    ADMIN = 1
+    MEMBER = 2
 
 
-class Account(BaseModel):
+class AccountRead(BaseModel):
     user_id: int
 
-    role: AccountRole
+    role: int
 
     group_id: int
 
-    done_tasks: Sequence[int]
+    done_tasks: Sequence[TaskRead]

@@ -16,25 +16,30 @@ router = APIRouter(
 )
 
 router.include_router(
-    groups_router,
+    router=groups_router,
+    tags=[settings.api.v1.groups[1:].capitalize()],
     prefix=settings.api.v1.learn + settings.api.v1.groups,
 )
 
 router.include_router(
-    assignments_router,
+    router=assignments_router,
+    tags=[settings.api.v1.assignments[1:].capitalize()],
     prefix=settings.api.v1.assignments,
 )
 router.include_router(
-    tasks_router,
+    router=tasks_router,
+    tags=[settings.api.v1.tasks[1:].capitalize()],
     prefix=settings.api.v1.tasks,
 )
 
 router.include_router(
-    users_router,
+    router=users_router,
+    tags=[settings.api.v1.tasks[1:].capitalize()]
     prefix=settings.api.v1.users,
 )
 
 router.include_router(
-    auth_router,
+    router=auth_router,
+    tags=[settings.api.v1.tasks[1:].capitalize()]
     prefix=settings.api.v1.auth,
 )

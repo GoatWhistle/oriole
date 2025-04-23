@@ -9,7 +9,6 @@ from crud.auth import get_current_active_auth_user_id
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Annotated, Sequence
 
-from core.config import settings
 from core.models import db_helper
 
 from core.schemas.group import (
@@ -17,6 +16,7 @@ from core.schemas.group import (
     GroupRead,
     GroupUpdate,
     GroupUpdatePartial,
+    GroupDataRead,
 )
 
 from crud import groups as crud
@@ -24,10 +24,7 @@ from crud import groups as crud
 from core.schemas.assignment import AssignmentRead
 from core.schemas.user import UserProfile
 
-router = APIRouter(
-    prefix=settings.api.v1.learn + settings.api.v1.groups,
-    tags=[settings.api.v1.groups[1:].capitalize()],
-)
+router = APIRouter()
 
 
 @router.post(
@@ -40,7 +37,7 @@ async def create_group(
         AsyncSession,
         Depends(db_helper.dependency_session_getter),
     ],
-    current_user_id: Annotated[
+    user_id: Annotated[
         int,
         Depends(get_current_active_auth_user_id),
     ],
@@ -48,21 +45,21 @@ async def create_group(
 ):
     return await crud.create_group(
         session=session,
-        user_id=current_user_id,
+        user_id=user_id,
         group_in=group_in,
     )
 
 
 @router.get(
     "/{group_id}/",
-    response_model=GroupRead,
+    response_model=GroupDataRead,
 )
 async def get_group(
     session: Annotated[
         AsyncSession,
         Depends(db_helper.dependency_session_getter),
     ],
-    current_user_id: Annotated[
+    user_id: Annotated[
         int,
         Depends(get_current_active_auth_user_id),
     ],
@@ -70,7 +67,7 @@ async def get_group(
 ):
     return await crud.get_group(
         session=session,
-        user_id=current_user_id,
+        user_id=user_id,
         group_id=group_id,
     )
 
@@ -84,14 +81,14 @@ async def get_groups(
         AsyncSession,
         Depends(db_helper.dependency_session_getter),
     ],
-    current_user_id: Annotated[
+    user_id: Annotated[
         int,
         Depends(get_current_active_auth_user_id),
     ],
 ):
     return await crud.get_groups(
         session=session,
-        user_id=current_user_id,
+        user_id=user_id,
     )
 
 
@@ -101,7 +98,7 @@ async def update_group(
         AsyncSession,
         Depends(db_helper.dependency_session_getter),
     ],
-    current_user_id: Annotated[
+    user_id: Annotated[
         int,
         Depends(get_current_active_auth_user_id),
     ],
@@ -110,7 +107,7 @@ async def update_group(
 ):
     return await crud.update_group(
         session=session,
-        user_id=current_user_id,
+        user_id=user_id,
         group_id=group_id,
         group_update=group_update,
         partial=False,
@@ -123,7 +120,7 @@ async def update_group_partial(
         AsyncSession,
         Depends(db_helper.dependency_session_getter),
     ],
-    current_user_id: Annotated[
+    user_id: Annotated[
         int,
         Depends(get_current_active_auth_user_id),
     ],
@@ -132,7 +129,7 @@ async def update_group_partial(
 ):
     return await crud.update_group(
         session=session,
-        user_id=current_user_id,
+        user_id=user_id,
         group_id=group_id,
         group_update=group_update,
         partial=True,
@@ -148,7 +145,7 @@ async def delete_group(
         AsyncSession,
         Depends(db_helper.dependency_session_getter),
     ],
-    current_user_id: Annotated[
+    user_id: Annotated[
         int,
         Depends(get_current_active_auth_user_id),
     ],
@@ -156,7 +153,7 @@ async def delete_group(
 ) -> None:
     await crud.delete_group(
         session=session,
-        user_id=current_user_id,
+        user_id=user_id,
         group_id=group_id,
     )
 
@@ -170,7 +167,7 @@ async def get_users_in_group(
         AsyncSession,
         Depends(db_helper.dependency_session_getter),
     ],
-    current_user_id: Annotated[
+    user_id: Annotated[
         int,
         Depends(get_current_active_auth_user_id),
     ],
@@ -178,7 +175,7 @@ async def get_users_in_group(
 ):
     return await crud.get_users_in_group(
         session=session,
-        user_id=current_user_id,
+        user_id=user_id,
         group_id=group_id,
     )
 
@@ -192,7 +189,7 @@ async def get_assignments_in_group(
         AsyncSession,
         Depends(db_helper.dependency_session_getter),
     ],
-    current_user_id: Annotated[
+    user_id: Annotated[
         int,
         Depends(get_current_active_auth_user_id),
     ],
@@ -200,25 +197,107 @@ async def get_assignments_in_group(
 ):
     return await crud.get_assignments_in_group(
         session=session,
-        user_id=current_user_id,
+        user_id=user_id,
         group_id=group_id,
     )
 
 
-@router.get("/{group_id}/create_link/")
-async def create_link(
+@router.post("/{group_id}/invite/")
+async def invite_user(
     session: Annotated[
         AsyncSession,
         Depends(db_helper.dependency_session_getter),
     ],
-    current_user_id: Annotated[
+    user_id: Annotated[
         int,
         Depends(get_current_active_auth_user_id),
     ],
     group_id: int,
 ):
-    return await crud.create_link(
+    return await crud.invite_user(
         session=session,
-        user_id=current_user_id,
+        user_id=user_id,
+        group_id=group_id,
+    )
+
+
+@router.post("/join/{group_id}")
+async def join_by_link(
+    session: Annotated[
+        AsyncSession,
+        Depends(db_helper.dependency_session_getter),
+    ],
+    user_id: Annotated[
+        int,
+        Depends(get_current_active_auth_user_id),
+    ],
+    group_id: int,
+):
+    await join_by_link(
+        session=session,
+        user_id=user_id,
+        group_id=group_id,
+    )
+
+
+@router.patch("/{group_id}/promote/{promote_user_id}")
+async def promote_user_to_admin(
+    session: Annotated[
+        AsyncSession,
+        Depends(db_helper.dependency_session_getter),
+    ],
+    user_id: Annotated[
+        int,
+        Depends(get_current_active_auth_user_id),
+    ],
+    promote_user_id: int,
+    group_id: int,
+):
+    await promote_user_to_admin(
+        session=session,
+        user_id=user_id,
+        promote_user_id=promote_user_id,
+        group_id=group_id,
+    )
+
+
+@router.patch("/{group_id}/demote/{demote_user_id}")
+async def demote_user_to_member(
+    session: Annotated[
+        AsyncSession,
+        Depends(db_helper.dependency_session_getter),
+    ],
+    user_id: Annotated[
+        int,
+        Depends(get_current_active_auth_user_id),
+    ],
+    demote_user_id: int,
+    group_id: int,
+):
+    await demote_user_to_member(
+        session=session,
+        user_id=user_id,
+        demote_user_id=demote_user_id,
+        group_id=group_id,
+    )
+
+
+@router.delete("/{group_id}/kick/{remove_user_id}")
+async def remove_user_from_group(
+    session: Annotated[
+        AsyncSession,
+        Depends(db_helper.dependency_session_getter),
+    ],
+    user_id: Annotated[
+        int,
+        Depends(get_current_active_auth_user_id),
+    ],
+    remove_user_id: int,
+    group_id: int,
+):
+    await remove_user_from_group(
+        session=session,
+        user_id=user_id,
+        remove_user_id=remove_user_id,
         group_id=group_id,
     )

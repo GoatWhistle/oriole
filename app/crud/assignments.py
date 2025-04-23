@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.exceptions.assignment import check_assignment_exists
 
-from core.models import Task, Assignment
+from core.models import Task, Assignment, Group, Account
 
 from core.schemas.task import TaskRead
 
@@ -33,6 +33,7 @@ async def create_assignment(
 ) -> AssignmentRead:
     await check_user_exists(session=session, user_id=user_id)
     await check_group_exists(session=session, group_id=assignment_in.group_id)
+
     await check_user_in_group(
         session=session,
         user_id=user_id,
@@ -45,6 +46,7 @@ async def create_assignment(
     )
 
     assignment = Assignment(**assignment_in.model_dump())
+    assignment.admin_id = user_id
     session.add(assignment)
     await session.commit()
     await session.refresh(assignment)
@@ -52,6 +54,7 @@ async def create_assignment(
     return AssignmentRead.model_validate(assignment)
 
 
+# TODO: UPDATEEEEEEEEEEEEEEEEE
 async def get_assignment(
     session: AsyncSession,
     user_id: int,
@@ -71,25 +74,27 @@ async def get_assignment(
     return AssignmentRead.model_validate(assignment)
 
 
-async def get_assignments(
+async def get_user_assignments(
     session: AsyncSession,
     user_id: int,
-    group_id: int,
-) -> Sequence[AssignmentRead]:
+) -> list:
     await check_user_exists(session=session, user_id=user_id)
-    await check_group_exists(session=session, group_id=group_id)
-    await check_user_in_group(session=session, user_id=user_id, group_id=group_id)
 
-    statement = (
-        select(Assignment)
-        .where(Assignment.group_id == group_id)
-        .order_by(Assignment.id)
-    )
+    statement_groups = select(Group).join(Account).where(Account.user_id == user_id)
+    result_groups = await session.execute(statement_groups)
+    groups = result_groups.scalars().all()
 
-    result: Result = await session.execute(statement)
-    assignments = list(result.scalars().all())
+    if not groups:
+        return []
 
-    return [AssignmentRead.model_validate(assignment) for assignment in assignments]
+    group_ids = [group.id for group in groups]
+    statement_assignments = select(Assignment).where(Assignment.group_id.in_(group_ids))
+    result_assignments: Result = await session.execute(statement_assignments)
+    assignments = result_assignments.scalars().all()
+
+    return [
+        AssignmentRead.model_validate(assignment.__dict__) for assignment in assignments
+    ]
 
 
 async def update_assignment(
@@ -113,8 +118,8 @@ async def update_assignment(
         session=session, user_id=user_id, group_id=assignment.group_id
     )
 
-    for name, value in assignment_update.model_dump(exclude_unset=partial).items():
-        setattr(assignment, name, value)
+    for key, value in assignment_update.model_dump(exclude_unset=partial).items():
+        setattr(assignment, key, value)
 
     await session.commit()
     await session.refresh(assignment)
@@ -145,6 +150,7 @@ async def delete_assignment(
     await session.commit()
 
 
+# TODO: UPDATEEEEEEEEEEEEEEEEE
 async def get_tasks_in_assignment(
     session: AsyncSession,
     user_id: int,

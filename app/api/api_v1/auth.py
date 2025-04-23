@@ -20,6 +20,7 @@ from crud.auth import (
 )
 
 router = APIRouter(
+    tags=["Auth"],
     prefix=settings.api.v1.auth,
 )
 

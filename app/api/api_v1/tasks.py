@@ -7,7 +7,6 @@ from fastapi import (
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Annotated, Sequence
 
-from core.config import settings
 from core.models import db_helper
 
 from core.schemas.task import (
@@ -21,10 +20,7 @@ from crud import tasks as crud
 
 from crud.auth import get_current_active_auth_user_id
 
-router = APIRouter(
-    prefix=settings.api.v1.tasks,
-    tags=[settings.api.v1.tasks[1:].capitalize()],
-)
+router = APIRouter()
 
 
 @router.post(

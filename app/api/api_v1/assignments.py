@@ -7,7 +7,6 @@ from fastapi import (
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Annotated, Sequence
 
-from core.config import settings
 from core.models import db_helper
 
 from core.schemas.assignment import (
@@ -16,15 +15,13 @@ from core.schemas.assignment import (
     AssignmentUpdate,
     AssignmentUpdatePartial,
 )
-from core.schemas.user import UserAuthRead
+from core.schemas.task import TaskRead
+
 from crud import assignments as crud
 
 from crud.auth import get_current_active_auth_user_id
 
-router = APIRouter(
-    prefix=settings.api.v1.assignments,
-    tags=[settings.api.v1.assignments[1:].capitalize()],
-)
+router = APIRouter()
 
 
 @router.post(
@@ -37,7 +34,7 @@ async def create_assignment(
         AsyncSession,
         Depends(db_helper.dependency_session_getter),
     ],
-    current_user_id: Annotated[
+    user_id: Annotated[
         int,
         Depends(get_current_active_auth_user_id),
     ],
@@ -45,11 +42,12 @@ async def create_assignment(
 ):
     return await crud.create_assignment(
         session=session,
-        user_id=current_user_id,
+        user_id=user_id,
         assignment_in=assignment_in,
     )
 
 
+# TODO: TEST
 @router.get(
     "/{assignment_id}/",
     response_model=AssignmentRead,
@@ -59,7 +57,7 @@ async def get_assignment(
         AsyncSession,
         Depends(db_helper.dependency_session_getter),
     ],
-    current_user_id: Annotated[
+    user_id: Annotated[
         int,
         Depends(get_current_active_auth_user_id),
     ],
@@ -67,7 +65,7 @@ async def get_assignment(
 ):
     return await crud.get_assignment(
         session=session,
-        user_id=current_user_id,
+        user_id=user_id,
         assignment_id=assignment_id,
     )
 
@@ -76,21 +74,19 @@ async def get_assignment(
     "/",
     response_model=Sequence[AssignmentRead],
 )
-async def get_assignments(
+async def get_user_assignments(
     session: Annotated[
         AsyncSession,
         Depends(db_helper.dependency_session_getter),
     ],
-    current_user_id: Annotated[
+    user_id: Annotated[
         int,
         Depends(get_current_active_auth_user_id),
     ],
-    group_id: int,
 ):
-    return await crud.get_assignments(
+    return await crud.get_user_assignments(
         session=session,
-        user_id=current_user_id,
-        group_id=group_id,
+        user_id=user_id,
     )
 
 
@@ -100,7 +96,7 @@ async def update_assignment(
         AsyncSession,
         Depends(db_helper.dependency_session_getter),
     ],
-    current_user_id: Annotated[
+    user_id: Annotated[
         int,
         Depends(get_current_active_auth_user_id),
     ],
@@ -109,7 +105,7 @@ async def update_assignment(
 ):
     return await crud.update_assignment(
         session=session,
-        user_id=current_user_id,
+        user_id=user_id,
         assignment_id=assignment_id,
         assignment_update=assignment_update,
     )
@@ -121,7 +117,7 @@ async def update_assignment_partial(
         AsyncSession,
         Depends(db_helper.dependency_session_getter),
     ],
-    current_user_id: Annotated[
+    user_id: Annotated[
         int,
         Depends(get_current_active_auth_user_id),
     ],
@@ -130,7 +126,7 @@ async def update_assignment_partial(
 ):
     return await crud.update_assignment(
         session=session,
-        user_id=current_user_id,
+        user_id=user_id,
         assignment_id=assignment_id,
         assignment_update=assignment_update,
         partial=True,
@@ -146,7 +142,7 @@ async def delete_assignment(
         AsyncSession,
         Depends(db_helper.dependency_session_getter),
     ],
-    current_user_id: Annotated[
+    user_id: Annotated[
         int,
         Depends(get_current_active_auth_user_id),
     ],
@@ -154,6 +150,25 @@ async def delete_assignment(
 ) -> None:
     await crud.delete_assignment(
         session=session,
-        user_id=current_user_id,
+        user_id=user_id,
+        assignment_id=assignment_id,
+    )
+
+
+@router.get("/{assignment_id}/tasks")
+async def get_tasks_in_assignment(
+    session: Annotated[
+        AsyncSession,
+        Depends(db_helper.dependency_session_getter),
+    ],
+    user_id: Annotated[
+        int,
+        Depends(get_current_active_auth_user_id),
+    ],
+    assignment_id: int,
+) -> Sequence[TaskRead]:
+    return await get_tasks_in_assignment(
+        session=session,
+        user_id=user_id,
         assignment_id=assignment_id,
     )

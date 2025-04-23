@@ -24,6 +24,7 @@ async def check_user_in_group(
     session: AsyncSession,
     user_id: Mapped[int] | int,
     group_id: Mapped[int] | int,
+    is_correct: bool = True,
 ) -> None:
 
     statement = select(Account).where(
@@ -32,10 +33,15 @@ async def check_user_in_group(
     result = await session.execute(statement)
     account = result.scalars().first()
 
-    if not account:
+    if not account and is_correct:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail=f"User {user_id} is not a member of group {group_id}.",
+        )
+    elif account and not is_correct:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"User {user_id} is already a member of group {group_id}.",
         )
 
 
@@ -44,11 +50,45 @@ async def check_admin_permission_in_group(
     user_id: Mapped[int] | int,
     group_id: Mapped[int] | int,
 ) -> None:
-    group = await session.get(Group, group_id)
-    account = next((acc for acc in group.accounts if acc.user_id == user_id), None)
 
-    if not account or account.role != AccountRole.OWNER.value:
+    statement = select(Account).where(
+        Account.user_id == user_id, Account.group_id == group_id
+    )
+    result = await session.execute(statement)
+    account = result.scalars().first()  #
+
+    if account.role not in (AccountRole.OWNER.value, AccountRole.ADMIN.value):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail=f"User {user_id} does not have permission to perform this action in group {group_id}.",
+            detail=f"User {user_id} does not have admin permission to perform this action in group {group_id}.",
+        )
+
+
+async def check_owner_permission_in_group(
+    session: AsyncSession,
+    user_id: Mapped[int] | int,
+    group_id: Mapped[int] | int,
+) -> None:
+
+    statement = select(Account).where(
+        Account.user_id == user_id, Account.group_id == group_id
+    )
+    result = await session.execute(statement)
+    account = result.scalars().first()  #
+
+    if account.role != AccountRole.OWNER.value:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"User {user_id} does not have owner permission to perform this action in group {group_id}.",
+        )
+
+
+async def check_user_is_member(
+    role: Mapped[int] | int,
+    user_id: Mapped[int] | int,
+):
+    if role != AccountRole.MEMBER:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"User {user_id} is not a MEMBER and cannot be promoted.",
         )
