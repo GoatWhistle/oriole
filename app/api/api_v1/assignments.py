@@ -12,6 +12,7 @@ from core.models import db_helper
 from core.schemas.assignment import (
     AssignmentCreate,
     AssignmentRead,
+    AssignmentReadPartial,
     AssignmentUpdate,
     AssignmentUpdatePartial,
 )
@@ -26,7 +27,7 @@ router = APIRouter()
 
 @router.post(
     "/",
-    response_model=AssignmentRead,
+    response_model=AssignmentReadPartial,
     status_code=status.HTTP_201_CREATED,
 )
 async def create_assignment(
@@ -51,7 +52,7 @@ async def create_assignment(
     "/{assignment_id}/",
     response_model=AssignmentRead,
 )
-async def get_assignment(
+async def get_assignment_by_id(
     session: Annotated[
         AsyncSession,
         Depends(db_helper.dependency_session_getter),
@@ -62,7 +63,7 @@ async def get_assignment(
     ],
     assignment_id: int,
 ):
-    return await crud.get_assignment(
+    return await crud.get_assignment_by_id(
         session=session,
         user_id=user_id,
         assignment_id=assignment_id,
@@ -71,7 +72,7 @@ async def get_assignment(
 
 @router.get(
     "/",
-    response_model=Sequence[AssignmentRead],
+    response_model=Sequence[AssignmentReadPartial],
 )
 async def get_user_assignments(
     session: Annotated[
@@ -91,7 +92,7 @@ async def get_user_assignments(
 
 @router.put(
     "/{assignment_id}/",
-    response_model=AssignmentRead,
+    response_model=AssignmentReadPartial,
 )
 async def update_assignment(
     session: Annotated[
@@ -115,7 +116,7 @@ async def update_assignment(
 
 @router.patch(
     "/{assignment_id}/",
-    response_model=AssignmentRead,
+    response_model=AssignmentReadPartial,
 )
 async def update_assignment_partial(
     session: Annotated[
@@ -162,7 +163,7 @@ async def delete_assignment(
 
 @router.get(
     "/{assignment_id}/tasks",
-    response_model=AssignmentRead,
+    response_model=Sequence[TaskReadPartial],
 )
 async def get_tasks_in_assignment(
     session: Annotated[

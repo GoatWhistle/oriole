@@ -4,7 +4,14 @@ from sqlalchemy import select
 from sqlalchemy.engine import Result
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.models import Assignment, Task, Group, Account, UserReply
+from core.models import (
+    Assignment,
+    Task,
+    Group,
+    Account,
+    UserReply,
+    UserProfile,
+)
 
 from core.schemas.task import (
     TaskCreate,
@@ -30,15 +37,16 @@ async def create_task(
     task_in: TaskCreate,
 ) -> TaskRead:
     await check_user_exists(session=session, user_id=user_id)
-    await check_assignment_exists(session=session, assignment_id=task_in.assignment_id)
 
+    await check_assignment_exists(session=session, assignment_id=task_in.assignment_id)
     assignment = await session.get(Assignment, task_in.assignment_id)
 
     await check_group_exists(session=session, group_id=assignment.group_id)
+
     await check_user_in_group(
-        session=session,
         user_id=user_id,
         group_id=assignment.group_id,
+        session=session,
     )
     await check_admin_permission_in_group(
         session=session,
@@ -46,13 +54,31 @@ async def create_task(
         group_id=assignment.group_id,
     )
 
-    task = Task(**task_in.model_dump())
+    profile = await session.get(UserProfile, user_id)
+
+    accounts_query = await session.execute(
+        select(Account).where(Account.user_id == profile.user_id)
+    )
+    accounts = accounts_query.scalars().all()
+
+    target_account = None
+    for account in accounts:
+        if account.group_id == assignment.group_id:
+            target_account = account
+            break
+
+    task = Task(
+        title=task_in.title,
+        description=task_in.description,
+        assignment_id=task_in.assignment_id,
+        correct_answer=task_in.correct_answer,
+    )
     session.add(task)
     await session.commit()
     await session.refresh(task)
 
     user_reply = UserReply(
-        account_id=user_id,
+        account_id=target_account.id,
         task_id=task.id,
         user_answer="",
         is_correct=False,
@@ -238,6 +264,14 @@ async def delete_task(
         group_id=assignment.group_id,
     )
 
+    user_replies_query = await session.execute(
+        select(UserReply).where(UserReply.task_id == task_id)
+    )
+    user_replies = user_replies_query.scalars().all()
+
+    for user_reply in user_replies:
+        await session.delete(user_reply)
+
     await session.delete(task)
     await session.commit()
 
@@ -249,27 +283,51 @@ async def try_to_complete_task(
     user_answer: str,
 ) -> TaskRead:
     await check_user_exists(session=session, user_id=user_id)
-
     await check_task_exists(session=session, task_id=task_id)
+
     task = await session.get(Task, task_id)
+    await check_assignment_exists(session=session, assignment_id=task.assignment_id)
+
+    assignment = await session.get(Assignment, task.assignment_id)
+    await check_group_exists(session=session, group_id=assignment.group_id)
+
+    await check_user_in_group(
+        user_id=user_id,
+        group_id=assignment.group_id,
+        session=session,
+    )
+
+    profile = await session.get(UserProfile, user_id)
+
+    accounts_query = await session.execute(
+        select(Account).where(Account.user_id == profile.user_id)
+    )
+    accounts = accounts_query.scalars().all()
+
+    target_account = None
+    for account in accounts:
+        if account.group_id == assignment.group_id:
+            target_account = account
+            break
 
     user_reply_data = await session.execute(
         select(UserReply).where(
-            UserReply.account_id == user_id, UserReply.task_id == task_id
+            UserReply.account_id == target_account.id, UserReply.task_id == task_id
         )
     )
     user_reply = user_reply_data.scalars().first()
 
     if not user_reply:
         user_reply = UserReply(
-            account_id=user_id,
+            account_id=target_account.id,
             task_id=task_id,
             user_answer=user_answer,
             is_correct=(user_answer == task.correct_answer),
         )
         session.add(user_reply)
     else:
-        user_reply.answer = user_answer
+        user_reply.user_answer = user_answer
+        user_reply.is_correct = user_answer == task.correct_answer
 
     await session.commit()
     await session.refresh(task)

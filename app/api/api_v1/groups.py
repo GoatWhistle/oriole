@@ -14,9 +14,9 @@ from core.models import db_helper
 from core.schemas.group import (
     GroupCreate,
     GroupRead,
+    GroupReadPartial,
     GroupUpdate,
     GroupUpdatePartial,
-    GroupDataRead,
 )
 
 from crud import groups as crud
@@ -29,7 +29,7 @@ router = APIRouter()
 
 @router.post(
     "/",
-    response_model=GroupRead,
+    response_model=GroupReadPartial,
     status_code=status.HTTP_201_CREATED,
 )
 async def create_group(
@@ -52,9 +52,9 @@ async def create_group(
 
 @router.get(
     "/{group_id}/",
-    response_model=GroupDataRead,
+    response_model=GroupRead,
 )
-async def get_group(
+async def get_group_by_id(
     session: Annotated[
         AsyncSession,
         Depends(db_helper.dependency_session_getter),
@@ -65,7 +65,7 @@ async def get_group(
     ],
     group_id: int,
 ):
-    return await crud.get_group(
+    return await crud.get_group_by_id(
         session=session,
         user_id=user_id,
         group_id=group_id,
@@ -74,9 +74,9 @@ async def get_group(
 
 @router.get(
     "/",
-    response_model=Sequence[GroupRead],
+    response_model=Sequence[GroupReadPartial],
 )
-async def get_groups(
+async def get_user_groups(
     session: Annotated[
         AsyncSession,
         Depends(db_helper.dependency_session_getter),
@@ -86,7 +86,7 @@ async def get_groups(
         Depends(get_current_active_auth_user_id),
     ],
 ):
-    return await crud.get_groups(
+    return await crud.get_user_groups(
         session=session,
         user_id=user_id,
     )
@@ -94,7 +94,7 @@ async def get_groups(
 
 @router.put(
     "/{group_id}/",
-    response_model=GroupRead,
+    response_model=GroupReadPartial,
 )
 async def update_group(
     session: Annotated[
@@ -119,7 +119,7 @@ async def update_group(
 
 @router.patch(
     "/{group_id}/",
-    response_model=GroupRead,
+    response_model=GroupReadPartial,
 )
 async def update_group_partial(
     session: Annotated[

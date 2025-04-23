@@ -6,15 +6,16 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.exceptions.assignment import check_assignment_exists
 
-from core.models import Task, Assignment, Group, Account, UserReply
+from core.models import Task, Assignment, Group, Account, UserReply, UserProfile
 
-from core.schemas.task import TaskReadPartial
+from core.schemas.task import TaskReadPartial, TaskRead
 
 from core.schemas.assignment import (
     AssignmentCreate,
     AssignmentRead,
     AssignmentUpdate,
     AssignmentUpdatePartial,
+    AssignmentReadPartial,
 )
 
 from core.exceptions.group import (
@@ -30,7 +31,7 @@ async def create_assignment(
     session: AsyncSession,
     user_id: int,
     assignment_in: AssignmentCreate,
-) -> AssignmentRead:
+) -> AssignmentReadPartial:
     await check_user_exists(session=session, user_id=user_id)
     await check_group_exists(session=session, group_id=assignment_in.group_id)
 
@@ -51,16 +52,16 @@ async def create_assignment(
     await session.commit()
     await session.refresh(assignment)
 
-    return AssignmentRead.model_validate(assignment)
+    return AssignmentReadPartial.model_validate(assignment)
 
 
-async def get_assignment(
+async def get_assignment_by_id(
     session: AsyncSession,
     user_id: int,
     assignment_id: int,
 ) -> AssignmentRead:
-
     await check_user_exists(session=session, user_id=user_id)
+
     await check_assignment_exists(session=session, assignment_id=assignment_id)
     assignment = await session.get(Assignment, assignment_id)
 
@@ -72,19 +73,47 @@ async def get_assignment(
         group_id=assignment.group_id,
     )
 
+    tasks_query = await session.execute(
+        select(Task).where(Task.assignment_id == assignment_id)
+    )
+    tasks = tasks_query.scalars().all()
+
+    user_replies_query = await session.execute(
+        select(UserReply).where(
+            UserReply.account_id == user_id,
+            UserReply.task_id.in_([task.id for task in tasks]),
+        )
+    )
+    user_replies = {
+        reply.task_id: reply for reply in user_replies_query.scalars().all()
+    }
+
     return AssignmentRead(
         id=assignment.id,
         title=assignment.title,
         description=assignment.description,
         is_contest=assignment.is_contest,
         admin_id=assignment.admin_id,
+        tasks=[
+            TaskReadPartial(
+                id=task.id,
+                title=task.title,
+                description=task.description,
+                is_correct=(
+                    user_replies.get(task.id, None).is_correct
+                    if task.id in user_replies
+                    else False
+                ),
+            )
+            for task in tasks
+        ],
     )
 
 
 async def get_user_assignments(
     session: AsyncSession,
     user_id: int,
-) -> Sequence[AssignmentRead]:
+) -> Sequence[AssignmentReadPartial]:
     await check_user_exists(session=session, user_id=user_id)
 
     statement_groups = select(Group).join(Account).where(Account.user_id == user_id)
@@ -100,7 +129,8 @@ async def get_user_assignments(
     assignments = result_assignments.scalars().all()
 
     return [
-        AssignmentRead.model_validate(assignment.__dict__) for assignment in assignments
+        AssignmentReadPartial.model_validate(assignment.__dict__)
+        for assignment in assignments
     ]
 
 
@@ -110,7 +140,7 @@ async def update_assignment(
     assignment_id: int,
     assignment_update: AssignmentUpdate | AssignmentUpdatePartial,
     partial: bool = False,
-) -> AssignmentRead:
+) -> AssignmentReadPartial:
     await check_user_exists(session=session, user_id=user_id)
     await check_assignment_exists(session=session, assignment_id=assignment_id)
     assignment = await session.get(Assignment, assignment_id)
@@ -131,7 +161,7 @@ async def update_assignment(
     await session.commit()
     await session.refresh(assignment)
 
-    return AssignmentRead.model_validate(assignment)
+    return AssignmentReadPartial.model_validate(assignment)
 
 
 async def delete_assignment(
@@ -162,6 +192,7 @@ async def get_tasks_in_assignment(
     user_id: int,
     assignment_id: int,
 ) -> Sequence[TaskReadPartial]:
+
     await check_user_exists(session=session, user_id=user_id)
 
     await check_assignment_exists(session=session, assignment_id=assignment_id)
@@ -182,9 +213,18 @@ async def get_tasks_in_assignment(
     if not tasks:
         return []
 
+    profile = await session.get(UserProfile, user_id)
+
+    accounts_query = await session.execute(
+        select(Account).where(Account.user_id == profile.user_id)
+    )
+    accounts = accounts_query.scalars().all()
+
+    account_ids = {account.id for account in accounts}
+
     user_reply_data = await session.execute(
         select(UserReply).where(
-            UserReply.account_id == user_id,
+            UserReply.account_id.in_(account_ids),
             UserReply.task_id.in_([task.id for task in tasks]),
         )
     )

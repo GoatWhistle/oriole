@@ -14,16 +14,16 @@ from core.exceptions.group import (
 
 from core.exceptions.user import check_user_exists
 
-from core.schemas.account import AccountRole, AccountRead
+from core.schemas.account import AccountRole, AccountReadPartial
 
-from core.schemas.assignment import AssignmentRead
+from core.schemas.assignment import AssignmentReadPartial
 
 from core.schemas.group import (
     GroupCreate,
     GroupRead,
+    GroupReadPartial,
     GroupUpdate,
     GroupUpdatePartial,
-    GroupDataRead,
 )
 
 from core.models import (
@@ -39,7 +39,7 @@ async def create_group(
     session: AsyncSession,
     user_id: int,
     group_in: GroupCreate,
-) -> GroupRead:
+) -> GroupReadPartial:
 
     await check_user_exists(session=session, user_id=user_id)
 
@@ -57,14 +57,14 @@ async def create_group(
     session.add(admin_account)
     await session.commit()
 
-    return GroupRead.model_validate(group)
+    return GroupReadPartial.model_validate(group)
 
 
-async def get_group(
+async def get_group_by_id(
     session: AsyncSession,
     user_id: int,
     group_id: int,
-) -> GroupDataRead:
+) -> GroupRead:
     await check_user_exists(session=session, user_id=user_id)
     await check_group_exists(session=session, group_id=group_id)
     await check_user_in_group(session=session, user_id=user_id, group_id=group_id)
@@ -79,28 +79,29 @@ async def get_group(
     result_assignments: Result = await session.execute(statement_assignments)
     assignments = result_assignments.scalars().all()
 
-    return GroupDataRead(
+    return GroupRead(
         id=group.id,
         title=group.title,
         description=group.description,
-        accounts=[AccountRead.model_validate(account.__dict__) for account in accounts],
+        accounts=[
+            AccountReadPartial.model_validate(account.__dict__) for account in accounts
+        ],
         assignments=[
-            AssignmentRead(
+            AssignmentReadPartial(
                 id=assignment.id,
                 title=assignment.title,
                 description=assignment.description,
                 is_contest=assignment.is_contest,
-                admin_id=assignment.admin_id,
             )
             for assignment in assignments
         ],
     )
 
 
-async def get_groups(
+async def get_user_groups(
     session: AsyncSession,
     user_id: int,
-) -> Sequence[GroupRead]:
+) -> Sequence[GroupReadPartial]:
     await check_user_exists(session=session, user_id=user_id)
 
     statement = (
@@ -110,7 +111,7 @@ async def get_groups(
     result: Result = await session.execute(statement)
     groups = list(result.scalars().all())
 
-    return [GroupRead.model_validate(group) for group in groups]
+    return [GroupReadPartial.model_validate(group) for group in groups]
 
 
 async def update_group(
@@ -119,7 +120,7 @@ async def update_group(
     group_id: int,
     group_update: GroupUpdate | GroupUpdatePartial,
     partial: bool = False,
-) -> GroupRead:
+) -> GroupReadPartial:
     await check_user_exists(session=session, user_id=user_id)
     await check_group_exists(session=session, group_id=group_id)
     await check_user_in_group(session=session, user_id=user_id, group_id=group_id)
@@ -135,7 +136,7 @@ async def update_group(
     await session.commit()
     await session.refresh(group)
 
-    return GroupRead.model_validate(group)
+    return GroupReadPartial.model_validate(group)
 
 
 async def delete_group(
@@ -191,7 +192,7 @@ async def get_assignments_in_group(
     session: AsyncSession,
     user_id: int,
     group_id: int,
-) -> Sequence[AssignmentRead]:
+) -> Sequence[AssignmentReadPartial]:
     await check_user_exists(session=session, user_id=user_id)
     await check_group_exists(session=session, group_id=group_id)
     await check_user_in_group(session=session, user_id=user_id, group_id=group_id)
@@ -205,7 +206,9 @@ async def get_assignments_in_group(
     result = await session.execute(statement)
     assignments = list(result.scalars().all())
 
-    return [AssignmentRead.model_validate(assignment) for assignment in assignments]
+    return [
+        AssignmentReadPartial.model_validate(assignment) for assignment in assignments
+    ]
 
 
 async def invite_user(
@@ -237,9 +240,10 @@ async def join_by_link(
         group_id=group_id,
         is_correct=False,
     )
+    profile = await session.get(UserProfile, user_id)
 
     new_account = Account(
-        user_profile_id=user_id,
+        user_id=profile.user_id,
         group_id=group_id,
         role=AccountRole.MEMBER.value,
     )
@@ -256,7 +260,7 @@ async def join_by_link(
         new_account.role = AccountRole.OWNER.value
         await session.commit()
 
-    return await get_group(session=session, user_id=user_id, group_id=group_id)
+    # return await get_group(session=session, user_id=user_id, group_id=group_id)
 
 
 async def promote_user_to_admin(

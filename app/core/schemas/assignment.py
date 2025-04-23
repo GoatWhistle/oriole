@@ -2,7 +2,7 @@ from pydantic import BaseModel, Field, ConfigDict
 
 from typing import Annotated, Optional, Sequence
 
-from core.schemas.task import TaskRead
+from core.schemas.task import TaskRead, TaskReadPartial
 from utils.number_optimizer import get_number_one_bit_less as num_opt
 
 
@@ -12,18 +12,16 @@ class AssignmentBase(BaseModel):
 
     is_contest: bool
 
-
-class AssignmentRead(AssignmentBase):
+class AssignmentReadPartial(AssignmentBase):
     id: int
-    admin_id: int
 
     model_config = ConfigDict(
         from_attributes=True,
     )
 
-
-class AssignmentDataRead(AssignmentRead):
-    tasks: Sequence[TaskRead]
+class AssignmentRead(AssignmentReadPartial):
+    admin_id: int
+    tasks: Sequence[TaskReadPartial]
 
 
 class AssignmentCreate(AssignmentBase):

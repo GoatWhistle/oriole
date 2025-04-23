@@ -10,9 +10,11 @@ class AccountRole(IntEnum):
     MEMBER = 2
 
 
-class AccountRead(BaseModel):
+class AccountReadPartial(BaseModel):
     user_id: int
-    group_id: int
-
     role: int
+
+
+class AccountRead(AccountReadPartial):
+    group_id: int
     done_tasks: Sequence[UserReplyRead]
