@@ -13,7 +13,7 @@ from .mixins.id_int_pk import IdIntPkMixin
 if TYPE_CHECKING:
     from .user_profile import UserProfile
     from .group import Group
-    from .task import Task
+    from .user_reply import UserReply
 
 
 class Account(Base, IdIntPkMixin):
@@ -25,4 +25,4 @@ class Account(Base, IdIntPkMixin):
     group_id: Mapped[int] = mapped_column(ForeignKey("groups.id"))
     group: Mapped["Group"] = relationship(back_populates="accounts")
 
-    done_tasks: Mapped[list["Task"]] = relationship(back_populates="account")
+    done_tasks: Mapped[list["UserReply"]] = relationship(back_populates="account")

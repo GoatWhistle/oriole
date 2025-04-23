@@ -176,7 +176,6 @@ async def get_users_in_group(
     return [UserProfile.model_validate(user) for user in users]
 
 
-# TODO: TEST
 async def get_assignments_in_group(
     session: AsyncSession,
     user_id: int,
