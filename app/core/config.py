@@ -11,8 +11,8 @@ class RunConfig(BaseModel):
     host: str
     port: int
 
-class GunicornConfig(RunConfig):
-    workers: int = 1
+class GunicornConfig(BaseModel):
+    workers: int = 5
     timeout: int = 900
 
 
@@ -61,6 +61,7 @@ class Settings(BaseSettings):
         env_prefix="APP_CONFIG__",
     )
     run: RunConfig
+    gunicorn_run: GunicornConfig = GunicornConfig()
     db: DbConfig
     api: ApiPrefix = ApiPrefix()
     auth_jwt: AuthJWT = AuthJWT()
