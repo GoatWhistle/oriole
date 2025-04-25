@@ -1,11 +1,32 @@
 services:
+  app:
+    build:
+      dockerfile: docker_build/app/Dockerfile
+      context: ./
+    depends_on:
+      pg:
+        condition: service_healthy
+    environment:
+      DB_URL: ${APP_CONFIG__DB__DB_URL}
+    ports:
+      - ${APP_CONFIG__RUN__PORT}:8000
+    volumes:
+      - ./app:/app
+    develop:
+      watch:
+        - action: sync+restart
+          path: ./app
+          target: /app
+        - action: rebuild
+          path: poetry.lock
+
   pg:
     image: postgres
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      PGDATA: ${PGDATA}
+      PGDATA: /var/lib/postgresql/data
     ports:
       - "${DB_PORT}:5432"
     volumes:
@@ -15,20 +36,12 @@ services:
       interval: 5s
       timeout: 3s
       retries: 3
+
   adminer:
     image: adminer
     ports:
       - "${ADMIN_PORT}:8080"
 
-  pgadmin:
-    image: dpage/pgadmin4
-    environment:
-      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
-      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
-      PGADMIN_CONFIG_SERVER_MODE: ${PGADMIN_CONFIG_SERVER_MODE}
-    ports:
-      - "${PGADMIN_PORT}:80"
-
-
 volumes:
   pgdata:
+
