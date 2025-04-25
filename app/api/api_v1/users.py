@@ -1,19 +1,12 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Response
-from fastapi.security import HTTPBearer
+from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
-from typing import Sequence
 
-from core.config import settings
 from core.models import db_helper
 from core.schemas.user import (
     UserRead,
     UserUpdate,
     UserUpdatePartial,
 )
-from core.schemas.group import GroupRead
-from core.schemas.task import TaskRead
-from core.schemas.assignment import AssignmentRead
-from core.schemas.account import AccountRole
 
 from crud import users as crud
 from crud.auth import get_current_active_auth_user_id

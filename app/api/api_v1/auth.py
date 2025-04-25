@@ -3,9 +3,10 @@ from fastapi import (
     Depends,
     status,
 )
+from fastapi.security import OAuth2PasswordRequestForm
+from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.config import settings
 from core.schemas.token import AccessToken
 from core.models import db_helper
 from crud import auth as crud
@@ -34,23 +35,13 @@ async def register_user(
     return await crud.register_user(db, user_data)
 
 
-@router.post(
-    "/login/",
-    response_model=AccessToken,
-    status_code=status.HTTP_201_CREATED,
-)
-async def login_user(
-    user_data: UserLogin = Depends(validate_registered_user),
+@router.post("/token")
+async def login_for_token(
+    form_data: OAuth2PasswordRequestForm = Depends(),
     db: AsyncSession = Depends(db_helper.dependency_session_getter),
-) -> AccessToken:
-    return await crud.login_user(db, user_data)
-
-
-# @router.get("/users/me")
-# async def auth_user_get_self_info(
-#     user_data: UserLogin,
-# ):
-#     return {
-#         "id": user_data.id,
-#         "email": user_data.email,
-#     }
+):
+    try:
+        user_data = UserLogin(email=form_data.username, password=form_data.password)
+        return await crud.login_user(db, user_data)
+    except HTTPException as e:
+        raise e

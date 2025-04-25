@@ -7,7 +7,9 @@ from fastapi import (
     Depends,
 )
 
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from fastapi.security import (
+    OAuth2PasswordBearer,
+)
 from sqlalchemy.orm import Mapped
 
 from utils.JWT import (
@@ -32,7 +34,7 @@ from core.schemas.user import (
     UserLogin,
 )
 
-http_bearer = HTTPBearer(auto_error=False)
+OAuth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/token")
 
 
 async def register_user(
@@ -78,15 +80,13 @@ async def register_user(
 
 
 def get_current_token_payload(
-    credentials: HTTPAuthorizationCredentials | None = Depends(http_bearer),
+    token: str = Depends(OAuth2_scheme),
 ) -> dict:
-    if credentials is None:
+    if token is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Not authenticated (missing or invalid Authorization header)",
+            detail="Not authenticated (missing or invalid token)",
         )
-
-    token = credentials.credentials
     try:
         payload = decode_jwt(token=token)
         return payload
