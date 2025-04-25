@@ -8,8 +8,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 class RunConfig(BaseModel):
-    host: str = "0.0.0.0"
-    port: int = 8000
+    host: str
+    port: int
+
+class GunicornConfig(RunConfig):
+    workers: int = 1
+    timeout: int = 900
 
 
 class DbConfig(BaseModel):
@@ -51,12 +55,12 @@ class AuthJWT(BaseModel):
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file=(".env.template", ".env"),
+        env_file=(".env.app_config",),
         case_sensitive=False,
         env_nested_delimiter="__",
         env_prefix="APP_CONFIG__",
     )
-    run: RunConfig = RunConfig()
+    run: RunConfig
     db: DbConfig
     api: ApiPrefix = ApiPrefix()
     auth_jwt: AuthJWT = AuthJWT()
