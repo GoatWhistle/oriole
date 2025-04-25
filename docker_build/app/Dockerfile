@@ -16,7 +16,7 @@ RUN poetry install
 COPY app .
 
 RUN chmod +x pre_start.sh
-RUN chmod +x main.py
+RUN chmod +x gunicorn_run.py
 
 ENTRYPOINT ["./pre_start.sh"]
-CMD ["python", "./main.py"]
+CMD ["python", "./gunicorn_run.py"]
