@@ -7,6 +7,7 @@ class UserReplyBase(BaseModel):
     task_id: int
     user_answer: str
     is_correct: bool
+    user_attempts: int
 
 
 class UserReplyRead(UserReplyBase):

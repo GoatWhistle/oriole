@@ -29,3 +29,4 @@ class Assignment(Base, IdIntPkMixin):
     group: Mapped["Group"] = relationship(back_populates="assignments")
 
     tasks: Mapped[list["Task"]] = relationship(back_populates="assignment")
+    tasks_count: Mapped[int] = mapped_column()

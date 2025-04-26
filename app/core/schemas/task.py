@@ -27,6 +27,8 @@ class TaskCreate(TaskBase):
     assignment_id: int
     correct_answer: str
 
+    max_attempts: int
+
 
 class TaskUpdate(TaskBase):
     correct_answer: str

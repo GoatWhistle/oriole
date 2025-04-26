@@ -26,3 +26,5 @@ class Task(Base, IdIntPkMixin):
     assignment: Mapped["Assignment"] = relationship(back_populates="tasks")
 
     user_replys: Mapped[list["UserReply"]] = relationship(back_populates="task")
+
+    max_attempts: Mapped[int] = mapped_column()

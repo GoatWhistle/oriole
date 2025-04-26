@@ -15,6 +15,8 @@ class AssignmentBase(BaseModel):
 class AssignmentReadPartial(AssignmentBase):
     id: int
 
+    tasks_count: int
+
     model_config = ConfigDict(
         from_attributes=True,
     )
@@ -22,6 +24,7 @@ class AssignmentReadPartial(AssignmentBase):
 class AssignmentRead(AssignmentReadPartial):
     admin_id: int
     tasks: Sequence[TaskReadPartial]
+
 
 
 class AssignmentCreate(AssignmentBase):

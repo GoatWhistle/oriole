@@ -25,3 +25,5 @@ class UserReply(Base, IdIntPkMixin):
 
     user_answer: Mapped[str] = mapped_column(String(num_opt(200)))
     is_correct: Mapped[bool] = mapped_column()
+
+    user_attempts: Mapped[int] = mapped_column()
