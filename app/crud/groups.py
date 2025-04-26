@@ -4,6 +4,8 @@ from sqlalchemy import select
 from sqlalchemy.engine import Result
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from core.exceptions.user import check_user_exists
+
 from core.exceptions.group import (
     check_group_exists,
     check_admin_permission_in_group,
@@ -12,10 +14,8 @@ from core.exceptions.group import (
     check_user_is_member,
 )
 
-from core.exceptions.user import check_user_exists
-
+from core.schemas.user import UserProfileRead
 from core.schemas.account import AccountRole, AccountReadPartial
-
 from core.schemas.assignment import AssignmentReadPartial
 
 from core.schemas.group import (
@@ -25,14 +25,12 @@ from core.schemas.group import (
     GroupUpdate,
     GroupUpdatePartial,
 )
-
 from core.models import (
     Account,
     Assignment,
     Group,
     UserProfile,
 )
-from core.schemas.user import UserProfileRead
 
 
 async def create_group(
@@ -72,7 +70,7 @@ async def get_group_by_id(
     group = await session.get(Group, group_id)
 
     statement_accounts = select(Account).where(Account.group_id == group_id)
-    result_accounts = await session.execute(statement_accounts)
+    result_accounts: Result = await session.execute(statement_accounts)
     accounts = result_accounts.scalars().all()
 
     statement_assignments = select(Assignment).where(Assignment.group_id == group_id)
@@ -154,7 +152,7 @@ async def delete_group(
     group = await session.get(Group, group_id)
 
     statement = select(Account).where(Account.group_id == group_id)
-    result = await session.execute(statement)
+    result: Result = await session.execute(statement)
     accounts_to_delete = result.scalars().all()
 
     for account in accounts_to_delete:
@@ -174,7 +172,7 @@ async def get_users_in_group(
     await check_user_in_group(session=session, user_id=user_id, group_id=group_id)
 
     statement_accounts = select(Account).where(Account.group_id == group_id)
-    result_accounts = await session.execute(statement_accounts)
+    result_accounts: Result = await session.execute(statement_accounts)
     accounts = result_accounts.scalars().all()
 
     user_profiles = []
@@ -203,7 +201,7 @@ async def get_assignments_in_group(
         .order_by(Assignment.id)
     )
 
-    result = await session.execute(statement)
+    result: Result = await session.execute(statement)
     assignments = list(result.scalars().all())
 
     return [
@@ -230,7 +228,7 @@ async def join_by_link(
     session: AsyncSession,
     user_id: int,
     group_id: int,
-):
+) -> None:
     await check_user_exists(session=session, user_id=user_id)
     await check_group_exists(session=session, group_id=group_id)
 
@@ -260,15 +258,13 @@ async def join_by_link(
         new_account.role = AccountRole.OWNER.value
         await session.commit()
 
-    # return await get_group(session=session, user_id=user_id, group_id=group_id)
-
 
 async def promote_user_to_admin(
     session: AsyncSession,
     user_id: int,
     promote_user_id: int,
     group_id: int,
-):
+) -> None:
     await check_user_exists(session=session, user_id=user_id)
     await check_user_exists(session=session, user_id=promote_user_id)
 
@@ -286,7 +282,7 @@ async def promote_user_to_admin(
     statement = select(Account).where(
         Account.user_id == promote_user_id, Account.group_id == group_id
     )
-    result = await session.execute(statement)
+    result: Result = await session.execute(statement)
     account = result.scalars().first()
 
     await check_user_is_member(role=account.role, user_id=user_id)
@@ -295,17 +291,13 @@ async def promote_user_to_admin(
 
     await session.commit()
 
-    return {
-        "detail": f"User {promote_user_id} has been promoted to ADMIN in group {group_id}."
-    }
-
 
 async def demote_user_to_member(
     session: AsyncSession,
     user_id: int,
     demote_user_id: int,
     group_id: int,
-):
+) -> None:
     await check_user_exists(session=session, user_id=user_id)
     await check_user_exists(session=session, user_id=demote_user_id)
 
@@ -323,7 +315,7 @@ async def demote_user_to_member(
     statement = select(Account).where(
         Account.user_id == demote_user_id, Account.group_id == group_id
     )
-    result = await session.execute(statement)
+    result: Result = await session.execute(statement)
     account = result.scalars().first()
 
     await check_admin_permission_in_group(
@@ -334,17 +326,13 @@ async def demote_user_to_member(
 
     await session.commit()
 
-    return {
-        "detail": f"User {demote_user_id} has been demoted to MEMBER in group {group_id}."
-    }
-
 
 async def remove_user_from_group(
     session: AsyncSession,
     user_id: int,
     remove_user_id: int,
     group_id: int,
-):
+) -> None:
     if user_id == remove_user_id:
         await leave_from_group(session=session, user_id=user_id, group_id=group_id)
         return
@@ -366,13 +354,11 @@ async def remove_user_from_group(
     statement = select(Account).where(
         Account.user_id == remove_user_id, Account.group_id == group_id
     )
-    result = await session.execute(statement)
+    result: Result = await session.execute(statement)
     account = result.scalars().first()
 
     await session.delete(account)
     await session.commit()
-
-    return {"detail": f"User {remove_user_id} has been removed from group {group_id}."}
 
 
 async def leave_from_group(

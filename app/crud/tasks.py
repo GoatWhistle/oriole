@@ -4,13 +4,14 @@ from sqlalchemy import select
 from sqlalchemy.engine import Result
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.models import (
-    Assignment,
-    Task,
-    Group,
-    Account,
-    UserReply,
-    UserProfile,
+from core.exceptions.user import check_user_exists
+from core.exceptions.task import check_task_exists
+from core.exceptions.assignment import check_assignment_exists
+
+from core.exceptions.group import (
+    check_group_exists,
+    check_admin_permission_in_group,
+    check_user_in_group,
 )
 
 from core.schemas.task import (
@@ -20,14 +21,14 @@ from core.schemas.task import (
     TaskUpdatePartial,
     TaskReadPartial,
 )
-from core.exceptions.user import check_user_exists
-from core.exceptions.task import check_task_exists
-from core.exceptions.assignment import check_assignment_exists
 
-from core.exceptions.group import (
-    check_group_exists,
-    check_admin_permission_in_group,
-    check_user_in_group,
+from core.models import (
+    Assignment,
+    Task,
+    Group,
+    Account,
+    UserReply,
+    UserProfile,
 )
 
 

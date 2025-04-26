@@ -50,6 +50,7 @@ async def create_task(
 @router.get(
     "/{task_id}/",
     response_model=TaskRead,
+    status_code=status.HTTP_200_OK,
 )
 async def get_task_by_id(
     session: Annotated[
@@ -72,6 +73,7 @@ async def get_task_by_id(
 @router.get(
     "/",
     response_model=Sequence[TaskReadPartial],
+    status_code=status.HTTP_200_OK,
 )
 async def get_user_tasks(
     session: Annotated[
@@ -92,6 +94,7 @@ async def get_user_tasks(
 @router.put(
     "/{task_id}/",
     response_model=TaskRead,
+    status_code=status.HTTP_200_OK,
 )
 async def update_task(
     session: Annotated[
@@ -116,6 +119,7 @@ async def update_task(
 @router.patch(
     "/{task_id}/",
     response_model=TaskRead,
+    status_code=status.HTTP_200_OK,
 )
 async def update_task_partial(
     session: Annotated[
@@ -163,6 +167,7 @@ async def delete_task(
 @router.patch(
     "/complete/{task_id}",
     response_model=TaskRead,
+    status_code=status.HTTP_200_OK,
 )
 async def try_to_complete_task(
     session: Annotated[

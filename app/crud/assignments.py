@@ -4,11 +4,17 @@ from sqlalchemy import select
 from sqlalchemy.engine import Result
 from sqlalchemy.ext.asyncio import AsyncSession
 
+
+from core.exceptions.user import check_user_exists
 from core.exceptions.assignment import check_assignment_exists
 
-from core.models import Task, Assignment, Group, Account, UserReply, UserProfile
+from core.exceptions.group import (
+    check_group_exists,
+    check_admin_permission_in_group,
+    check_user_in_group,
+)
 
-from core.schemas.task import TaskReadPartial, TaskRead
+from core.schemas.task import TaskReadPartial
 
 from core.schemas.assignment import (
     AssignmentCreate,
@@ -18,13 +24,14 @@ from core.schemas.assignment import (
     AssignmentReadPartial,
 )
 
-from core.exceptions.group import (
-    check_group_exists,
-    check_admin_permission_in_group,
-    check_user_in_group,
+from core.models import (
+    Task,
+    Assignment,
+    Group,
+    Account,
+    UserReply,
+    UserProfile,
 )
-
-from core.exceptions.user import check_user_exists
 
 
 async def create_assignment(

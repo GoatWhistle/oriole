@@ -7,7 +7,7 @@ from fastapi import (
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Annotated, Sequence
 
-from core.models import db_helper
+from core.schemas.task import TaskReadPartial
 
 from core.schemas.assignment import (
     AssignmentCreate,
@@ -16,11 +16,11 @@ from core.schemas.assignment import (
     AssignmentUpdate,
     AssignmentUpdatePartial,
 )
-from core.schemas.task import TaskReadPartial
 
+from core.models import db_helper
+from crud.auth import get_current_active_auth_user_id
 from crud import assignments as crud
 
-from crud.auth import get_current_active_auth_user_id
 
 router = APIRouter()
 
@@ -51,6 +51,7 @@ async def create_assignment(
 @router.get(
     "/{assignment_id}/",
     response_model=AssignmentRead,
+    status_code=status.HTTP_200_OK,
 )
 async def get_assignment_by_id(
     session: Annotated[
@@ -73,6 +74,7 @@ async def get_assignment_by_id(
 @router.get(
     "/",
     response_model=Sequence[AssignmentReadPartial],
+    status_code=status.HTTP_200_OK,
 )
 async def get_user_assignments(
     session: Annotated[
@@ -93,6 +95,7 @@ async def get_user_assignments(
 @router.put(
     "/{assignment_id}/",
     response_model=AssignmentReadPartial,
+    status_code=status.HTTP_200_OK,
 )
 async def update_assignment(
     session: Annotated[
@@ -117,6 +120,7 @@ async def update_assignment(
 @router.patch(
     "/{assignment_id}/",
     response_model=AssignmentReadPartial,
+    status_code=status.HTTP_200_OK,
 )
 async def update_assignment_partial(
     session: Annotated[
@@ -164,6 +168,7 @@ async def delete_assignment(
 @router.get(
     "/{assignment_id}/tasks",
     response_model=Sequence[TaskReadPartial],
+    status_code=status.HTTP_200_OK,
 )
 async def get_tasks_in_assignment(
     session: Annotated[

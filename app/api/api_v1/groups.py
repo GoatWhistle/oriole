@@ -4,12 +4,11 @@ from fastapi import (
     status,
 )
 
-from crud.auth import get_current_active_auth_user_id
-
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Annotated, Sequence
 
-from core.models import db_helper
+from core.schemas.assignment import AssignmentRead
+from core.schemas.user import UserProfileRead
 
 from core.schemas.group import (
     GroupCreate,
@@ -19,10 +18,10 @@ from core.schemas.group import (
     GroupUpdatePartial,
 )
 
+from core.models import db_helper
+from crud.auth import get_current_active_auth_user_id
 from crud import groups as crud
 
-from core.schemas.assignment import AssignmentRead
-from core.schemas.user import UserProfileRead
 
 router = APIRouter()
 
@@ -53,6 +52,7 @@ async def create_group(
 @router.get(
     "/{group_id}/",
     response_model=GroupRead,
+    status_code=status.HTTP_200_OK,
 )
 async def get_group_by_id(
     session: Annotated[
@@ -75,6 +75,7 @@ async def get_group_by_id(
 @router.get(
     "/",
     response_model=Sequence[GroupReadPartial],
+    status_code=status.HTTP_200_OK,
 )
 async def get_user_groups(
     session: Annotated[
@@ -95,6 +96,7 @@ async def get_user_groups(
 @router.put(
     "/{group_id}/",
     response_model=GroupReadPartial,
+    status_code=status.HTTP_200_OK,
 )
 async def update_group(
     session: Annotated[
@@ -120,6 +122,7 @@ async def update_group(
 @router.patch(
     "/{group_id}/",
     response_model=GroupReadPartial,
+    status_code=status.HTTP_200_OK,
 )
 async def update_group_partial(
     session: Annotated[
@@ -156,7 +159,7 @@ async def delete_group(
         Depends(get_current_active_auth_user_id),
     ],
     group_id: int,
-) -> None:
+):
     await crud.delete_group(
         session=session,
         user_id=user_id,
@@ -167,6 +170,7 @@ async def delete_group(
 @router.get(
     "/{group_id}/users/",
     response_model=Sequence[UserProfileRead],
+    status_code=status.HTTP_200_OK,
 )
 async def get_users_in_group(
     session: Annotated[
@@ -189,6 +193,7 @@ async def get_users_in_group(
 @router.get(
     "/{group_id}/assignments/",
     response_model=Sequence[AssignmentRead],
+    status_code=status.HTTP_200_OK,
 )
 async def get_assignments_in_group(
     session: Annotated[
@@ -208,7 +213,10 @@ async def get_assignments_in_group(
     )
 
 
-@router.post("/{group_id}/invite/")
+@router.post(
+    "/{group_id}/invite/",
+    status_code=status.HTTP_200_OK,
+)
 async def invite_user(
     session: Annotated[
         AsyncSession,
@@ -227,7 +235,10 @@ async def invite_user(
     )
 
 
-@router.post("/join/{group_id}")
+@router.post(
+    "/join/{group_id}",
+    status_code=status.HTTP_200_OK,
+)
 async def join_by_link(
     session: Annotated[
         AsyncSession,
@@ -246,7 +257,10 @@ async def join_by_link(
     )
 
 
-@router.patch("/{group_id}/promote/{promote_user_id}")
+@router.patch(
+    "/{group_id}/promote/{promote_user_id}",
+    status_code=status.HTTP_200_OK,
+)
 async def promote_user_to_admin(
     session: Annotated[
         AsyncSession,
@@ -267,7 +281,10 @@ async def promote_user_to_admin(
     )
 
 
-@router.patch("/{group_id}/demote/{demote_user_id}")
+@router.patch(
+    "/{group_id}/demote/{demote_user_id}",
+    status_code=status.HTTP_200_OK,
+)
 async def demote_user_to_member(
     session: Annotated[
         AsyncSession,
@@ -288,7 +305,10 @@ async def demote_user_to_member(
     )
 
 
-@router.delete("/{group_id}/kick/{remove_user_id}")
+@router.delete(
+    "/{group_id}/kick/{remove_user_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
 async def remove_user_from_group(
     session: Annotated[
         AsyncSession,
@@ -309,7 +329,10 @@ async def remove_user_from_group(
     )
 
 
-@router.delete("/{group_id}/leave/")
+@router.delete(
+    "/{group_id}/leave/",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
 async def leave_from_group(
     session: Annotated[
         AsyncSession,
