@@ -1,4 +1,4 @@
-from sqlalchemy import select
+from sqlalchemy import select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from fastapi import (
@@ -82,12 +82,13 @@ async def register_user(
 def get_current_token_payload(
     token: str = Depends(OAuth2_scheme),
 ) -> dict:
-    if token is None:
+    if token is None or token == "undefined":
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Not authenticated (missing or invalid token)",
         )
     try:
+        print(f"Received token: {token}")
         payload = decode_jwt(token=token)
         return payload
 
@@ -180,16 +181,24 @@ async def login_user(
     session: AsyncSession,
     user_data: UserLogin,
 ) -> AccessTokenSchema:
-    statement = select(User).filter_by(email=user_data.email)
 
+    statement = select(User).filter_by(email=user_data.email)
     user_by_email = await session.scalars(statement)
     user_by_email = user_by_email.first()
+
+    if not user_by_email:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User not found",
+        )
 
     jwt_payload = {
         "sub": str(user_by_email.id),
         "email": user_data.email,
     }
     token = encode_jwt(jwt_payload)
+
+    await session.execute(delete(AccessToken).filter_by(user_id=user_by_email.id))
 
     access_token = AccessToken(
         user_id=user_by_email.id,
