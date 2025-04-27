@@ -4,12 +4,18 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import PostgresDsn
 from pathlib import Path
 
+from dotenv import load_dotenv
+
+
 BASE_DIR = Path(__file__).resolve().parent.parent
+load_dotenv("../.env.app_config")
+load_dotenv("../.env.smtp_email")
 
 
 class RunConfig(BaseModel):
     host: str
     port: int
+
 
 class GunicornConfig(BaseModel):
     workers: int = 5
@@ -52,6 +58,7 @@ class AuthJWT(BaseModel):
     public_key_path: Path = BASE_DIR / "jwt-public.pem"
     algorithm: str = "RS256"
     lifetime_seconds: float = 3600.0
+
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
