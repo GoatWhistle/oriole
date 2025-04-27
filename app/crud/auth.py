@@ -9,6 +9,7 @@ from fastapi import (
 
 from fastapi.security import (
     OAuth2PasswordBearer,
+    OAuth2PasswordRequestForm,
 )
 from sqlalchemy.orm import Mapped
 
@@ -23,6 +24,7 @@ from datetime import datetime
 from pytz import utc
 
 from core.schemas.token import AccessToken as AccessTokenSchema
+from core.schemas.token import TokenResponseForOAuth2
 from core.models import User, UserProfile, AccessToken, db_helper
 
 from utils.JWT import hash_password
@@ -88,7 +90,6 @@ def get_current_token_payload(
             detail="Not authenticated (missing or invalid token)",
         )
     try:
-        print(f"Received token: {token}")
         payload = decode_jwt(token=token)
         return payload
 
@@ -103,8 +104,9 @@ async def get_current_auth_user(
     session: AsyncSession = Depends(db_helper.dependency_session_getter),
     payload: dict = Depends(get_current_token_payload),
 ) -> UserAuth:
-    email: str | None = payload.get("email")
-    if email is None:
+    email = payload.get("email")
+
+    if not email:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Token invalid (email not found in payload)",
@@ -180,17 +182,11 @@ async def validate_registered_user(
 async def login_user(
     session: AsyncSession,
     user_data: UserLogin,
-) -> AccessTokenSchema:
+) -> TokenResponseForOAuth2:
 
     statement = select(User).filter_by(email=user_data.email)
     user_by_email = await session.scalars(statement)
     user_by_email = user_by_email.first()
-
-    if not user_by_email:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="User not found",
-        )
 
     jwt_payload = {
         "sub": str(user_by_email.id),
@@ -208,4 +204,20 @@ async def login_user(
     session.add(access_token)
     await session.commit()
 
-    return AccessTokenSchema.model_validate(access_token.__dict__)
+    return TokenResponseForOAuth2(
+        access_token=token,
+        token_type="bearer",
+    )
+
+
+async def login_for_token(
+    session: AsyncSession,
+    form_data: OAuth2PasswordRequestForm,
+) -> TokenResponseForOAuth2:
+    user_data = UserLogin(
+        email=form_data.username,
+        password=form_data.password,
+    )
+    await validate_registered_user(user_data, session)
+
+    return await login_user(session, user_data)

@@ -1,28 +1,15 @@
 from fastapi import HTTPException, status
 
-from typing import Sequence
-from sqlalchemy import select, and_
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-
-from core.exceptions.group import (
-    check_group_exists,
-    check_admin_permission_in_group,
-    check_user_in_group,
-)
 from core.exceptions.user import check_user_exists
 from core.schemas.user import (
     UserRead,
     UserUpdate,
     UserUpdatePartial,
 )
-from core.schemas.group import GroupRead
-from core.schemas.task import TaskRead
-from core.schemas.assignment import AssignmentRead
-from core.schemas.account import AccountRole
-
-
-from core.models import User, Group, Account, Assignment, Task
+from core.models import User, Account, Assignment
 
 
 async def delete_user(
