@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from pydantic import PostgresDsn
@@ -60,16 +60,25 @@ class AuthJWT(BaseModel):
     lifetime_seconds: float = 3600.0
 
 
+class SMTPEmail(BaseModel):
+    server: str
+    port: int
+    user: EmailStr
+    password: str
+
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file=(".env.app_config",),
+        env_file=(".env.app_config", ".env.smtp_email"),
+        env_file_encoding="utf-8",
         case_sensitive=False,
         env_nested_delimiter="__",
         env_prefix="APP_CONFIG__",
     )
     run: RunConfig
-    gunicorn_run: GunicornConfig = GunicornConfig()
+    smtp_email: SMTPEmail
     db: DbConfig
+    gunicorn_run: GunicornConfig = GunicornConfig()
     api: ApiPrefix = ApiPrefix()
     auth_jwt: AuthJWT = AuthJWT()
 
