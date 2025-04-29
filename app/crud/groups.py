@@ -1,6 +1,6 @@
 from typing import Sequence
 
-from sqlalchemy import select
+from sqlalchemy import select, func
 from sqlalchemy.engine import Result
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -30,6 +30,8 @@ from core.models import (
     Assignment,
     Group,
     UserProfile,
+    Task,
+    UserReply,
 )
 
 
@@ -73,9 +75,20 @@ async def get_group_by_id(
     result_accounts: Result = await session.execute(statement_accounts)
     accounts = result_accounts.scalars().all()
 
-    statement_assignments = select(Assignment).where(Assignment.group_id == group_id)
+    statement_assignments = (
+        select(
+            Assignment,
+            func.count(Task.id)
+            .filter(Task.is_correct == True)
+            .label("user_completed_tasks_count"),
+        )
+        .outerjoin(Task, Task.assignment_id == Assignment.id)
+        .where(Assignment.group_id == group_id)
+        .group_by(Assignment.id)
+        .order_by(Assignment.id)
+    )
     result_assignments: Result = await session.execute(statement_assignments)
-    assignments = result_assignments.scalars().all()
+    assignments = result_assignments.all()
 
     return GroupRead(
         id=group.id,
@@ -90,8 +103,10 @@ async def get_group_by_id(
                 title=assignment.title,
                 description=assignment.description,
                 is_contest=assignment.is_contest,
+                tasks_count=assignment.tasks_count,
+                user_completed_tasks_count=user_completed_tasks_count,
             )
-            for assignment in assignments
+            for assignment, user_completed_tasks_count in assignments
         ],
     )
 
@@ -196,17 +211,48 @@ async def get_assignments_in_group(
     await check_user_in_group(session=session, user_id=user_id, group_id=group_id)
 
     statement = (
-        select(Assignment)
+        select(
+            Assignment,
+            func.count(Task.id).label("tasks_count"),
+        )
+        .outerjoin(Task, Task.assignment_id == Assignment.id)
         .where(Assignment.group_id == group_id)
+        .group_by(Assignment.id)
         .order_by(Assignment.id)
     )
 
     result: Result = await session.execute(statement)
-    assignments = list(result.scalars().all())
+    assignments = result.all()
 
-    return [
-        AssignmentReadPartial.model_validate(assignment) for assignment in assignments
-    ]
+    assignment_results = []
+    for assignment, tasks_count in assignments:
+        user_replies_query = await session.execute(
+            select(UserReply).where(
+                UserReply.account_id == user_id,
+                UserReply.task_id.in_(
+                    select(Task.id).where(Task.assignment_id == assignment.id)
+                ),
+            )
+        )
+        user_replies = {
+            reply.task_id: reply for reply in user_replies_query.scalars().all()
+        }
+        user_completed_tasks_count = sum(
+            1 for reply in user_replies.values() if reply.is_correct
+        )
+
+        assignment_results.append(
+            AssignmentReadPartial(
+                id=assignment.id,
+                title=assignment.title,
+                description=assignment.description,
+                is_contest=assignment.is_contest,
+                tasks_count=tasks_count,
+                user_completed_tasks_count=user_completed_tasks_count,
+            )
+        )
+
+    return assignment_results
 
 
 async def invite_user(

@@ -5,7 +5,7 @@ from sqlalchemy.engine import Result
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.exceptions.user import check_user_exists
-from core.exceptions.task import check_task_exists
+from core.exceptions.task import check_task_exists, check_counter_limit
 from core.exceptions.assignment import check_assignment_exists
 
 from core.exceptions.group import (
@@ -73,6 +73,7 @@ async def create_task(
         description=task_in.description,
         assignment_id=task_in.assignment_id,
         correct_answer=task_in.correct_answer,
+        max_attempts=task_in.max_attempts,
     )
     session.add(task)
     await session.commit()
@@ -83,7 +84,11 @@ async def create_task(
         task_id=task.id,
         user_answer="",
         is_correct=False,
+        user_attempts=0,
     )
+
+    assignment.tasks_count += 1
+
     session.add(user_reply)
     await session.commit()
 
@@ -93,6 +98,8 @@ async def create_task(
         description=task.description,
         user_answer=user_reply.user_answer,
         is_correct=user_reply.is_correct,
+        user_attempts=0,
+        max_attempts=task.max_attempts,
     )
 
 
@@ -116,9 +123,22 @@ async def get_task_by_id(
         group_id=assignment.group_id,
     )
 
+    profile = await session.get(UserProfile, user_id)
+
+    accounts_query = await session.execute(
+        select(Account).where(Account.user_id == profile.user_id)
+    )
+    accounts = accounts_query.scalars().all()
+
+    target_account = None
+    for account in accounts:
+        if account.group_id == assignment.group_id:
+            target_account = account
+            break
+
     user_reply_data = await session.execute(
         select(UserReply).where(
-            UserReply.account_id == user_id, UserReply.task_id == task.id
+            UserReply.account_id == target_account.id, UserReply.task_id == task_id
         )
     )
     user_reply = user_reply_data.scalars().first()
@@ -129,6 +149,8 @@ async def get_task_by_id(
         description=task.description,
         user_answer=user_reply.user_answer if user_reply else "",
         is_correct=user_reply.is_correct if user_reply else False,
+        user_attempts=user_reply.user_attempts if user_reply else 0,
+        max_attempts=task.max_attempts,
     )
 
 
@@ -223,9 +245,15 @@ async def update_task(
     await session.commit()
     await session.refresh(task)
 
+    statement = select(Account).where(
+        Account.user_id == user_id, Account.group_id == assignment.group_id
+    )
+    result = await session.execute(statement)
+    account = result.scalars().first()
+
     user_reply_data = await session.execute(
         select(UserReply).where(
-            UserReply.account_id == user_id, UserReply.task_id == task_id
+            UserReply.account_id == account.id, UserReply.task_id == task_id
         )
     )
     user_reply = user_reply_data.scalars().first()
@@ -238,6 +266,8 @@ async def update_task(
         is_correct=(
             user_reply.user_answer == task.correct_answer if user_reply else False
         ),
+        user_attempts=user_reply.user_attempts if user_reply else 0,
+        max_attempts=task.max_attempts,
     )
 
 
@@ -333,10 +363,23 @@ async def try_to_complete_task(
     await session.commit()
     await session.refresh(task)
 
+    await check_counter_limit(
+        session=session,
+        user_id=user_id,
+        user_reply_id=user_reply.id,
+        task_id=task_id,
+    )
+    user_reply.user_attempts += 1
+
+    await session.commit()
+    await session.refresh(user_reply)
+
     return TaskRead(
         id=task.id,
         title=task.title,
         description=task.description,
         is_correct=(user_answer == task.correct_answer),
         user_answer=user_answer,
+        user_attempts=user_reply.user_attempts,
+        max_attempts=task.max_attempts,
     )

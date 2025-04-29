@@ -1,6 +1,6 @@
 from typing import Sequence
 
-from sqlalchemy import select
+from sqlalchemy import select, func
 from sqlalchemy.engine import Result
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -59,7 +59,14 @@ async def create_assignment(
     await session.commit()
     await session.refresh(assignment)
 
-    return AssignmentReadPartial.model_validate(assignment)
+    return AssignmentReadPartial(
+        id=assignment.id,
+        title=assignment_in.title,
+        description=assignment_in.description,
+        is_contest=assignment_in.is_contest,
+        tasks_count=0,
+        user_completed_tasks_count=0,
+    )
 
 
 async def get_assignment_by_id(
@@ -68,16 +75,43 @@ async def get_assignment_by_id(
     assignment_id: int,
 ) -> AssignmentRead:
     await check_user_exists(session=session, user_id=user_id)
-
     await check_assignment_exists(session=session, assignment_id=assignment_id)
+
     assignment = await session.get(Assignment, assignment_id)
-
     await check_group_exists(session=session, group_id=assignment.group_id)
-
     await check_user_in_group(
-        session=session,
-        user_id=user_id,
-        group_id=assignment.group_id,
+        session=session, user_id=user_id, group_id=assignment.group_id
+    )
+
+    statement = (
+        select(
+            Assignment,
+            func.count(Task.id).label("tasks_count"),
+        )
+        .outerjoin(Task, Task.assignment_id == Assignment.id)
+        .where(Assignment.id == assignment_id)
+        .group_by(Assignment.id)
+    )
+
+    result: Result = await session.execute(statement)
+    assignment_data = result.one_or_none()
+
+    assignment, tasks_count = assignment_data
+
+    user_replies_query = await session.execute(
+        select(UserReply).where(
+            UserReply.account_id == user_id,
+            UserReply.task_id.in_(
+                select(Task.id).where(Task.assignment_id == assignment_id)
+            ),
+        )
+    )
+
+    user_replies = {
+        reply.task_id: reply for reply in user_replies_query.scalars().all()
+    }
+    user_completed_tasks_count = sum(
+        1 for reply in user_replies.values() if reply.is_correct
     )
 
     tasks_query = await session.execute(
@@ -85,22 +119,14 @@ async def get_assignment_by_id(
     )
     tasks = tasks_query.scalars().all()
 
-    user_replies_query = await session.execute(
-        select(UserReply).where(
-            UserReply.account_id == user_id,
-            UserReply.task_id.in_([task.id for task in tasks]),
-        )
-    )
-    user_replies = {
-        reply.task_id: reply for reply in user_replies_query.scalars().all()
-    }
-
     return AssignmentRead(
         id=assignment.id,
         title=assignment.title,
         description=assignment.description,
         is_contest=assignment.is_contest,
         admin_id=assignment.admin_id,
+        tasks_count=tasks_count,
+        user_completed_tasks_count=user_completed_tasks_count,
         tasks=[
             TaskReadPartial(
                 id=task.id,
@@ -122,7 +148,6 @@ async def get_user_assignments(
     user_id: int,
 ) -> Sequence[AssignmentReadPartial]:
     await check_user_exists(session=session, user_id=user_id)
-
     statement_groups = select(Group).join(Account).where(Account.user_id == user_id)
     result_groups: Result = await session.execute(statement_groups)
     groups = result_groups.scalars().all()
@@ -131,14 +156,50 @@ async def get_user_assignments(
         return []
 
     group_ids = [group.id for group in groups]
-    statement_assignments = select(Assignment).where(Assignment.group_id.in_(group_ids))
-    result_assignments: Result = await session.execute(statement_assignments)
-    assignments = result_assignments.scalars().all()
 
-    return [
-        AssignmentReadPartial.model_validate(assignment.__dict__)
-        for assignment in assignments
-    ]
+    statement_assignments = (
+        select(
+            Assignment,
+            func.count(Task.id).label("tasks_count"),
+        )
+        .outerjoin(Task, Task.assignment_id == Assignment.id)
+        .where(Assignment.group_id.in_(group_ids))
+        .group_by(Assignment.id)
+        .order_by(Assignment.id)
+    )
+
+    result_assignments: Result = await session.execute(statement_assignments)
+    assignments = result_assignments.all()
+
+    assignment_results = []
+    for assignment, tasks_count in assignments:
+        user_replies_query = await session.execute(
+            select(UserReply).where(
+                UserReply.account_id == user_id,
+                UserReply.task_id.in_(
+                    select(Task.id).where(Task.assignment_id == assignment.id)
+                ),
+            )
+        )
+        user_replies = {
+            reply.task_id: reply for reply in user_replies_query.scalars().all()
+        }
+        user_completed_tasks_count = sum(
+            1 for reply in user_replies.values() if reply.is_correct
+        )
+
+        assignment_results.append(
+            AssignmentReadPartial(
+                id=assignment.id,
+                title=assignment.title,
+                description=assignment.description,
+                is_contest=assignment.is_contest,
+                tasks_count=tasks_count,
+                user_completed_tasks_count=user_completed_tasks_count,
+            )
+        )
+
+    return assignment_results
 
 
 async def update_assignment(
@@ -168,7 +229,32 @@ async def update_assignment(
     await session.commit()
     await session.refresh(assignment)
 
-    return AssignmentReadPartial.model_validate(assignment)
+    tasks_query = await session.execute(
+        select(Task).where(Task.assignment_id == assignment_id)
+    )
+    tasks = tasks_query.scalars().all()
+
+    user_replies_query = await session.execute(
+        select(UserReply).where(
+            UserReply.account_id == user_id,
+            UserReply.task_id.in_([task.id for task in tasks]),
+        )
+    )
+    user_replies = {
+        reply.task_id: reply for reply in user_replies_query.scalars().all()
+    }
+    user_completed_tasks_count = sum(
+        1 for task_id in user_replies if user_replies[task_id].is_correct
+    )
+
+    return AssignmentReadPartial(
+        id=assignment.id,
+        title=assignment.title,
+        description=assignment.description,
+        is_contest=assignment.is_contest,
+        tasks_count=assignment.tasks_count,
+        user_completed_tasks_count=user_completed_tasks_count,
+    )
 
 
 async def delete_assignment(
