@@ -55,7 +55,7 @@ async def check_admin_permission_in_group(
         Account.user_id == user_id, Account.group_id == group_id
     )
     result = await session.execute(statement)
-    account = result.scalars().first()  #
+    account = result.scalars().first()
 
     if account.role not in (AccountRole.OWNER.value, AccountRole.ADMIN.value):
         raise HTTPException(
