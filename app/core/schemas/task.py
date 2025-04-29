@@ -21,6 +21,8 @@ class TaskReadPartial(TaskBase):
 
 class TaskRead(TaskReadPartial):
     user_answer: str
+    user_attempts: int
+    max_attempts: int
 
 
 class TaskCreate(TaskBase):
@@ -32,6 +34,7 @@ class TaskCreate(TaskBase):
 
 class TaskUpdate(TaskBase):
     correct_answer: str
+    max_attempts: int
 
 
 class TaskUpdatePartial(TaskBase):
@@ -39,3 +42,4 @@ class TaskUpdatePartial(TaskBase):
     description: Annotated[Optional[str], Field(max_length=num_opt(200))] = None
 
     correct_answer: Optional[str] = None
+    max_attempts: Optional[int] = None

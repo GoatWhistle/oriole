@@ -2,7 +2,7 @@ from pydantic import BaseModel, Field, ConfigDict
 
 from typing import Annotated, Optional, Sequence
 
-from core.schemas.task import TaskRead, TaskReadPartial
+from core.schemas.task import TaskReadPartial
 from utils.number_optimizer import get_number_one_bit_less as num_opt
 
 
@@ -16,6 +16,7 @@ class AssignmentReadPartial(AssignmentBase):
     id: int
 
     tasks_count: int
+    user_completed_tasks_count: int
 
     model_config = ConfigDict(
         from_attributes=True,
