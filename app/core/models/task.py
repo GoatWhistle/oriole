@@ -4,7 +4,7 @@ from core.models.assignment import Assignment
 from .base import Base
 from .mixins.id_int_pk import IdIntPkMixin
 
-from sqlalchemy import String, ForeignKey
+from sqlalchemy import String, ForeignKey, Integer
 from sqlalchemy.orm import (
     Mapped,
     mapped_column,
@@ -27,4 +27,4 @@ class Task(Base, IdIntPkMixin):
 
     user_replys: Mapped[list["UserReply"]] = relationship(back_populates="task")
 
-    max_attempts: Mapped[int] = mapped_column()
+    max_attempts: Mapped[int] = mapped_column(Integer, default=0)

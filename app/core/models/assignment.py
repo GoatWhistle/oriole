@@ -2,7 +2,7 @@ from .base import Base
 from .mixins.id_int_pk import IdIntPkMixin
 from typing import TYPE_CHECKING
 
-from sqlalchemy import String, ForeignKey
+from sqlalchemy import String, ForeignKey, Integer
 from sqlalchemy.orm import (
     Mapped,
     mapped_column,
@@ -29,4 +29,4 @@ class Assignment(Base, IdIntPkMixin):
     group: Mapped["Group"] = relationship(back_populates="assignments")
 
     tasks: Mapped[list["Task"]] = relationship(back_populates="assignment")
-    tasks_count: Mapped[int] = mapped_column()
+    tasks_count: Mapped[int] = mapped_column(Integer, default=0)

@@ -4,7 +4,7 @@ from . import Task
 from .base import Base
 from .mixins.id_int_pk import IdIntPkMixin
 
-from sqlalchemy import String, ForeignKey
+from sqlalchemy import String, ForeignKey, Integer
 from sqlalchemy.orm import (
     Mapped,
     mapped_column,
@@ -26,4 +26,4 @@ class UserReply(Base, IdIntPkMixin):
     user_answer: Mapped[str] = mapped_column(String(num_opt(200)))
     is_correct: Mapped[bool] = mapped_column()
 
-    user_attempts: Mapped[int] = mapped_column()
+    user_attempts: Mapped[int] = mapped_column(Integer, default=0)
