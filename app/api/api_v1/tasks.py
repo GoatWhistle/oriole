@@ -165,7 +165,7 @@ async def delete_task(
 
 
 @router.patch(
-    "/complete/{task_id}",
+    "/{task_id}/complete/",
     response_model=TaskRead,
     status_code=status.HTTP_200_OK,
 )

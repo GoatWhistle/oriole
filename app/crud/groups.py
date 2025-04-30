@@ -78,9 +78,7 @@ async def get_group_by_id(
     statement_assignments = (
         select(
             Assignment,
-            func.count(Task.id)
-            .filter(Task.is_correct == True)
-            .label("user_completed_tasks_count"),
+            func.count(Task.id).label("tasks_count"),
         )
         .outerjoin(Task, Task.assignment_id == Assignment.id)
         .where(Assignment.group_id == group_id)
@@ -90,6 +88,34 @@ async def get_group_by_id(
     result_assignments: Result = await session.execute(statement_assignments)
     assignments = result_assignments.all()
 
+    group_assignments = []
+    for assignment, tasks_count in assignments:
+        user_replies_query = await session.execute(
+            select(UserReply).where(
+                UserReply.task_id.in_(
+                    select(Task.id).where(Task.assignment_id == assignment.id)
+                ),
+                UserReply.account_id == user_id,
+            )
+        )
+        user_replies = {
+            reply.task_id: reply for reply in user_replies_query.scalars().all()
+        }
+        user_completed_tasks_count = sum(
+            1 for reply in user_replies.values() if reply.is_correct
+        )
+
+        group_assignments.append(
+            AssignmentReadPartial(
+                id=assignment.id,
+                title=assignment.title,
+                description=assignment.description,
+                is_contest=assignment.is_contest,
+                tasks_count=tasks_count,
+                user_completed_tasks_count=user_completed_tasks_count,
+            )
+        )
+
     return GroupRead(
         id=group.id,
         title=group.title,
@@ -97,17 +123,7 @@ async def get_group_by_id(
         accounts=[
             AccountReadPartial.model_validate(account.__dict__) for account in accounts
         ],
-        assignments=[
-            AssignmentReadPartial(
-                id=assignment.id,
-                title=assignment.title,
-                description=assignment.description,
-                is_contest=assignment.is_contest,
-                tasks_count=assignment.tasks_count,
-                user_completed_tasks_count=user_completed_tasks_count,
-            )
-            for assignment, user_completed_tasks_count in assignments
-        ],
+        assignments=group_assignments,
     )
 
 
@@ -234,11 +250,10 @@ async def get_assignments_in_group(
                 ),
             )
         )
-        user_replies = {
-            reply.task_id: reply for reply in user_replies_query.scalars().all()
-        }
+        user_replies = user_replies_query.scalars().all()
+
         user_completed_tasks_count = sum(
-            1 for reply in user_replies.values() if reply.is_correct
+            1 for reply in user_replies if reply.is_correct
         )
 
         assignment_results.append(
@@ -267,7 +282,7 @@ async def invite_user(
         session=session, user_id=user_id, group_id=group_id
     )
 
-    return {"link": f"http://oriole.com/learn/groups/join/{group_id}"}
+    return {"link": f"http://oriole.com/learn/groups/{group_id}/join/"}
 
 
 async def join_by_link(

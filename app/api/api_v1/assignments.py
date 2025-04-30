@@ -166,7 +166,7 @@ async def delete_assignment(
 
 
 @router.get(
-    "/{assignment_id}/tasks",
+    "/{assignment_id}/tasks/",
     response_model=Sequence[TaskReadPartial],
     status_code=status.HTTP_200_OK,
 )

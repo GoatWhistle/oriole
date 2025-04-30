@@ -2,8 +2,8 @@ from pydantic import BaseModel, Field, ConfigDict
 
 from typing import Annotated, Optional, Sequence
 
-from core.schemas.account import AccountRead, AccountReadPartial
-from core.schemas.assignment import AssignmentRead, AssignmentReadPartial
+from core.schemas.account import AccountReadPartial
+from core.schemas.assignment import AssignmentReadPartial
 
 from utils.number_optimizer import get_number_one_bit_less as num_opt
 

@@ -5,7 +5,11 @@ from sqlalchemy.engine import Result
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.exceptions.user import check_user_exists
-from core.exceptions.task import check_task_exists, check_counter_limit
+from core.exceptions.task import (
+    check_task_exists,
+    check_counter_limit,
+    check_task_is_already_correct,
+)
 from core.exceptions.assignment import check_assignment_exists
 
 from core.exceptions.group import (
@@ -363,6 +367,12 @@ async def try_to_complete_task(
     await session.commit()
     await session.refresh(task)
 
+    await check_task_is_already_correct(
+        session=session,
+        user_id=user_id,
+        user_reply_id=user_reply.id,
+        task_id=task_id,
+    )
     await check_counter_limit(
         session=session,
         user_id=user_id,

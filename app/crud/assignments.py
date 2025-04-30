@@ -78,6 +78,7 @@ async def get_assignment_by_id(
     await check_assignment_exists(session=session, assignment_id=assignment_id)
 
     assignment = await session.get(Assignment, assignment_id)
+
     await check_group_exists(session=session, group_id=assignment.group_id)
     await check_user_in_group(
         session=session, user_id=user_id, group_id=assignment.group_id
@@ -98,26 +99,26 @@ async def get_assignment_by_id(
 
     assignment, tasks_count = assignment_data
 
-    user_replies_query = await session.execute(
-        select(UserReply).where(
-            UserReply.account_id == user_id,
-            UserReply.task_id.in_(
-                select(Task.id).where(Task.assignment_id == assignment_id)
-            ),
-        )
-    )
-
-    user_replies = {
-        reply.task_id: reply for reply in user_replies_query.scalars().all()
-    }
-    user_completed_tasks_count = sum(
-        1 for reply in user_replies.values() if reply.is_correct
-    )
-
     tasks_query = await session.execute(
         select(Task).where(Task.assignment_id == assignment_id)
     )
     tasks = tasks_query.scalars().all()
+
+    statement_account = select(Account).where(Account.user_id == user_id)
+    result_account: Result = await session.execute(statement_account)
+    account = result_account.scalars().first()
+
+    user_reply_data = await session.execute(
+        select(UserReply).where(
+            UserReply.account_id == account.id,
+            UserReply.task_id.in_([task.id for task in tasks]),
+        )
+    )
+    user_replies = {reply.task_id: reply for reply in user_reply_data.scalars().all()}
+
+    user_completed_tasks_count = sum(
+        1 for reply in user_replies.values() if reply.is_correct
+    )
 
     return AssignmentRead(
         id=assignment.id,
@@ -132,11 +133,7 @@ async def get_assignment_by_id(
                 id=task.id,
                 title=task.title,
                 description=task.description,
-                is_correct=(
-                    user_replies.get(task.id, None).is_correct
-                    if task.id in user_replies
-                    else False
-                ),
+                is_correct=user_replies[task.id].is_correct,
             )
             for task in tasks
         ],
@@ -148,6 +145,14 @@ async def get_user_assignments(
     user_id: int,
 ) -> Sequence[AssignmentReadPartial]:
     await check_user_exists(session=session, user_id=user_id)
+
+    statement_account = select(Account).where(Account.user_id == user_id)
+    result_account: Result = await session.execute(statement_account)
+    account = result_account.scalars().first()
+
+    if not account:
+        return []
+
     statement_groups = select(Group).join(Account).where(Account.user_id == user_id)
     result_groups: Result = await session.execute(statement_groups)
     groups = result_groups.scalars().all()
@@ -173,17 +178,19 @@ async def get_user_assignments(
 
     assignment_results = []
     for assignment, tasks_count in assignments:
-        user_replies_query = await session.execute(
+        tasks_query = await session.execute(
+            select(Task).where(Task.assignment_id == assignment.id)
+        )
+        tasks = tasks_query.scalars().all()
+
+        user_reply_data = await session.execute(
             select(UserReply).where(
-                UserReply.account_id == user_id,
-                UserReply.task_id.in_(
-                    select(Task.id).where(Task.assignment_id == assignment.id)
-                ),
+                UserReply.account_id == account.id,
+                UserReply.task_id.in_([task.id for task in tasks]),
             )
         )
-        user_replies = {
-            reply.task_id: reply for reply in user_replies_query.scalars().all()
-        }
+        user_replies = {reply.task_id: reply for reply in user_reply_data.scalars().all()}
+
         user_completed_tasks_count = sum(
             1 for reply in user_replies.values() if reply.is_correct
         )

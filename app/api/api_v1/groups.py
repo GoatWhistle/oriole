@@ -7,7 +7,7 @@ from fastapi import (
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Annotated, Sequence
 
-from core.schemas.assignment import AssignmentRead
+from core.schemas.assignment import AssignmentReadPartial
 from core.schemas.user import UserProfileRead
 
 from core.schemas.group import (
@@ -192,7 +192,7 @@ async def get_users_in_group(
 
 @router.get(
     "/{group_id}/assignments/",
-    response_model=Sequence[AssignmentRead],
+    response_model=Sequence[AssignmentReadPartial],
     status_code=status.HTTP_200_OK,
 )
 async def get_assignments_in_group(
@@ -236,7 +236,7 @@ async def invite_user(
 
 
 @router.post(
-    "/join/{group_id}",
+    "/{group_id}/join/",
     status_code=status.HTTP_200_OK,
 )
 async def join_by_link(
@@ -258,7 +258,7 @@ async def join_by_link(
 
 
 @router.patch(
-    "/{group_id}/promote/{promote_user_id}",
+    "/{group_id}/promote/{promote_user_id}/",
     status_code=status.HTTP_200_OK,
 )
 async def promote_user_to_admin(
@@ -282,7 +282,7 @@ async def promote_user_to_admin(
 
 
 @router.patch(
-    "/{group_id}/demote/{demote_user_id}",
+    "/{group_id}/demote/{demote_user_id}/",
     status_code=status.HTTP_200_OK,
 )
 async def demote_user_to_member(
@@ -306,7 +306,7 @@ async def demote_user_to_member(
 
 
 @router.delete(
-    "/{group_id}/kick/{remove_user_id}",
+    "/{group_id}/kick/{remove_user_id}/",
     status_code=status.HTTP_204_NO_CONTENT,
 )
 async def remove_user_from_group(
