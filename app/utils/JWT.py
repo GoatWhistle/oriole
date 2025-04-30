@@ -28,7 +28,7 @@ def create_access_token(
     current_time_utc = datetime.now(utc)
     expire = current_time_utc + timedelta(seconds=lifetime_seconds)
     jwt_payload = {
-        "sub": user_id,
+        "sub": str(user_id),
         "email": user_email,
         "exp": expire,
         "iat": current_time_utc,
@@ -44,7 +44,7 @@ def create_refresh_token(
     current_time_utc = datetime.now(utc)
     expire = current_time_utc + timedelta(seconds=lifetime_seconds)
     jwt_payload = {
-        "sub": user_id,
+        "sub": str(user_id),
         "email": user_email,
         "exp": expire,
         "iat": current_time_utc,
