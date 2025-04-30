@@ -5,7 +5,7 @@ from fastapi import (
 )
 
 from sqlalchemy.ext.asyncio import AsyncSession
-from typing import Annotated, Sequence
+from typing import Annotated, Sequence, Optional
 
 from core.models import db_helper
 
@@ -84,10 +84,12 @@ async def get_user_tasks(
         int,
         Depends(get_current_active_auth_user_id),
     ],
+    is_correct: Optional[bool] = None,
 ):
     return await crud.get_user_tasks(
         session=session,
         user_id=user_id,
+        is_correct=is_correct,
     )
 
 

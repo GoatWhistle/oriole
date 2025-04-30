@@ -296,6 +296,7 @@ async def get_tasks_in_assignment(
     session: AsyncSession,
     user_id: int,
     assignment_id: int,
+    is_correct: bool | None,
 ) -> Sequence[TaskReadPartial]:
 
     await check_user_exists(session=session, user_id=user_id)
@@ -334,6 +335,16 @@ async def get_tasks_in_assignment(
         )
     )
     user_replies = {reply.task_id: reply for reply in user_reply_data.scalars().all()}
+
+    if is_correct is not None:
+        tasks = [
+            task
+            for task in tasks
+            if (
+                task.id in user_replies
+                and user_replies[task.id].is_correct == is_correct
+            )
+        ]
 
     return [
         TaskReadPartial(

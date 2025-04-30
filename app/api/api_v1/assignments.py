@@ -5,7 +5,7 @@ from fastapi import (
 )
 
 from sqlalchemy.ext.asyncio import AsyncSession
-from typing import Annotated, Sequence
+from typing import Annotated, Sequence, Optional
 
 from core.schemas.task import TaskReadPartial
 
@@ -180,9 +180,11 @@ async def get_tasks_in_assignment(
         Depends(get_current_active_auth_user_id),
     ],
     assignment_id: int,
+    is_correct: Optional[bool] = None,
 ) -> Sequence[TaskReadPartial]:
     return await crud.get_tasks_in_assignment(
         session=session,
         user_id=user_id,
         assignment_id=assignment_id,
+        is_correct=is_correct,
     )
