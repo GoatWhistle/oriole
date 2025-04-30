@@ -1,6 +1,5 @@
 __all__ = (
     "db_helper",
-    "lifespan",
     "Base",
     "AccessToken",
     "User",
@@ -12,7 +11,7 @@ __all__ = (
     "UserReply",
 )
 
-from .db_helper import db_helper, lifespan
+from .db_helper import db_helper
 
 from .base import Base
 

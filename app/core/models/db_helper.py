@@ -1,7 +1,3 @@
-from contextlib import asynccontextmanager
-
-from fastapi import FastAPI
-
 from core.config import settings
 
 from typing import AsyncGenerator
@@ -48,11 +44,3 @@ class DbHelper:
 db_helper = DbHelper(
     db_url=str(settings.db.db_url),
 )
-
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-
-    yield
-
-    await db_helper.dispose()

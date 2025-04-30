@@ -6,6 +6,8 @@ services:
     depends_on:
       pg:
         condition: service_healthy
+      redis:
+        condition: service_healthy
     environment:
       DB_URL: ${APP_CONFIG__DB__DB_URL}
     ports:
@@ -44,7 +46,12 @@ services:
   redis:
     image: redis:latest
     ports:
-      - "6379:6379"
+      - "${APP_CONFIG_REDIS_PORT}:6379"
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      timeout: 3s
+      retries: 3
 
 volumes:
   pgdata:

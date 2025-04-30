@@ -7,9 +7,12 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 
+env_files = (".env.app_config", ".env.smtp_email", ".env.redis")
+
 BASE_DIR = Path(__file__).resolve().parent.parent
-load_dotenv("../.env.app_config")
-load_dotenv("../.env.smtp_email")
+
+for file in env_files:
+    load_dotenv(f"../{file}")
 
 
 class RunConfig(BaseModel):
@@ -46,6 +49,7 @@ class ApiV1Prefix(BaseModel):
     tasks: str = "/tasks"
     auth: str = "/auth"
     learn: str = "/learn"
+    email_verify: str = "/verify"
 
 
 class ApiPrefix(BaseModel):
@@ -67,9 +71,14 @@ class SMTPEmail(BaseModel):
     password: str
 
 
+class Redis(BaseModel):
+    port: int
+    url: str
+
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file=(".env.app_config", ".env.smtp_email"),
+        env_file=env_files,
         env_file_encoding="utf-8",
         case_sensitive=False,
         env_nested_delimiter="__",
@@ -78,6 +87,7 @@ class Settings(BaseSettings):
     run: RunConfig
     smtp_email: SMTPEmail
     db: DbConfig
+    redis: Redis
     gunicorn_run: GunicornConfig = GunicornConfig()
     api: ApiPrefix = ApiPrefix()
     auth_jwt: AuthJWT = AuthJWT()

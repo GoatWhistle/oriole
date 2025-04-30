@@ -2,7 +2,7 @@ import uvicorn
 
 from fastapi import FastAPI
 
-from core.models import lifespan
+from core.events import lifespan
 from core.config import settings
 
 from api import router as api_router
