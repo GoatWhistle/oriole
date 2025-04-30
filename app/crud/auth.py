@@ -1,4 +1,4 @@
-from sqlalchemy import select, delete
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError
 
@@ -6,6 +6,7 @@ from fastapi import (
     HTTPException,
     status,
     Depends,
+    Response,
 )
 
 from fastapi.security import (
@@ -18,15 +19,17 @@ from utils.JWT import (
     encode_jwt,
     validate_password,
     decode_jwt,
+    create_access_token,
+    create_refresh_token,
 )
 from jwt.exceptions import InvalidTokenError
 
 from datetime import datetime
 from pytz import utc
 
-from core.schemas.token import AccessToken as AccessTokenSchema
 from core.schemas.token import TokenResponseForOAuth2
-from core.models import User, UserProfile, AccessToken, db_helper
+from core.models import User, UserProfile, db_helper
+from core.config import settings
 
 from .email_access import send_confirmation_email
 
@@ -104,7 +107,17 @@ def get_current_token_payload(
             detail="Not authenticated (missing or invalid token)",
         )
     try:
+        if token.startswith("Bearer "):
+            token = token[7:]
+
         payload = decode_jwt(token=token)
+
+        if payload.get("iat", 0) > payload.get("exp", 0):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Token expired",
+            )
+
         return payload
 
     except InvalidTokenError as e:
@@ -138,15 +151,11 @@ async def get_current_auth_user(
     return UserAuthRead.model_validate(user_from_db)
 
 
-async def get_current_active_auth_user_id(
-    session: AsyncSession = Depends(db_helper.dependency_session_getter),
+def get_current_active_auth_user_id(
     user_data: UserAuthRead = Depends(get_current_auth_user),
 ) -> int | Mapped[int]:
     if user_data.is_active:
-        statement = select(User).filter_by(email=user_data.email)
-        user_from_db = await session.scalars(statement)
-        user_from_db = user_from_db.first()
-        return user_from_db.id
+        return user_data.id
 
     raise HTTPException(
         status_code=status.HTTP_403_FORBIDDEN,
@@ -196,35 +205,33 @@ async def validate_registered_user(
 async def login_user(
     session: AsyncSession,
     user_data: UserLogin,
+    response: Response,
 ) -> TokenResponseForOAuth2:
 
     statement = select(User).filter_by(email=user_data.email)
     user_by_email = await session.scalars(statement)
     user_by_email = user_by_email.first()
 
-    jwt_payload = {
-        "sub": str(user_by_email.id),
-        "email": user_data.email,
-    }
-    token = encode_jwt(jwt_payload)
+    access_token = create_access_token(user_by_email.id, user_by_email.email)
+    refresh_token = create_refresh_token(user_by_email.id, user_by_email.email)
 
-    await session.execute(delete(AccessToken).filter_by(user_id=user_by_email.id))
-
-    access_token = AccessToken(
-        user_id=user_by_email.id,
-        token=token,
-        created_at=int(datetime.now(utc).timestamp()),
+    response.set_cookie(
+        key="access_token",
+        value=f"Bearer {access_token}",
+        httponly=True,
+        secure=False,  # TODO: потом поставить на True!!!
+        samesite="lax",
+        max_age=settings.auth_jwt.access_token_lifetime_seconds,
     )
-    session.add(access_token)
-    await session.commit()
 
     return TokenResponseForOAuth2(
-        access_token=token,
+        access_token=access_token,
         token_type="bearer",
     )
 
 
 async def login_for_token(
+    response: Response,
     session: AsyncSession,
     form_data: OAuth2PasswordRequestForm,
 ) -> TokenResponseForOAuth2:
@@ -234,4 +241,4 @@ async def login_for_token(
     )
     await validate_registered_user(user_data, session)
 
-    return await login_user(session, user_data)
+    return await login_user(session, user_data, response)
