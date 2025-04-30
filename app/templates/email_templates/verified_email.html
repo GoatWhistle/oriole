@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 20px;
+        }
+        h2 {
+            color: #333;
+        }
+        .confirm-button {
+            display: inline-block;
+            padding: 10px 20px;
+            font-size: 16px;
+            color: white;
+            background-color: #4CAF50;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+        .compact-link {
+            color: #4CAF50;
+            text-decoration: none;
+            font-size: 14px;
+        }
+    </style>
+    <title>Подтверждение электронной почты</title>
+</head>
+<body>
+    <h2>Подтверждение электронной почты</h2>
+    <p>Пожалуйста, подтвердите вашу электронную почту, нажав на кнопку ниже:</p>
+    <a href="{{ link }}" class="confirm-button">Подтвердить почту</a>
+    <p>Если кнопка не работает, вы можете скопировать и вставить следующую ссылку в ваш браузер:</p>
+    <p><a href="{{ link }}" class="compact-link">Ссылка для подтверждения</a></p>
+</body>
+</html>

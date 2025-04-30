@@ -13,6 +13,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from utils.JWT import decode_jwt
 
+from fastapi.templating import Jinja2Templates
+
+
+templates = Jinja2Templates(directory="templates/email_templates")
+
 
 async def send_confirmation_email(
     email: EmailStr,
@@ -31,10 +36,12 @@ async def send_confirmation_email(
 
     link = f"http://127.0.0.1:{settings.run.port}{settings.api.prefix}{settings.api.v1.prefix}{settings.api.v1.email_verify}/{token}"
 
+    html_body = templates.get_template("verified_email.html").render(link=link)
+
     message = MessageSchema(
         subject="Email Confirmation",
         recipients=[email],
-        body=f"Please confirm your email by clicking on the link: {link}",
+        body=html_body,
         subtype="html",
     )
     fm = FastMail(conf)
