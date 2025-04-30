@@ -114,6 +114,7 @@ async def get_assignment_by_id(
             UserReply.task_id.in_([task.id for task in tasks]),
         )
     )
+
     user_replies = {reply.task_id: reply for reply in user_reply_data.scalars().all()}
 
     user_completed_tasks_count = sum(
@@ -189,7 +190,10 @@ async def get_user_assignments(
                 UserReply.task_id.in_([task.id for task in tasks]),
             )
         )
-        user_replies = {reply.task_id: reply for reply in user_reply_data.scalars().all()}
+
+        user_replies = {
+            reply.task_id: reply for reply in user_reply_data.scalars().all()
+        }
 
         user_completed_tasks_count = sum(
             1 for reply in user_replies.values() if reply.is_correct
@@ -217,6 +221,7 @@ async def update_assignment(
     partial: bool = False,
 ) -> AssignmentReadPartial:
     await check_user_exists(session=session, user_id=user_id)
+
     await check_assignment_exists(session=session, assignment_id=assignment_id)
     assignment = await session.get(Assignment, assignment_id)
 
