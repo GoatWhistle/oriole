@@ -7,6 +7,7 @@ from fastapi import (
     status,
     Depends,
     Response,
+    Request,
 )
 
 from fastapi.security import (
@@ -16,7 +17,6 @@ from fastapi.security import (
 from sqlalchemy.orm import Mapped
 
 from utils.JWT import (
-    encode_jwt,
     validate_password,
     decode_jwt,
     create_access_token,
@@ -24,8 +24,6 @@ from utils.JWT import (
 )
 from jwt.exceptions import InvalidTokenError
 
-from datetime import datetime
-from pytz import utc
 
 from core.schemas.token import TokenResponseForOAuth2
 from core.models import User, UserProfile, db_helper
@@ -42,7 +40,17 @@ from core.schemas.user import (
     UserLogin,
 )
 
-OAuth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/token")
+
+class OAuth2PasswordBearerWithCookie(OAuth2PasswordBearer):
+    async def __call__(self, request: Request) -> str | None:
+        token = request.cookies.get("access_token")
+        if token:
+            return token
+
+        return await super().__call__(request)
+
+
+OAuth2_scheme = OAuth2PasswordBearerWithCookie(tokenUrl="/api/v1/auth/token")
 
 
 async def register_user(
