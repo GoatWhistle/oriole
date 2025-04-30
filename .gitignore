@@ -126,6 +126,7 @@ app/.env
 app/.env.app_config
 app/.env.docker
 app/.env.smtp_email
+app/.env.redis
 .venv
 env/
 venv/
