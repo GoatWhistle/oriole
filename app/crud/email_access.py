@@ -1,27 +1,58 @@
+from fastapi import HTTPException, Depends
+
 from pydantic import EmailStr
 
-from aiosmtplib import SMTP
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
 
 from core.config import settings
+
+from fastapi_mail import FastMail, MessageSchema, ConnectionConfig
+
+from core.models import User
+
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from utils.JWT import decode_jwt
 
 
 async def send_confirmation_email(
     email: EmailStr,
     token: str,
 ):
-    msg = MIMEMultipart()
-    msg["From"] = settings.smtp_email.user
-    msg["To"] = email
-    msg["Subject"] = "Подтверждение электронной почты"
+    conf = ConnectionConfig(
+        MAIL_USERNAME=settings.smtp_email.user,
+        MAIL_PASSWORD=settings.smtp_email.password,
+        MAIL_FROM=settings.smtp_email.user,
+        MAIL_PORT=settings.smtp_email.port,
+        MAIL_SERVER=settings.smtp_email.server,
+        MAIL_FROM_NAME=settings.smtp_email.user,
+        MAIL_SSL_TLS=False,
+        MAIL_STARTTLS=True,
+    )
 
-    body = f"Пожалуйста, подтвердите вашу электронную почту, перейдя по следующей ссылке: http://localhost:8000/confirm_email?token={token}"
-    msg.attach(MIMEText(body, "plain"))
+    link = f"http://127.0.0.1:{settings.run.port}{settings.api.prefix}{settings.api.v1.prefix}{settings.api.v1.email_verify}/{token}"
 
-    async with SMTP(
-        hostname=settings.smtp_email.server, port=settings.smtp_email.port
-    ) as server:
-        await server.starttls()
-        await server.login(settings.smtp_email.user, settings.smtp_email.password)
-        await server.send_message(msg)
+    message = MessageSchema(
+        subject="Email Confirmation",
+        recipients=[email],
+        body=f"Please confirm your email by clicking on the link: {link}",
+        subtype="html",
+    )
+    fm = FastMail(conf)
+    await fm.send_message(message)
+
+
+async def verify(
+    token: str,
+    session: AsyncSession,
+):
+    try:
+        dict_token = decode_jwt(token)
+        user = await session.get(User, int(dict_token["sub"]))
+        user.is_verified = True
+
+        await session.commit()
+        await session.refresh(user)
+
+        return {"message": "You are verified"}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"{e}")

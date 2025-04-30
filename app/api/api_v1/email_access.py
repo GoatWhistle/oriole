@@ -1,13 +1,22 @@
 from fastapi import (
     APIRouter,
     Depends,
-    status,
 )
+
+from typing import Annotated
+
+from core.models import db_helper
+
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from crud.email_access import verify as crud_verify
 
 router = APIRouter()
 
 
-@router.get("/verify/{token}")
-async def confirm_email(token: str):
-
-    pass
+@router.get("/{token}")
+async def verify(
+    token: str,
+    session: Annotated[AsyncSession, Depends(db_helper.dependency_session_getter)],
+):
+    return await crud_verify(token=token, session=session)

@@ -1,5 +1,6 @@
 from sqlalchemy import select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.exc import IntegrityError
 
 from fastapi import (
     HTTPException,
@@ -27,6 +28,8 @@ from core.schemas.token import AccessToken as AccessTokenSchema
 from core.schemas.token import TokenResponseForOAuth2
 from core.models import User, UserProfile, AccessToken, db_helper
 
+from .email_access import send_confirmation_email
+
 from utils.JWT import hash_password
 
 from core.schemas.user import (
@@ -46,7 +49,7 @@ async def register_user(
 
     try:
         user_data.is_active = True
-        user_data.is_verified = True
+        user_data.is_verified = False
 
         user = User(
             email=user_data.email,
@@ -69,16 +72,27 @@ async def register_user(
             patronymic=user_data.patronymic,
         )
         session.add(profile)
-
         await session.commit()
+
+        jwt_payload = {
+            "sub": str(user_by_email.id),
+            "email": user_data.email,
+        }
+
+        token = encode_jwt(jwt_payload)
+
+        await send_confirmation_email(email=user_data.email, token=token)
 
         return UserAuthRead.model_validate(user)
 
-    except:
+    except IntegrityError:
+        await session.rollback()
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"User with '{user_data.email}' email has already registered",
         )
+    except Exception as e:
+        raise e
 
 
 def get_current_token_payload(

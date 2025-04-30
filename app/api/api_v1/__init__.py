@@ -9,6 +9,7 @@ from .assignments import router as assignments_router
 from .tasks import router as tasks_router
 from .users import router as users_router
 from .auth import router as auth_router
+from .email_access import router as email_access_router
 
 
 router = APIRouter(
@@ -42,4 +43,10 @@ router.include_router(
     router=auth_router,
     tags=[settings.api.v1.auth[1:].capitalize()],
     prefix=settings.api.v1.auth,
+)
+
+router.include_router(
+    router=email_access_router,
+    tags=[settings.api.v1.email_verify[1:].capitalize()],
+    prefix=settings.api.v1.email_verify,
 )
