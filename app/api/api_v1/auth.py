@@ -3,6 +3,7 @@ from fastapi import (
     Depends,
     status,
     Response,
+    Request,
 )
 
 from fastapi.security import OAuth2PasswordRequestForm
@@ -56,3 +57,17 @@ async def login_for_token(
 )
 async def logout(response: Response):
     response.delete_cookie("access_token")
+    response.delete_cookie("refresh_token")
+
+
+@router.post("/refresh")
+async def refresh_tokens(
+    request: Request,
+    response: Response,
+    session: AsyncSession = Depends(db_helper.dependency_session_getter),
+):
+    return await crud.refresh_tokens(
+        request=request,
+        response=response,
+        session=session,
+    )

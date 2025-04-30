@@ -61,7 +61,7 @@ class AuthJWT(BaseModel):
     private_key_path: Path = BASE_DIR / "jwt-private.pem"
     public_key_path: Path = BASE_DIR / "jwt-public.pem"
     algorithm: str = "RS256"
-    access_token_lifetime_seconds: int = 900  # 15 минут
+    access_token_lifetime_seconds: int = 30  # 15 минут
     refresh_token_lifetime_seconds: int = 604_800  # неделя (сделаем больше)
 
 
