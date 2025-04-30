@@ -11,22 +11,45 @@ def encode_jwt(
     payload: dict,
     private_key: str = settings.auth_jwt.private_key_path.read_text(),
     algorithm: str = settings.auth_jwt.algorithm,
-    lifetime_seconds: int = settings.auth_jwt.lifetime_seconds,
 ):
-    to_encode = payload.copy()
-    current_time_utc = datetime.now(utc)
-    expire = current_time_utc + timedelta(seconds=lifetime_seconds)
-
-    to_encode.update(
-        expire=int(expire.timestamp()),
-        created_at=int(current_time_utc.timestamp()),
-    )
     encoded = jwt.encode(
-        to_encode,
+        payload,
         private_key,
         algorithm=algorithm,
     )
     return encoded
+
+
+def create_access_token(
+    user_id: int,
+    user_email: str,
+    lifetime_seconds: int = settings.auth_jwt.access_token_lifetime_seconds,
+) -> str:
+    current_time_utc = datetime.now(utc)
+    expire = current_time_utc + timedelta(seconds=lifetime_seconds)
+    jwt_payload = {
+        "sub": user_id,
+        "email": user_email,
+        "exp": expire,
+        "iat": current_time_utc,
+    }
+    return encode_jwt(payload=jwt_payload)
+
+
+def create_refresh_token(
+    user_id: int,
+    user_email: str,
+    lifetime_seconds: int = settings.auth_jwt.refresh_token_lifetime_seconds,
+) -> str:
+    current_time_utc = datetime.now(utc)
+    expire = current_time_utc + timedelta(seconds=lifetime_seconds)
+    jwt_payload = {
+        "sub": user_id,
+        "email": user_email,
+        "exp": expire,
+        "iat": current_time_utc,
+    }
+    return encode_jwt(payload=jwt_payload)
 
 
 def decode_jwt(
