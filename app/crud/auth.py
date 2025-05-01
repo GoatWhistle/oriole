@@ -63,9 +63,20 @@ OAuth2_scheme = OAuth2PasswordBearerWithCookie(
 
 
 async def register_user(
+    request: Request,
     session: AsyncSession,
     user_data: RegisterUser,
 ) -> UserAuth:
+    access_token_cookie = request.cookies.get("access_token")
+    refresh_token_cookie = request.cookies.get("refresh_token")
+
+    auth_header = request.headers.get("Authorization")
+
+    if auth_header or access_token_cookie or refresh_token_cookie:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Authenticated users cannot register new accounts. Please logout first.",
+        )
 
     try:
         user_data.is_active = True
@@ -74,19 +85,14 @@ async def register_user(
         user = User(
             email=user_data.email,
             hashed_password=hash_password(user_data.hashed_password),
-            is_active=user_data.is_active,
-            is_verified=user_data.is_verified,
+            is_active=True,
+            is_verified=True,
         )
-
         session.add(user)
         await session.flush()
 
-        statement = select(User).filter_by(email=user_data.email)
-
-        user_by_email = await session.scalars(statement)
-        user_by_email = user_by_email.first()
         profile = UserProfile(
-            user_id=user_by_email.id,
+            user_id=user.id,
             name=user_data.name,
             surname=user_data.surname,
             patronymic=user_data.patronymic,
@@ -109,7 +115,7 @@ async def register_user(
         await session.rollback()
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"User with '{user_data.email}' email has already registered",
+            detail=f"Email '{user_data.email}' is already registered",
         )
     except Exception as e:
         raise e
@@ -126,10 +132,8 @@ async def validate_registered_user(
     user_from_db = await session.scalars(statement)
     user_from_db = user_from_db.first()
 
-    await validate_activity_and_verification(
-        user_email=email,
-        session=session,
-    )
+    await validate_activity_and_verification(user_from_db=user_from_db)
+
     if not validate_password(
         password=password, hashed_password=str(user_from_db.hashed_password)
     ):
@@ -142,13 +146,8 @@ async def validate_registered_user(
 
 
 async def validate_activity_and_verification(
-    user_email: str,
-    session: AsyncSession = Depends(db_helper.dependency_session_getter),
+    user_from_db: UserAuthRead,
 ):
-    statement = select(User).filter_by(email=user_email)
-    user_from_db = await session.scalars(statement)
-    user_from_db = user_from_db.first()
-
     if not user_from_db:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -179,8 +178,7 @@ async def refresh_if_needed(
             token = token[7:]
 
         payload = decode_jwt(token=token)
-        current_time_utc = datetime.now(utc).timestamp()
-        print("AKKSADKDLAADLALKLKDALKADLKA")
+        current_time_utc = datetime.now(utc)
         if int(current_time_utc) < int(payload.get("exp", 0)):
             return None
 
@@ -216,24 +214,19 @@ async def get_non_expire_payload_token(
     session: AsyncSession = Depends(db_helper.dependency_session_getter),
     token: str | None = Depends(OAuth2_scheme),
 ) -> str:
-    # Если есть токен, проверяем его и обновляем при необходимости
     if token:
-        new_token = await refresh_if_needed(request, response, session, token)
+        new_token = await refresh_if_needed(
+            request=request,
+            response=response,
+            session=session,
+            token=token,
+        )
         if new_token:
             token = new_token
-
         return get_current_token_payload(token)
 
-    # Если токена нет, но есть refresh-токен, пробуем обновить
-    if request.cookies.get("refresh_token"):
-        new_token = await refresh_tokens(request, response, session)
-        return get_current_token_payload(new_token)
-
-    # Если ничего нет, выбрасываем ошибку
-    raise HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Not authenticated, sign in again",
-    )
+    new_token = await refresh_tokens(request, response, session)
+    return get_current_token_payload(new_token)
 
 
 async def get_current_auth_user(
@@ -252,24 +245,15 @@ async def get_current_auth_user(
     user_from_db = await session.scalars(statement)
     user_from_db = user_from_db.first()
 
-    if not user_from_db:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token invalid (user not found)",
-        )
+    await validate_activity_and_verification(user_from_db=user_from_db)
+
     return UserAuthRead.model_validate(user_from_db)
 
 
 def get_current_active_auth_user_id(
-    user_data: UserAuthRead = Depends(get_current_auth_user),
+    user_from_db: UserAuthRead = Depends(get_current_auth_user),
 ) -> int | Mapped[int]:
-    if user_data.is_active:
-        return user_data.id
-
-    raise HTTPException(
-        status_code=status.HTTP_403_FORBIDDEN,
-        detail="User inactive",
-    )
+    return user_from_db.id
 
 
 async def login_user(
@@ -333,7 +317,7 @@ async def refresh_tokens(
     if not refresh_token:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Refresh token is missing",
+            detail="Refresh token is missing, sign in again",
         )
 
     try:
@@ -347,20 +331,20 @@ async def refresh_tokens(
                 detail="Invalid refresh token",
             )
 
-        await validate_activity_and_verification(
-            user_email=user_email,
-            session=session,
-        )
-        # Генерируем новую пару токенов
+        statement = select(User).filter_by(email=user_email)
+        user_from_db = await session.scalars(statement)
+        user_from_db = user_from_db.first()
+
+        await validate_activity_and_verification(user_from_db=user_from_db)
+
         access_token = create_access_token(user_id, user_email)
         refresh_token = create_refresh_token(user_id, user_email)
 
-        # Устанавливаем куки
         response.set_cookie(
             key="access_token",
             value=f"Bearer {access_token}",
             httponly=True,
-            secure=False,
+            secure=False,  # TODO: потом поставить на True!!!
             samesite="lax",
             max_age=settings.auth_jwt.access_token_lifetime_seconds,
         )
@@ -369,7 +353,7 @@ async def refresh_tokens(
             key="refresh_token",
             value=refresh_token,
             httponly=True,
-            secure=False,
+            secure=False,  # TODO: потом поставить на True!!!
             samesite="lax",
             path="/",
             max_age=settings.auth_jwt.refresh_token_lifetime_seconds,
@@ -382,3 +366,16 @@ async def refresh_tokens(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid refresh token",
         )
+
+
+async def logout(
+    request: Request,
+    response: Response,
+):
+    response.delete_cookie("access_token")
+    response.delete_cookie("refresh_token")
+
+    if "authorization" in request.headers:
+        response.headers["Authorization"] = ""
+
+    return {"logout": "Logout done!"}

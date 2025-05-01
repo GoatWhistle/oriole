@@ -12,6 +12,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from core.schemas.token import TokenResponseForOAuth2
 from core.models import db_helper
 from crud import auth as crud
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 
 from core.schemas.user import (
     RegisterUser,
@@ -20,6 +22,7 @@ from core.schemas.user import (
 
 
 router = APIRouter()
+limiter = Limiter(key_func=get_remote_address)
 
 
 @router.post(
@@ -28,10 +31,15 @@ router = APIRouter()
     status_code=status.HTTP_201_CREATED,
 )
 async def register_user(
+    request: Request,
     user_data: RegisterUser,
     session: AsyncSession = Depends(db_helper.dependency_session_getter),
 ):
-    return await crud.register_user(session, user_data)
+    return await crud.register_user(
+        request=request,
+        session=session,
+        user_data=user_data,
+    )
 
 
 @router.post(
@@ -39,11 +47,14 @@ async def register_user(
     response_model=TokenResponseForOAuth2,
     status_code=status.HTTP_201_CREATED,
 )
+@limiter.limit("5/minute")
 async def login_for_token(
+    request: Request,
     response: Response,
     form_data: OAuth2PasswordRequestForm = Depends(),
     session: AsyncSession = Depends(db_helper.dependency_session_getter),
 ):
+    _ = request
     return await crud.login_for_token(
         session=session,
         form_data=form_data,
@@ -55,9 +66,14 @@ async def login_for_token(
     "/logout",
     status_code=status.HTTP_200_OK,
 )
-async def logout(response: Response):
-    response.delete_cookie("access_token")
-    response.delete_cookie("refresh_token")
+async def logout(
+    request: Request,
+    response: Response,
+):
+    return await crud.logout(
+        request=request,
+        response=response,
+    )
 
 
 @router.post("/refresh")
