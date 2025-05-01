@@ -1,3 +1,5 @@
+from sqlalchemy import text, event
+
 from core.config import settings
 
 from typing import AsyncGenerator
@@ -19,6 +21,7 @@ class DbHelper:
         db_max_overflow: int = settings.db.db_max_overflow,
         db_pool_size: int = settings.db.db_pool_size,
     ):
+
         self.engine: AsyncEngine = create_async_engine(
             url=db_url,
             echo=db_echo,
@@ -26,6 +29,13 @@ class DbHelper:
             max_overflow=db_max_overflow,
             pool_size=db_pool_size,
         )
+
+        @event.listens_for(self.engine.sync_engine, "connect")
+        def set_timezone(dbapi_connection, connection_record):
+            cursor = dbapi_connection.cursor()
+            cursor.execute("SET TIME ZONE 'UTC';")
+            cursor.close()
+
         self.session_factory: async_sessionmaker[AsyncSession] = async_sessionmaker(
             bind=self.engine,
             autoflush=False,

@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from pydantic import BaseModel, Field, ConfigDict
 
 from typing import Annotated, Optional
@@ -13,6 +15,7 @@ class TaskBase(BaseModel):
 class TaskReadPartial(TaskBase):
     id: int
     is_correct: bool
+    is_active: bool
 
     model_config = ConfigDict(
         from_attributes=True,
@@ -22,7 +25,11 @@ class TaskReadPartial(TaskBase):
 class TaskRead(TaskReadPartial):
     user_answer: str
     user_attempts: int
+
     max_attempts: int
+
+    start_datetime: datetime
+    end_datetime: datetime
 
 
 class TaskCreate(TaskBase):
@@ -31,10 +38,16 @@ class TaskCreate(TaskBase):
 
     max_attempts: int
 
+    start_datetime: datetime
+    end_datetime: datetime
+
 
 class TaskUpdate(TaskBase):
     correct_answer: str
     max_attempts: int
+
+    start_datetime: datetime
+    end_datetime: datetime
 
 
 class TaskUpdatePartial(TaskBase):
@@ -43,3 +56,6 @@ class TaskUpdatePartial(TaskBase):
 
     correct_answer: Optional[str] = None
     max_attempts: Optional[int] = None
+
+    start_datetime: Optional[datetime] = None
+    end_datetime: Optional[datetime] = None
