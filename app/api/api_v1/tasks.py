@@ -38,12 +38,14 @@ async def create_task(
         int,
         Depends(get_current_active_auth_user_id),
     ],
+    user_timezone: str,
     task_in: TaskCreate,
 ):
     return await crud.create_task(
         session=session,
         user_id=user_id,
         task_in=task_in,
+        user_timezone=user_timezone,
     )
 
 
@@ -61,11 +63,13 @@ async def get_task_by_id(
         int,
         Depends(get_current_active_auth_user_id),
     ],
+    user_timezone: str,
     task_id: int,
 ):
     return await crud.get_task_by_id(
         session=session,
         user_id=user_id,
+        user_timezone=user_timezone,
         task_id=task_id,
     )
 
@@ -107,12 +111,14 @@ async def update_task(
         int,
         Depends(get_current_active_auth_user_id),
     ],
+    user_timezone: str,
     task_update: TaskUpdate,
     task_id: int,
 ):
     return await crud.update_task(
         session=session,
         user_id=user_id,
+        user_timezone=user_timezone,
         task_id=task_id,
         task_update=task_update,
     )
@@ -132,6 +138,7 @@ async def update_task_partial(
         int,
         Depends(get_current_active_auth_user_id),
     ],
+    user_timezone: str,
     task_update: TaskUpdatePartial,
     task_id: int,
 ):
@@ -139,6 +146,7 @@ async def update_task_partial(
         session=session,
         user_id=user_id,
         task_id=task_id,
+        user_timezone=user_timezone,
         task_update=task_update,
         is_partial=True,
     )
@@ -180,12 +188,14 @@ async def try_to_complete_task(
         int,
         Depends(get_current_active_auth_user_id),
     ],
+    user_timezone: str,
     task_id: int,
     user_answer: str,
 ):
     return await crud.try_to_complete_task(
         session=session,
         user_id=user_id,
+        user_timezone=user_timezone,
         task_id=task_id,
         user_answer=user_answer,
     )

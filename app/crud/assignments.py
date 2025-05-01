@@ -135,6 +135,7 @@ async def get_assignment_by_id(
                 title=task.title,
                 description=task.description,
                 is_correct=user_replies[task.id].is_correct,
+                is_active=task.is_active,
             )
             for task in tasks
         ],
@@ -354,6 +355,7 @@ async def get_tasks_in_assignment(
             is_correct=(
                 user_replies[task.id].is_correct if task.id in user_replies else False
             ),
+            is_active=task.is_active,
         )
         for task in tasks
     ]
