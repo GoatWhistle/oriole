@@ -26,6 +26,7 @@ dependencies = [
     "python-multipart (>=0.0.20,<0.0.21)",
     "fastapi-mail (>=1.4.2,<2.0.0)",
     "redis (>=5.3.0,<6.0.0)",
+    "slowapi (>=0.1.9,<0.2.0)",
 ]
 
 [tool.poetry]
