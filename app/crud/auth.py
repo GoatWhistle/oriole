@@ -31,7 +31,7 @@ from core.config import settings
 
 from .email_access import send_confirmation_email
 
-from utils.JWT import hash_password
+from utils.JWT import hash_password, encode_jwt
 
 from core.schemas.user import (
     UserAuth,
@@ -101,7 +101,7 @@ async def register_user(
         await session.commit()
 
         jwt_payload = {
-            "sub": str(user_by_email.id),
+            "sub": str(user.id),
             "email": user_data.email,
         }
 
