@@ -178,7 +178,7 @@ async def refresh_if_needed(
             token = token[7:]
 
         payload = decode_jwt(token=token)
-        current_time_utc = datetime.now(utc)
+        current_time_utc = datetime.now(utc).timestamp()
         if int(current_time_utc) < int(payload.get("exp", 0)):
             return None
 
