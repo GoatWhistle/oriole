@@ -3,7 +3,7 @@ from fastapi import HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.exceptions.user import check_user_exists
+from exceptions.user import check_user_exists
 from core.schemas.user import (
     UserRead,
     UserUpdate,

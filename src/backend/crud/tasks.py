@@ -6,8 +6,8 @@ from sqlalchemy import select
 from sqlalchemy.engine import Result
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.exceptions.user import check_user_exists
-from core.exceptions.task import (
+from exceptions.user import check_user_exists
+from exceptions.task import (
     check_task_exists,
     check_counter_limit,
     check_task_is_already_correct,
@@ -16,9 +16,9 @@ from core.exceptions.task import (
     check_end_time_not_in_past,
     check_end_time_is_after_start_time,
 )
-from core.exceptions.assignment import check_assignment_exists
+from exceptions.assignment import check_assignment_exists
 
-from core.exceptions.group import (
+from exceptions.group import (
     check_group_exists,
     check_admin_permission_in_group,
     check_user_in_group,

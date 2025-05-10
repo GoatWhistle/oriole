@@ -13,12 +13,12 @@ services:
     ports:
       - ${APP_CONFIG__RUN__PORT}:8000
     volumes:
-      - ./app:/app
+      - ./backend:/backend
     develop:
       watch:
         - action: sync+restart
           path: ./app
-          target: /app
+          target: /backend
         - action: rebuild
           path: poetry.lock
 

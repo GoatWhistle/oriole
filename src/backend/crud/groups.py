@@ -4,9 +4,9 @@ from sqlalchemy import select, func
 from sqlalchemy.engine import Result
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.exceptions.user import check_user_exists
+from exceptions.user import check_user_exists
 
-from core.exceptions.group import (
+from exceptions.group import (
     check_group_exists,
     check_admin_permission_in_group,
     check_owner_permission_in_group,
