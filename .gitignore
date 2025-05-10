@@ -122,11 +122,11 @@ celerybeat.pid
 *.sage.py
 
 # Environments
-app/.env
-app/.env.app_config
-app/.env.docker
-app/.env.smtp_email
-app/.env.redis
+.env
+.env.app_config
+.env.docker
+.env.smtp_email
+.env.redis
 .venv
 env/
 venv/
@@ -166,5 +166,5 @@ cython_debug/
 .idea/
 
 # Pair of keys
-/app/jwt-private.pem
-/app/jwt-public.pem
+jwt-private.pem
+jwt-public.pem

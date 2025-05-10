@@ -17,7 +17,7 @@ services:
     develop:
       watch:
         - action: sync+restart
-          path: ./app
+          path: app_trash
           target: /backend
         - action: rebuild
           path: poetry.lock
