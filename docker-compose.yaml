@@ -1,7 +1,7 @@
 services:
-  app:
+  backend:
     build:
-      dockerfile: docker_build/app/Dockerfile
+      dockerfile: docker_build/backend/Dockerfile
       context: ./
     depends_on:
       pg:
@@ -13,14 +13,29 @@ services:
     ports:
       - ${APP_CONFIG__RUN__PORT}:8000
     volumes:
-      - ./backend:/backend
+      - ./src/backend:/backend
     develop:
       watch:
         - action: sync+restart
-          path: app_trash
+          path: src/backend
           target: /backend
         - action: rebuild
           path: poetry.lock
+    networks:
+      - app-net
+
+  frontend:
+      build:
+        dockerfile: docker_build/frontend/Dockerfile
+        context: ./
+      volumes:
+        - ./src/frontend:/frontend
+      depends_on:
+        - backend
+      ports:
+        - "80:80"
+      networks:
+        - app-net
 
   pg:
     image: postgres
@@ -38,11 +53,15 @@ services:
       interval: 5s
       timeout: 3s
       retries: 3
+    networks:
+      - app-net
 
   adminer:
     image: adminer
     ports:
       - "${ADMIN_PORT}:8080"
+    networks:
+      - app-net
   redis:
     image: redis:latest
     ports:
@@ -52,7 +71,13 @@ services:
       interval: 5s
       timeout: 3s
       retries: 3
+    networks:
+      - app-net
 
 volumes:
   pgdata:
+
+networks:
+  app-net:
+
 
