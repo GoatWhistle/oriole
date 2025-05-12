@@ -14,24 +14,25 @@ from fastapi.security import (
     OAuth2PasswordBearer,
     OAuth2PasswordRequestForm,
 )
-from sqlalchemy.orm import Mapped
 
 from utils.JWT import (
     validate_password,
-    decode_jwt,
     create_access_token,
     create_refresh_token,
+    create_email_confirmation_token,
+    create_password_confirmation_token,
+    decode_jwt,
+    hash_password,
 )
+from utils.auth_helper import get_current_auth_user
 from jwt.exceptions import InvalidTokenError
-
+from exceptions.user import validate_activity_and_verification
 
 from core.schemas.token import TokenResponseForOAuth2
 from core.models import User, UserProfile, db_helper
 from core.config import settings
 
 from .email_access import send_confirmation_email
-
-from utils.JWT import hash_password, encode_jwt
 
 from core.schemas.user import (
     UserAuth,
@@ -41,8 +42,6 @@ from core.schemas.user import (
     UserRead,
     UserProfileRead,
 )
-from datetime import datetime
-from pytz import utc
 
 
 class OAuth2PasswordBearerWithCookie(OAuth2PasswordBearer):
@@ -77,7 +76,7 @@ async def register_user(
     if auth_header or access_token_cookie or refresh_token_cookie:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Authenticated users cannot register new accounts. Please logout first.",
+            detail="Authenticated users cannot register new accounts",
         )
 
     try:
@@ -102,14 +101,16 @@ async def register_user(
         session.add(profile)
         await session.commit()
 
-        jwt_payload = {
-            "sub": str(user.id),
-            "email": user_data.email,
-        }
+        token = create_email_confirmation_token(
+            user_id=user.id,
+            user_email=user_data.email,
+        )
 
-        token = encode_jwt(jwt_payload)
-
-        await send_confirmation_email(email=user_data.email, token=token)
+        await send_confirmation_email(
+            email=user_data.email,
+            token=token,
+            html_file="verified_email",
+        )
 
         return UserAuthRead.model_validate(user)
 
@@ -145,117 +146,6 @@ async def validate_registered_user(
         )
 
     return UserLogin.model_validate(user_data)
-
-
-async def validate_activity_and_verification(
-    user_from_db: UserAuthRead,
-):
-    if not user_from_db:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid login or password",
-        )
-
-    if not user_from_db.is_active:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="User is inactive",
-        )
-
-    if not user_from_db.is_verified:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="User is unverified",
-        )
-
-
-async def refresh_if_needed(
-    request: Request,
-    response: Response,
-    session: AsyncSession,
-    token: str | None,
-) -> str | None:
-    try:
-        if token.startswith("Bearer "):
-            token = token[7:]
-
-        payload = decode_jwt(token=token)
-        current_time_utc = datetime.now(utc).timestamp()
-        if int(current_time_utc) < int(payload.get("exp", 0)):
-            return None
-
-        return await refresh_tokens(
-            request=request,
-            response=response,
-            session=session,
-        )
-    except HTTPException:
-        return None
-
-
-def get_current_token_payload(
-    token: str,
-) -> dict:
-    try:
-        if token.startswith("Bearer "):
-            token = token[7:]
-
-        payload = decode_jwt(token=token)
-        return payload
-
-    except InvalidTokenError as e:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=f"Invalid token error: {e}",
-        )
-
-
-async def get_non_expire_payload_token(
-    request: Request,
-    response: Response,
-    session: AsyncSession = Depends(db_helper.dependency_session_getter),
-    token: str | None = Depends(OAuth2_scheme),
-) -> dict:
-    if token:
-        new_token = await refresh_if_needed(
-            request=request,
-            response=response,
-            session=session,
-            token=token,
-        )
-        if new_token:
-            token = new_token
-        return get_current_token_payload(token=token)
-
-    new_token = await refresh_tokens(request, response, session)
-    return get_current_token_payload(token=new_token)
-
-
-async def get_current_auth_user(
-    session: AsyncSession = Depends(db_helper.dependency_session_getter),
-    payload: dict = Depends(get_non_expire_payload_token),
-) -> UserAuthRead:
-    email = payload.get("email")
-
-    if not email:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token invalid (email not found in payload)",
-        )
-
-    statement = select(User).filter_by(email=email)
-    user_from_db = await session.scalars(statement)
-    user_from_db = user_from_db.first()
-
-    await validate_activity_and_verification(user_from_db=user_from_db)
-
-    return UserAuthRead.model_validate(user_from_db)
-
-
-def get_current_active_auth_user_id(
-    user_from_db: UserAuthRead = Depends(get_current_auth_user),
-) -> int | Mapped[int]:
-    return user_from_db.id
 
 
 async def login_user(
@@ -308,6 +198,19 @@ async def login_for_token(
     await validate_registered_user(user_data, session)
 
     return await login_user(session, user_data, response)
+
+
+async def logout(
+    request: Request,
+    response: Response,
+):
+    response.delete_cookie("access_token")
+    response.delete_cookie("refresh_token")
+
+    if "authorization" in request.headers:
+        response.headers["Authorization"] = ""
+
+    return {"logout": "Logout done!"}
 
 
 async def refresh_tokens(
@@ -370,17 +273,28 @@ async def refresh_tokens(
         )
 
 
-async def logout(
-    request: Request,
-    response: Response,
+async def reset_password(
+    password: str,
+    user_from_db: UserAuthRead = Depends(get_current_auth_user),
 ):
-    response.delete_cookie("access_token")
-    response.delete_cookie("refresh_token")
+    if not validate_password(
+        password=password, hashed_password=str(user_from_db.hashed_password)
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Invalid previous password",
+        )
 
-    if "authorization" in request.headers:
-        response.headers["Authorization"] = ""
+    token = create_password_confirmation_token(
+        user_email=user_from_db.email,
+        user_id=user_from_db.id,
+    )
 
-    return {"logout": "Logout done!"}
+    await send_confirmation_email(
+        email=user_from_db.email,
+        token=token,
+        html_file="password_reset_warning.html",
+    )
 
 
 async def check_auth(

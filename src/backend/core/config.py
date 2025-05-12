@@ -62,7 +62,9 @@ class AuthJWT(BaseModel):
     public_key_path: Path = BASE_DIR / "jwt-public.pem"
     algorithm: str = "RS256"
     access_token_lifetime_seconds: int = 900  # 15 минут
-    refresh_token_lifetime_seconds: int = 604_800  # неделя (сделаем больше)
+    refresh_token_lifetime_seconds: int = 604_800  # неделя
+    email_token_lifetime_seconds: int = 900  # 15 минут
+    password_token_lifetime_seconds: int = 600  # 10 минут
 
 
 class SMTPEmail(BaseModel):

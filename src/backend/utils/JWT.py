@@ -20,6 +20,38 @@ def encode_jwt(
     return encoded
 
 
+def create_email_confirmation_token(
+    user_id: int,
+    user_email: str,
+    lifetime_seconds: int = settings.auth_jwt.email_token_lifetime_seconds,
+) -> str:
+    current_time_utc = datetime.now(utc)
+    expire = current_time_utc + timedelta(seconds=lifetime_seconds)
+    jwt_payload = {
+        "sub": str(user_id),
+        "email": user_email,
+        "exp": expire,
+        "iat": current_time_utc,
+    }
+    return encode_jwt(payload=jwt_payload)
+
+
+def create_password_confirmation_token(
+    user_id: int,
+    user_email: str,
+    lifetime_seconds: int = settings.auth_jwt.password_token_lifetime_seconds,
+) -> str:
+    current_time_utc = datetime.now(utc)
+    expire = current_time_utc + timedelta(seconds=lifetime_seconds)
+    jwt_payload = {
+        "sub": str(user_id),
+        "email": user_email,
+        "exp": expire,
+        "iat": current_time_utc,
+    }
+    return encode_jwt(payload=jwt_payload)
+
+
 def create_access_token(
     user_id: int,
     user_email: str,
