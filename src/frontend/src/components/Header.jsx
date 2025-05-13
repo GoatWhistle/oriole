@@ -1,6 +1,6 @@
 import { Card } from "antd";
 import orioleIcon from './oriole-icon.png';
-import MenuButton from "./MenuButton.jsx";
+import GroupMenu from "./GroupMenu.jsx";
 import { Link } from 'react-router-dom';
 
 function Header() {
@@ -11,13 +11,33 @@ function Header() {
     >
       <div style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <img src={orioleIcon} alt="Oriole Icon" width="80" height="80" />
-          <span style={{ fontSize: '30px' }}>Oriole</span>
+            <Link
+              to="/"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
+                color: 'black', // Черный цвет для ссылки
+                textDecoration: 'none' // Убираем подчеркивание
+              }}
+            >
+                <img src={orioleIcon} alt="Oriole Icon" width="80" height="80" />
+                <span style={{ fontSize: '30px', color: 'black' }}>Oriole</span>
+            </Link>
         </div>
 
         <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '20px' }}>
-          <MenuButton />
-          <Link to="/login" style={{ fontSize: '20px' }}>Войти</Link>
+          <GroupMenu />
+          <Link
+            to="/login"
+            style={{
+              fontSize: '20px',
+              color: 'black', // Черный цвет для ссылки
+              textDecoration: 'none' // Убираем подчеркивание
+            }}
+          >
+            Войти
+          </Link>
         </div>
       </div>
     </Card>

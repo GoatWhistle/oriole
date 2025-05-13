@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Menu } from 'antd'; // Assuming you're using Ant Design
+import { Menu } from 'antd';
 
-const MenuButton = () => {
+const GroupMenu = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [userGroups, setUserGroups] = useState([]); // Added state for userGroups
@@ -42,4 +42,4 @@ const MenuButton = () => {
     );
 };
 
-export default MenuButton;
+export default GroupMenu;
