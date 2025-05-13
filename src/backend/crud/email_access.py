@@ -72,8 +72,8 @@ async def verify(
 
 async def reset_password_redirect(
     token: str,
-    session: AsyncSession,
     new_password: str,
+    session: AsyncSession,
 ):
     try:
         dict_token = decode_jwt(token)
@@ -86,7 +86,7 @@ async def reset_password_redirect(
         ):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="Invalid previous password",
+                detail="You cannot use previous password as new",
             )
 
         await session.commit()

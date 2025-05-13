@@ -5,6 +5,7 @@ from fastapi import (
 
 from typing import Annotated
 
+import crud.email_access as crud
 from core.models import db_helper
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -20,3 +21,16 @@ async def verify(
     session: Annotated[AsyncSession, Depends(db_helper.dependency_session_getter)],
 ):
     return await crud_verify(token=token, session=session)
+
+
+@router.get("/reset_password_redirect/{token}")
+async def verify(
+    token: str,
+    new_password: str,
+    session: Annotated[AsyncSession, Depends(db_helper.dependency_session_getter)],
+):
+    return await crud.reset_password_redirect(
+        token=token,
+        new_password=new_password,
+        session=session,
+    )
