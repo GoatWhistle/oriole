@@ -1,6 +1,5 @@
 import { Card } from "antd";
 import orioleIcon from './oriole-icon.png';
-import GroupMenu from "./GroupMenu.jsx";
 import { Link } from 'react-router-dom';
 
 function Header() {
@@ -27,7 +26,6 @@ function Header() {
         </div>
 
         <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '20px' }}>
-          <GroupMenu />
           <Link
             to="/login"
             style={{
