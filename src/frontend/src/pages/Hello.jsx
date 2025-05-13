@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import Header from "/src/components/Header.jsx";
 
 export default function Hello() {
   const [data, setData] = useState({ message: '' });
@@ -12,6 +11,6 @@ export default function Hello() {
   }, []);
 
   return (
-      <Header />
+      <h1>Hello!</h1>
   );
 }

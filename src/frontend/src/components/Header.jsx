@@ -1,29 +1,26 @@
-import {Card} from "antd";
+import { Card } from "antd";
 import orioleIcon from './oriole-icon.png';
+import MenuButton from "./MenuButton.jsx";
+import { Link } from 'react-router-dom';
 
 function Header() {
-
   return (
-    <>
     <Card
-        title={
-            <div className="flex items-center gap-2">
-                <img src={orioleIcon} alt="Oriole Icon" width="80" height="80" />
-                <div className="gap-10 flex items-center">
-                    <span style={{ fontSize: '30px' }}> Oriole </span>
-                    <div className="flex gap-5">
-                        <MenuButton/>
-                    </div>
-                </div>
-            </div>
-        }
-        extra={
-                        <a href="#" style={{ fontSize: '20px' }}>Войти</a>
-              }
-        style={{ width: '100%', height: 0, margin: 0 }}
+      style={{ width: '100%' }}
+      bodyStyle={{ padding: 0, display: 'flex', alignItems: 'center' }}
     >
+      <div style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <img src={orioleIcon} alt="Oriole Icon" width="80" height="80" />
+          <span style={{ fontSize: '30px' }}>Oriole</span>
+        </div>
+
+        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '20px' }}>
+          <MenuButton />
+          <Link to="/login" style={{ fontSize: '20px' }}>Войти</Link>
+        </div>
+      </div>
     </Card>
-    </>
   )
 }
 
