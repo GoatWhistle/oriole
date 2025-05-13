@@ -1,37 +1,39 @@
 import React, { useState, useEffect } from 'react';
 import { Menu, message } from 'antd';
 
-const GroupMenu = () => {
+const AssignmentMenu = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [userGroups, setUserGroups] = useState([]);
+    const [assignments, setAssignments] = useState([]);
 
     useEffect(() => {
-        const fetchUserGroups = async () => {
+        const fetchUserAssignments = async () => {
             try {
-                const response = await fetch('/api/v1/learn/groups/');
+                const response = await fetch('/api/v1/assignments/');
 
                 if (!response.ok) {
                     if (response.status === 401) {
                         throw new Error('Пожалуйста, войдите в аккаунт');
                     }
-                    throw new Error('Ошибка при загрузке групп');
+                    throw new Error('Ошибка при загрузке заданий');
                 }
 
                 const data = await response.json();
 
                 if (data.length === 0) {
-                    setUserGroups([{
-                        key: 'no-groups',
-                        label: 'У вас пока нет групп',
+                    setAssignments([{
+                        key: 'no-assignments',
+                        label: 'У вас пока нет заданий',
                         disabled: true
                     }]);
                 } else {
-                    const menuItems = data.map(group => ({
-                        key: group.id,
-                        label: group.title
+                    const menuItems = data.map(assignment => ({
+                        key: assignment.id,
+                        label: assignment.title,
+                        // Можно добавить дополнительную информацию в tooltip
+                        title: assignment.description
                     }));
-                    setUserGroups(menuItems);
+                    setAssignments(menuItems);
                 }
 
                 setLoading(false);
@@ -43,13 +45,13 @@ const GroupMenu = () => {
             }
         };
 
-        fetchUserGroups();
+        fetchUserAssignments();
     }, []);
 
     const onClick = (e) => {
-        if (e.key !== 'no-groups') {
-            console.log('Выбрана группа с ID:', e.key);
-            // Здесь можно добавить логику обработки выбора группы
+        if (e.key !== 'no-assignments') {
+            console.log('Выбрано задание с ID:', e.key);
+            // Здесь можно добавить логику обработки выбора задания
         }
     };
 
@@ -59,11 +61,11 @@ const GroupMenu = () => {
     return (
         <Menu
             onClick={onClick}
-            style={{ width: 200 }}
+            style={{ width: 250 }}
             mode="inline"
-            items={userGroups}
+            items={assignments}
         />
     );
 };
 
-export default GroupMenu;
+export default AssignmentMenu;
