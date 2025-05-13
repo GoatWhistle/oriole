@@ -108,11 +108,9 @@ async def check_auth(
 @router.post("/reset_password")
 async def reset_password(
     previous_password: str,
-    user_from_db: UserAuthRead,
 ):
     return await crud.reset_password(
         previous_password=previous_password,
-        user_from_db=user_from_db,
     )
 
 
