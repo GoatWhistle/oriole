@@ -1,6 +1,7 @@
 import { Card } from "antd";
 import orioleIcon from './oriole-icon.png';
 import { Link } from 'react-router-dom';
+import AuthButton from './AuthButton.jsx'
 
 function Header() {
   return (
@@ -25,18 +26,8 @@ function Header() {
             </Link>
         </div>
 
-        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '20px' }}>
-          <Link
-            to="/login"
-            style={{
-              fontSize: '20px',
-              color: 'black', // Черный цвет для ссылки
-              textDecoration: 'none' // Убираем подчеркивание
-            }}
-          >
-            Войти
-          </Link>
-        </div>
+        <AuthButton />
+
       </div>
     </Card>
   )
