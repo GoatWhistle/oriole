@@ -12,10 +12,7 @@ const GroupMenu = () => {
                 const response = await fetch('/api/v1/learn/groups/');
 
                 if (!response.ok) {
-                    if (response.status === 401) {
-                        throw new Error('Пожалуйста, войдите в аккаунт');
-                    }
-                    throw new Error('Ошибка при загрузке групп');
+                    throw new Error('Для отображения групп войдите в аккаунт');
                 }
 
                 const data = await response.json();

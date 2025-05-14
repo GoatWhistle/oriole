@@ -12,10 +12,7 @@ const AssignmentMenu = () => {
                 const response = await fetch('/api/v1/assignments/');
 
                 if (!response.ok) {
-                    if (response.status === 401) {
-                        throw new Error('Пожалуйста, войдите в аккаунт');
-                    }
-                    throw new Error('Ошибка при загрузке заданий');
+                    throw new Error('Для отображения работ войдите в аккаунт');
                 }
 
                 const data = await response.json();
