@@ -379,3 +379,13 @@ async def logout(
         response.headers["Authorization"] = ""
 
     return {"logout": "Logout done!"}
+
+
+def check_auth(request: Request):
+    access_token_cookie = request.cookies.get("access_token")
+    refresh_token_cookie = request.cookies.get("refresh_token")
+    auth_header = request.headers.get("Authorization")
+
+    if auth_header or access_token_cookie or refresh_token_cookie:
+        return True
+    return False

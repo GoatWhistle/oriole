@@ -62,7 +62,7 @@ async def login_for_token(
     )
 
 
-@router.post(
+@router.delete(
     "/logout",
     status_code=status.HTTP_200_OK,
 )
@@ -76,7 +76,7 @@ async def logout(
     )
 
 
-@router.post("/refresh")
+@router.put("/refresh")
 async def refresh_tokens(
     request: Request,
     response: Response,
@@ -87,3 +87,8 @@ async def refresh_tokens(
         response=response,
         session=session,
     )
+
+
+@router.get("/check-auth")
+def check_auth(request: Request):
+    return crud.check_auth(request=request)
