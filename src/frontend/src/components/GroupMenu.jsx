@@ -5,6 +5,7 @@ const GroupMenu = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [userGroups, setUserGroups] = useState([]);
+    const navigate = useNavigate();
 
     useEffect(() => {
         const fetchUserGroups = async () => {
@@ -46,7 +47,7 @@ const GroupMenu = () => {
     const onClick = (e) => {
         if (e.key !== 'no-groups') {
             console.log('Выбрана группа с ID:', e.key);
-            // Здесь можно добавить логику обработки выбора группы
+            navigate(`/group/${e.key}`)
         }
     };
 
