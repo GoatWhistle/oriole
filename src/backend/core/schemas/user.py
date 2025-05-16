@@ -36,7 +36,7 @@ class RegisterUser(BaseModel):
     model_config = ConfigDict(strict=True)
 
     email: Annotated[EmailStr, Field(max_length=63)]
-    hashed_password: Annotated[str, Field(max_length=1023)]
+    password: Annotated[str, Field(max_length=1023)]
     is_active: bool = False
     is_superuser: bool = False
     is_verified: bool = False

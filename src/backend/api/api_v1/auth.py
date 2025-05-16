@@ -18,6 +18,7 @@ from slowapi.util import get_remote_address
 from core.schemas.user import (
     RegisterUser,
     UserAuthRead,
+    UserRead,
 )
 
 
@@ -89,6 +90,16 @@ async def refresh_tokens(
     )
 
 
-@router.get("/check-auth")
-def check_auth(request: Request):
-    return crud.check_auth(request=request)
+@router.get(
+    "/check-auth",
+    response_model=UserRead,
+    status_code=status.HTTP_200_OK,
+)
+async def check_auth(
+    payload: dict = Depends(crud.get_non_expire_payload_token),
+    session: AsyncSession = Depends(db_helper.dependency_session_getter),
+):
+    return await crud.check_auth(
+        session=session,
+        payload=payload,
+    )

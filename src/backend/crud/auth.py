@@ -38,6 +38,8 @@ from core.schemas.user import (
     RegisterUser,
     UserAuthRead,
     UserLogin,
+    UserRead,
+    UserProfileRead,
 )
 from datetime import datetime
 from pytz import utc
@@ -84,7 +86,7 @@ async def register_user(
 
         user = User(
             email=user_data.email,
-            hashed_password=hash_password(user_data.hashed_password),
+            hashed_password=hash_password(user_data.password),
             is_active=True,
             is_verified=True,
         )
@@ -213,7 +215,7 @@ async def get_non_expire_payload_token(
     response: Response,
     session: AsyncSession = Depends(db_helper.dependency_session_getter),
     token: str | None = Depends(OAuth2_scheme),
-) -> str:
+) -> dict:
     if token:
         new_token = await refresh_if_needed(
             request=request,
@@ -223,16 +225,16 @@ async def get_non_expire_payload_token(
         )
         if new_token:
             token = new_token
-        return get_current_token_payload(token)
+        return get_current_token_payload(token=token)
 
     new_token = await refresh_tokens(request, response, session)
-    return get_current_token_payload(new_token)
+    return get_current_token_payload(token=new_token)
 
 
 async def get_current_auth_user(
     session: AsyncSession = Depends(db_helper.dependency_session_getter),
     payload: dict = Depends(get_non_expire_payload_token),
-) -> UserAuth:
+) -> UserAuthRead:
     email = payload.get("email")
 
     if not email:
@@ -381,11 +383,43 @@ async def logout(
     return {"logout": "Logout done!"}
 
 
-def check_auth(request: Request):
-    access_token_cookie = request.cookies.get("access_token")
-    refresh_token_cookie = request.cookies.get("refresh_token")
-    auth_header = request.headers.get("Authorization")
+async def check_auth(
+    session: AsyncSession,
+    payload: dict,
+) -> UserRead:
+    email = payload.get("email")
+    user_id = int(payload.get("sub"))
 
-    if auth_header or access_token_cookie or refresh_token_cookie:
-        return True
-    return False
+    if not email:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token invalid (email not found in payload)",
+        )
+
+    statement = select(User).filter_by(email=email)
+    user_from_db = await session.scalars(statement)
+    user_from_db = user_from_db.first()
+
+    await validate_activity_and_verification(user_from_db=user_from_db)
+
+    statement = select(UserProfile).filter_by(user_id=user_id)
+    profile_from_db = await session.scalars(statement)
+    profile_from_db = profile_from_db.first()
+
+    if not profile_from_db:
+        raise HTTPException(
+            status_code=404,
+            detail="Profile not found",
+        )
+
+    profile_and_email = UserRead(
+        email=email,
+        profile=UserProfileRead(
+            user_id=profile_from_db.user_id,
+            name=profile_from_db.name,
+            surname=profile_from_db.surname,
+            patronymic=profile_from_db.patronymic,
+        ),
+    )
+
+    return UserRead.model_validate(profile_and_email)
