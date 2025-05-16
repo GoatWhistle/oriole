@@ -73,6 +73,10 @@ services:
       retries: 3
     networks:
       - app-net
+  celery:
+    command: celery -A celery.celery worker --loglevel=info
+    depends_on:
+      - redis
 
 volumes:
   pgdata:
