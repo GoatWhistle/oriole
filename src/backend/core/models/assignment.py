@@ -1,8 +1,10 @@
+from datetime import datetime
+
 from .base import Base
 from .mixins.id_int_pk import IdIntPkMixin
 from typing import TYPE_CHECKING
 
-from sqlalchemy import String, ForeignKey, Integer
+from sqlalchemy import String, ForeignKey, Integer, DateTime, func
 from sqlalchemy.orm import (
     Mapped,
     mapped_column,
@@ -30,3 +32,11 @@ class Assignment(Base, IdIntPkMixin):
 
     tasks: Mapped[list["Task"]] = relationship(back_populates="assignment")
     tasks_count: Mapped[int] = mapped_column(Integer, default=0)
+
+    start_datetime: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.timezone("UTC", func.now())
+    )
+    end_datetime: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.timezone("UTC", func.now())
+    )
+    is_active: Mapped[bool] = mapped_column(default=False)
