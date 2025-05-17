@@ -67,6 +67,8 @@ services:
       - src/backend/.env
     networks:
       - app-net
+    volumes:
+      - ./src/backend:/backend
 
   adminer:
     image: adminer
