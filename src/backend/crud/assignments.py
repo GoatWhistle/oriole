@@ -1,10 +1,17 @@
+from datetime import datetime
+from pytz import utc, timezone
 from typing import Sequence
 
 from sqlalchemy import select, func
 from sqlalchemy.engine import Result
 from sqlalchemy.ext.asyncio import AsyncSession
 
-
+from exceptions.task import (
+    check_start_time_not_in_past,
+    check_end_time_not_in_past,
+    check_end_time_is_after_start_time,
+    check_timezone_is_valid,
+)
 from exceptions.user import check_user_exists
 from exceptions.assignment import check_assignment_exists
 
@@ -32,13 +39,15 @@ from core.models import (
     UserReply,
     UserProfile,
 )
+from utils.utc_converter import to_utc
 
 
 async def create_assignment(
     session: AsyncSession,
     user_id: int,
+    user_timezone: str,
     assignment_in: AssignmentCreate,
-) -> AssignmentReadPartial:
+) -> AssignmentRead:
     await check_user_exists(session=session, user_id=user_id)
     await check_group_exists(session=session, group_id=assignment_in.group_id)
 
@@ -53,25 +62,52 @@ async def create_assignment(
         group_id=assignment_in.group_id,
     )
 
-    assignment = Assignment(**assignment_in.model_dump())
-    assignment.admin_id = user_id
+    await check_timezone_is_valid(user_timezone=user_timezone)
+
+    start_datetime_utc = to_utc(assignment_in.start_datetime, timezone(user_timezone))
+    end_datetime_utc = to_utc(assignment_in.end_datetime, timezone(user_timezone))
+
+    await check_start_time_not_in_past(start_datetime=start_datetime_utc)
+    await check_end_time_not_in_past(end_datetime=end_datetime_utc)
+    await check_end_time_is_after_start_time(
+        start_datetime=start_datetime_utc,
+        end_datetime=end_datetime_utc,
+    )
+
+    assignment = Assignment(
+        title=assignment_in.title,
+        description=assignment_in.description,
+        is_contest=assignment_in.is_contest,
+        group_id=assignment_in.group_id,
+        admin_id=user_id,
+        is_active=start_datetime_utc <= datetime.now(utc) <= end_datetime_utc,
+        start_datetime=start_datetime_utc,
+        end_datetime=end_datetime_utc,
+    )
+
     session.add(assignment)
     await session.commit()
     await session.refresh(assignment)
 
-    return AssignmentReadPartial(
+    return AssignmentRead(
         id=assignment.id,
         title=assignment_in.title,
         description=assignment_in.description,
         is_contest=assignment_in.is_contest,
         tasks_count=0,
         user_completed_tasks_count=0,
+        is_active=assignment.is_active,
+        admin_id=assignment.admin_id,
+        tasks=[],
+        start_datetime=assignment.start_datetime,
+        end_datetime=assignment.end_datetime,
     )
 
 
 async def get_assignment_by_id(
     session: AsyncSession,
     user_id: int,
+    user_timezone: str,
     assignment_id: int,
 ) -> AssignmentRead:
     await check_user_exists(session=session, user_id=user_id)
@@ -83,6 +119,8 @@ async def get_assignment_by_id(
     await check_user_in_group(
         session=session, user_id=user_id, group_id=assignment.group_id
     )
+
+    await check_timezone_is_valid(user_timezone=user_timezone)
 
     statement = (
         select(
@@ -139,6 +177,9 @@ async def get_assignment_by_id(
             )
             for task in tasks
         ],
+        is_active=assignment.is_active,
+        start_datetime=assignment.start_datetime.astimezone(timezone(user_timezone)),
+        end_datetime=assignment.end_datetime.astimezone(timezone(user_timezone)),
     )
 
 
@@ -208,6 +249,7 @@ async def get_user_assignments(
                 is_contest=assignment.is_contest,
                 tasks_count=tasks_count,
                 user_completed_tasks_count=user_completed_tasks_count,
+                is_active=assignment.is_active,
             )
         )
 
@@ -217,10 +259,11 @@ async def get_user_assignments(
 async def update_assignment(
     session: AsyncSession,
     user_id: int,
+    user_timezone: str,
     assignment_id: int,
     assignment_update: AssignmentUpdate | AssignmentUpdatePartial,
-    partial: bool = False,
-) -> AssignmentReadPartial:
+    is_partial: bool = False,
+) -> AssignmentRead:
     await check_user_exists(session=session, user_id=user_id)
 
     await check_assignment_exists(session=session, assignment_id=assignment_id)
@@ -236,8 +279,35 @@ async def update_assignment(
         session=session, user_id=user_id, group_id=assignment.group_id
     )
 
-    for key, value in assignment_update.model_dump(exclude_unset=partial).items():
-        setattr(assignment, key, value)
+    await check_timezone_is_valid(user_timezone=user_timezone)
+
+    if "start_datetime" in assignment_update.model_dump(exclude_unset=is_partial):
+        start_datetime_utc = to_utc(
+            assignment_update.start_datetime, timezone(user_timezone)
+        )
+
+        await check_start_time_not_in_past(start_datetime=start_datetime_utc)
+        assignment.start_datetime = start_datetime_utc
+
+    if "end_datetime" in assignment_update.model_dump(exclude_unset=is_partial):
+        end_datetime_utc = to_utc(
+            assignment_update.end_datetime, timezone(user_timezone)
+        )
+
+        await check_end_time_not_in_past(end_datetime=end_datetime_utc)
+        assignment.end_datetime = end_datetime_utc
+
+    await check_end_time_is_after_start_time(
+        start_datetime=assignment.start_datetime,
+        end_datetime=assignment.end_datetime,
+    )
+
+    for name, value in assignment_update.model_dump(exclude_unset=is_partial).items():
+        if name not in [
+            "start_datetime",
+            "end_datetime",
+        ]:
+            setattr(assignment, name, value)
 
     await session.commit()
     await session.refresh(assignment)
@@ -260,13 +330,27 @@ async def update_assignment(
         1 for task_id in user_replies if user_replies[task_id].is_correct
     )
 
-    return AssignmentReadPartial(
+    return AssignmentRead(
         id=assignment.id,
         title=assignment.title,
         description=assignment.description,
         is_contest=assignment.is_contest,
         tasks_count=assignment.tasks_count,
         user_completed_tasks_count=user_completed_tasks_count,
+        is_active=assignment.is_active,
+        admin_id=assignment.admin_id,
+        start_datetime=assignment.start_datetime,
+        end_datetime=assignment.end_datetime,
+        tasks=[
+            TaskReadPartial(
+                id=task.id,
+                title=task.title,
+                description=task.description,
+                is_correct=user_replies[task.id].is_correct,
+                is_active=task.is_active,
+            )
+            for task in tasks
+        ],
     )
 
 

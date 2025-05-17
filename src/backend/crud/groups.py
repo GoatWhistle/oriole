@@ -39,7 +39,7 @@ async def create_group(
     session: AsyncSession,
     user_id: int,
     group_in: GroupCreate,
-) -> GroupReadPartial:
+) -> GroupRead:
 
     await check_user_exists(session=session, user_id=user_id)
 
@@ -57,7 +57,13 @@ async def create_group(
     session.add(admin_account)
     await session.commit()
 
-    return GroupReadPartial.model_validate(group)
+    return GroupRead(
+        id=group.id,
+        title=group.title,
+        description=group.description,
+        accounts=[AccountReadPartial.model_validate(admin_account.__dict__)],
+        assignments=[],
+    )
 
 
 async def get_group_by_id(
@@ -122,6 +128,7 @@ async def get_group_by_id(
                 is_contest=assignment.is_contest,
                 tasks_count=tasks_count,
                 user_completed_tasks_count=user_completed_tasks_count,
+                is_active=assignment.is_active,
             )
         )
 
@@ -157,8 +164,8 @@ async def update_group(
     user_id: int,
     group_id: int,
     group_update: GroupUpdate | GroupUpdatePartial,
-    partial: bool = False,
-) -> GroupReadPartial:
+    is_partial: bool = False,
+) -> GroupRead:
     await check_user_exists(session=session, user_id=user_id)
     await check_group_exists(session=session, group_id=group_id)
     await check_user_in_group(session=session, user_id=user_id, group_id=group_id)
@@ -168,13 +175,76 @@ async def update_group(
 
     group = await session.get(Group, group_id)
 
-    for key, value in group_update.model_dump(exclude_unset=partial).items():
+    for key, value in group_update.model_dump(exclude_unset=is_partial).items():
         setattr(group, key, value)
 
     await session.commit()
     await session.refresh(group)
 
-    return GroupReadPartial.model_validate(group)
+    statement_accounts = select(Account).where(Account.group_id == group_id)
+    result_accounts: Result = await session.execute(statement_accounts)
+    accounts = result_accounts.scalars().all()
+
+    statement_account = select(Account).where(Account.user_id == user_id)
+    result_account: Result = await session.execute(statement_account)
+    account = result_account.scalars().first()
+
+    statement_assignments = (
+        select(
+            Assignment,
+            func.count(Task.id).label("tasks_count"),
+        )
+        .outerjoin(Task, Task.assignment_id == Assignment.id)
+        .where(Assignment.group_id == group_id)
+        .group_by(Assignment.id)
+        .order_by(Assignment.id)
+    )
+    result_assignments: Result = await session.execute(statement_assignments)
+    assignments = result_assignments.all()
+
+    group_assignments = []
+    for assignment, tasks_count in assignments:
+        tasks_query = await session.execute(
+            select(Task).where(Task.assignment_id == assignment.id)
+        )
+        tasks = tasks_query.scalars().all()
+
+        user_reply_data = await session.execute(
+            select(UserReply).where(
+                UserReply.account_id == account.id,
+                UserReply.task_id.in_([task.id for task in tasks]),
+            )
+        )
+
+        user_replies = {
+            reply.task_id: reply for reply in user_reply_data.scalars().all()
+        }
+
+        user_completed_tasks_count = sum(
+            1 for reply in user_replies.values() if reply.is_correct
+        )
+
+        group_assignments.append(
+            AssignmentReadPartial(
+                id=assignment.id,
+                title=assignment.title,
+                description=assignment.description,
+                is_contest=assignment.is_contest,
+                tasks_count=tasks_count,
+                user_completed_tasks_count=user_completed_tasks_count,
+                is_active=assignment.is_active,
+            )
+        )
+
+    return GroupRead(
+        id=group.id,
+        title=group.title,
+        description=group.description,
+        accounts=[
+            AccountReadPartial.model_validate(account.__dict__) for account in accounts
+        ],
+        assignments=group_assignments,
+    )
 
 
 async def delete_group(

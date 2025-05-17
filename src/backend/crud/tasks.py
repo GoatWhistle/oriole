@@ -15,6 +15,8 @@ from exceptions.task import (
     check_start_time_not_in_past,
     check_end_time_not_in_past,
     check_end_time_is_after_start_time,
+    check_task_start_deadline_before_assignment_start,
+    check_task_end_deadline_after_assignment_end,
 )
 from exceptions.assignment import check_assignment_exists
 
@@ -77,6 +79,15 @@ async def create_task(
     await check_end_time_is_after_start_time(
         start_datetime=start_datetime_utc,
         end_datetime=end_datetime_utc,
+    )
+
+    await check_task_start_deadline_before_assignment_start(
+        task_start_deadline=start_datetime_utc,
+        assignment_start_deadline=assignment.start_datetime,
+    )
+    await check_task_end_deadline_after_assignment_end(
+        task_end_deadline=end_datetime_utc,
+        assignment_end_deadline=assignment.end_datetime,
     )
 
     profile = await session.get(UserProfile, user_id)
@@ -155,6 +166,8 @@ async def get_task_by_id(
         group_id=assignment.group_id,
     )
 
+    await check_timezone_is_valid(user_timezone=user_timezone)
+
     profile = await session.get(UserProfile, user_id)
 
     accounts_query = await session.execute(
@@ -174,8 +187,6 @@ async def get_task_by_id(
         )
     )
     user_reply = user_reply_data.scalars().first()
-
-    await check_timezone_is_valid(user_timezone=user_timezone)
 
     return TaskRead(
         id=task.id,
@@ -289,6 +300,8 @@ async def update_task(
         group_id=assignment.group_id,
     )
 
+    await check_timezone_is_valid(user_timezone=user_timezone)
+
     if "start_datetime" in task_update.model_dump(exclude_unset=is_partial):
         start_datetime_utc = to_utc(task_update.start_datetime, timezone(user_timezone))
 
@@ -304,6 +317,15 @@ async def update_task(
     await check_end_time_is_after_start_time(
         start_datetime=task.start_datetime,
         end_datetime=task.end_datetime,
+    )
+
+    await check_task_start_deadline_before_assignment_start(
+        task_start_deadline=task.start_datetime,
+        assignment_start_deadline=assignment.start_datetime,
+    )
+    await check_task_end_deadline_after_assignment_end(
+        task_end_deadline=task.end_datetime,
+        assignment_end_deadline=assignment.end_datetime,
     )
 
     for name, value in task_update.model_dump(exclude_unset=is_partial).items():

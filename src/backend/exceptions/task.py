@@ -98,3 +98,25 @@ async def check_end_time_not_in_past(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="End time cannot be in the past.",
         )
+
+
+async def check_task_start_deadline_before_assignment_start(
+    task_start_deadline: datetime | Mapped[datetime],
+    assignment_start_deadline: datetime | Mapped[datetime],
+) -> None:
+    if task_start_deadline < assignment_start_deadline:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Task start deadline cannot be earlier than assignment start deadline.",
+        )
+
+
+async def check_task_end_deadline_after_assignment_end(
+    task_end_deadline: datetime | Mapped[datetime],
+    assignment_end_deadline: datetime | Mapped[datetime],
+) -> None:
+    if task_end_deadline > assignment_end_deadline:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Task end deadline cannot be later than assignment end deadline.",
+        )
