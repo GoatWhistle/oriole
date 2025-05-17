@@ -14,8 +14,6 @@ while ! nc -z "$DB_HOST" "$DB_PORT"; do
 done
 
 echo "db available"
-# сюды вставить создание миграции нужной
-# alembic revision --autogenerate -m "твоё название"
 
 alembic upgrade head
 
