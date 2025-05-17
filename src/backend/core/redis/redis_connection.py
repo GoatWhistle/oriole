@@ -9,7 +9,7 @@ class RedisConnection:
         self.db = db
 
     async def connect(self):
-        self.redis = await aioredis.from_url(self.url, self.db)
+        self.redis = await aioredis.from_url(self.url, db=self.db)
 
     async def close(self):
         if self.redis:
