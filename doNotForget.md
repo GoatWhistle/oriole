@@ -8,6 +8,11 @@ docker compose --env-file src/backend/.env build backend
 docker compose --env-file src/backend/.env build frontend
 ```
 
+находясь в папке проекта ввести это для полного билда
+```Dockerfile
+docker compose --env-file src/backend/.env build
+```
+
 находясь в папке проекта ввести это для запуска всех контейнеров
 ```Dockerfile
 docker compose --env-file src/backend/.env up -d
