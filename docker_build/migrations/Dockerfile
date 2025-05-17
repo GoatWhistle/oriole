@@ -5,6 +5,12 @@ ENV PYTHONDONTWRITEBYTECODE=1
 
 WORKDIR /backend
 
+RUN apt-get update && \
+    apt-get install -y netcat-openbsd postgresql-client && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+
 RUN pip install --upgrade pip wheel "poetry==2.1.1"
 
 RUN poetry config virtualenvs.create false
@@ -15,6 +21,6 @@ RUN poetry install
 
 COPY src/backend ./
 
-RUN chmod +x gunicorn_run.py
+RUN chmod +x pre_start.sh
 
-CMD ["python", "./gunicorn_run.py"]
+CMD ["sh", "pre_start.sh"]

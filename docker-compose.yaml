@@ -56,6 +56,18 @@ services:
     networks:
       - app-net
 
+  migrations:
+    build:
+      context: ./
+      dockerfile: docker_build/migrations/Dockerfile
+    depends_on:
+      - pg
+    restart: "no"
+    env_file:
+      - src/backend/.env
+    networks:
+      - app-net
+
   adminer:
     image: adminer
     ports:
@@ -73,10 +85,14 @@ services:
       retries: 3
     networks:
       - app-net
-  celery:
-    command: celery -A celery.celery worker --loglevel=info
-    depends_on:
-      - redis
+#  celery:
+#    build:
+#      context: ./
+#      dockerfile: docker_build/backend/Dockerfile
+#    command: celery -A src.backend.core.celery.celery_worker.celery_app worker --loglevel=info
+#    depends_on:
+#      - redis
+#      - backend
 
 volumes:
   pgdata:
