@@ -28,7 +28,7 @@ router = APIRouter()
 
 @router.post(
     "/",
-    response_model=GroupReadPartial,
+    response_model=GroupRead,
     status_code=status.HTTP_201_CREATED,
 )
 async def create_group(
@@ -95,7 +95,7 @@ async def get_user_groups(
 
 @router.put(
     "/{group_id}/",
-    response_model=GroupReadPartial,
+    response_model=GroupRead,
     status_code=status.HTTP_200_OK,
 )
 async def update_group(
@@ -115,13 +115,13 @@ async def update_group(
         user_id=user_id,
         group_id=group_id,
         group_update=group_update,
-        partial=False,
+        is_partial=False,
     )
 
 
 @router.patch(
     "/{group_id}/",
-    response_model=GroupReadPartial,
+    response_model=GroupRead,
     status_code=status.HTTP_200_OK,
 )
 async def update_group_partial(
@@ -141,7 +141,7 @@ async def update_group_partial(
         user_id=user_id,
         group_id=group_id,
         group_update=group_update,
-        partial=True,
+        is_partial=True,
     )
 
 

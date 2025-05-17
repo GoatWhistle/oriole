@@ -27,7 +27,7 @@ router = APIRouter()
 
 @router.post(
     "/",
-    response_model=AssignmentReadPartial,
+    response_model=AssignmentRead,
     status_code=status.HTTP_201_CREATED,
 )
 async def create_assignment(
@@ -39,11 +39,13 @@ async def create_assignment(
         int,
         Depends(get_current_active_auth_user_id),
     ],
+    user_timezone: str,
     assignment_in: AssignmentCreate,
 ):
     return await crud.create_assignment(
         session=session,
         user_id=user_id,
+        user_timezone=user_timezone,
         assignment_in=assignment_in,
     )
 
@@ -62,11 +64,13 @@ async def get_assignment_by_id(
         int,
         Depends(get_current_active_auth_user_id),
     ],
+    user_timezone: str,
     assignment_id: int,
 ):
     return await crud.get_assignment_by_id(
         session=session,
         user_id=user_id,
+        user_timezone=user_timezone,
         assignment_id=assignment_id,
     )
 
@@ -94,7 +98,7 @@ async def get_user_assignments(
 
 @router.put(
     "/{assignment_id}/",
-    response_model=AssignmentReadPartial,
+    response_model=AssignmentRead,
     status_code=status.HTTP_200_OK,
 )
 async def update_assignment(
@@ -106,20 +110,23 @@ async def update_assignment(
         int,
         Depends(get_current_active_auth_user_id),
     ],
+    user_timezone: str,
     assignment_update: AssignmentUpdate,
     assignment_id: int,
 ):
     return await crud.update_assignment(
         session=session,
         user_id=user_id,
+        user_timezone=user_timezone,
         assignment_id=assignment_id,
         assignment_update=assignment_update,
+        is_partial=False,
     )
 
 
 @router.patch(
     "/{assignment_id}/",
-    response_model=AssignmentReadPartial,
+    response_model=AssignmentRead,
     status_code=status.HTTP_200_OK,
 )
 async def update_assignment_partial(
@@ -131,15 +138,17 @@ async def update_assignment_partial(
         int,
         Depends(get_current_active_auth_user_id),
     ],
+    user_timezone: str,
     assignment_update: AssignmentUpdatePartial,
     assignment_id: int,
 ):
     return await crud.update_assignment(
         session=session,
         user_id=user_id,
+        user_timezone=user_timezone,
         assignment_id=assignment_id,
         assignment_update=assignment_update,
-        partial=True,
+        is_partial=True,
     )
 
 
