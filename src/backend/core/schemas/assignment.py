@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from pydantic import BaseModel, Field, ConfigDict
 
 from typing import Annotated, Optional, Sequence
@@ -18,6 +20,8 @@ class AssignmentReadPartial(AssignmentBase):
     tasks_count: int
     user_completed_tasks_count: int
 
+    is_active: bool
+
     model_config = ConfigDict(
         from_attributes=True,
     )
@@ -26,14 +30,20 @@ class AssignmentRead(AssignmentReadPartial):
     admin_id: int
     tasks: Sequence[TaskReadPartial]
 
+    start_datetime: datetime
+    end_datetime: datetime
 
 
 class AssignmentCreate(AssignmentBase):
     group_id: int
 
+    start_datetime: datetime
+    end_datetime: datetime
+
 
 class AssignmentUpdate(AssignmentBase):
-    pass
+    start_datetime: datetime
+    end_datetime: datetime
 
 
 class AssignmentUpdatePartial(AssignmentBase):
@@ -41,4 +51,7 @@ class AssignmentUpdatePartial(AssignmentBase):
     description: Annotated[Optional[str], Field(max_length=num_opt(200))] = None
 
     is_contest: Optional[bool] = None
+
+    start_datetime: Optional[datetime] = None
+    end_datetime: Optional[datetime] = None
 

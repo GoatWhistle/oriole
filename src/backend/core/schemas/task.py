@@ -15,6 +15,7 @@ class TaskBase(BaseModel):
 class TaskReadPartial(TaskBase):
     id: int
     is_correct: bool
+
     is_active: bool
 
     model_config = ConfigDict(
