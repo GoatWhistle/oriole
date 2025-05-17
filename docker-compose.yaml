@@ -74,6 +74,7 @@ services:
       - "${ADMIN_PORT}:8080"
     networks:
       - app-net
+
   redis:
     image: redis:latest
     ports:
@@ -85,14 +86,17 @@ services:
       retries: 3
     networks:
       - app-net
-#  celery:
-#    build:
-#      context: ./
-#      dockerfile: docker_build/backend/Dockerfile
-#    command: celery -A src.backend.core.celery.celery_worker.celery_app worker --loglevel=info
-#    depends_on:
-#      - redis
-#      - backend
+
+  celery:
+    build:
+      context: ./
+      dockerfile: docker_build/backend/Dockerfile
+    command: celery -A core.celery.celery_worker.celery_app worker --loglevel=info
+    depends_on:
+      - redis
+      - backend
+    networks:
+      - app-net
 
 volumes:
   pgdata:
