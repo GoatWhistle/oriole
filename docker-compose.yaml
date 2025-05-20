@@ -54,7 +54,8 @@ services:
       context: ./
       dockerfile: docker_build/migrations/Dockerfile
     depends_on:
-      - pg
+      pg:
+        condition: service_healthy
     restart: "no"
     env_file:
       - src/backend/.env
