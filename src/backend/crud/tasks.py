@@ -492,3 +492,11 @@ async def try_to_complete_task(
         start_datetime=task.start_datetime.astimezone(user_tz),
         end_datetime=task.end_datetime.astimezone(user_tz),
     )
+
+
+async def check_and_update_task_deadlines(session: AsyncSession):
+    result = await session.execute(select(Task))
+    tasks = result.scalars().all()
+    for task in tasks:
+        task.is_active = task.start_datetime <= datetime.now(utc) <= task.end_datetime
+    await session.commit()

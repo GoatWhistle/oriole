@@ -443,3 +443,13 @@ async def get_tasks_in_assignment(
         )
         for task in tasks
     ]
+
+
+async def check_and_update_assignment_deadlines(session: AsyncSession):
+    result = await session.execute(select(Assignment))
+    assignments = result.scalars().all()
+    for assignment in assignments:
+        assignment.is_active = (
+            assignment.start_datetime <= datetime.now(utc) <= assignment.end_datetime
+        )
+    await session.commit()
