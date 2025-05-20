@@ -1,6 +1,5 @@
-import redis.asyncio as aioredis
+import redis.asyncio as redis
 from core.config import settings
-
 
 class RedisConnection:
     def __init__(self, url: str, db: int):
@@ -9,11 +8,13 @@ class RedisConnection:
         self.db = db
 
     async def connect(self):
-        self.redis = await aioredis.from_url(self.url, db=self.db)
+        print("connecting redis...")
+        self.redis = await redis.from_url(self.url, db=self.db, decode_responses=True)
+        print("connected redis")
 
     async def close(self):
         if self.redis:
-            await self.redis.close()
+            await self.redis.aclose()
 
 
 redis_connection = RedisConnection(f"{settings.redis.url}{settings.redis.port}", 0)
