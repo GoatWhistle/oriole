@@ -5,8 +5,10 @@ from fastapi import (
     Response,
     Request,
 )
+from typing import Annotated
 
 from fastapi.security import OAuth2PasswordRequestForm
+from pydantic import EmailStr, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.schemas.token import TokenResponseForOAuth2
@@ -107,10 +109,22 @@ async def check_auth(
 
 @router.post("/reset_password")
 async def reset_password(
-    previous_password: str,
+    user_from_db: UserAuthRead = Depends(crud.get_current_auth_user),
 ):
     return await crud.reset_password(
-        previous_password=previous_password,
+        user_from_db=user_from_db,
     )
 
 
+@router.post("/forgot_password")
+@limiter.limit("5/minute")
+async def forgot_password(
+    email: Annotated[EmailStr, Field(max_length=63)],
+    request: Request,
+    session: AsyncSession = Depends(db_helper.dependency_session_getter),
+):
+    _ = request
+    return await crud.forgot_password(
+        email=email,
+        session=session,
+    )

@@ -24,12 +24,25 @@ async def verify(
 
 
 @router.get("/reset_password_redirect/{token}")
-async def verify(
+async def reset_password_redirect(
     token: str,
     new_password: str,
     session: Annotated[AsyncSession, Depends(db_helper.dependency_session_getter)],
 ):
     return await crud.reset_password_redirect(
+        token=token,
+        new_password=new_password,
+        session=session,
+    )
+
+
+@router.get("/forgot_password_redirect/{token}")
+async def forgot_password_redirect(
+    token: str,
+    new_password: str,
+    session: Annotated[AsyncSession, Depends(db_helper.dependency_session_getter)],
+):
+    return await crud.forgot_password_redirect(
         token=token,
         new_password=new_password,
         session=session,

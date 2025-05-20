@@ -1,3 +1,4 @@
+from pydantic.v1 import EmailStr
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError
@@ -363,31 +364,7 @@ async def logout(
     if "authorization" in request.headers:
         response.headers["Authorization"] = ""
 
-    return {"logout": "Logout done!"}
-
-
-async def reset_password(
-    previous_password: str,
-    user_from_db: UserAuthRead = Depends(get_current_auth_user),
-):
-    if not validate_password(
-        password=previous_password, hashed_password=str(user_from_db.hashed_password)
-    ):
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Invalid previous password",
-        )
-
-    token = create_password_confirmation_token(
-        user_email=user_from_db.email,
-        user_id=user_from_db.id,
-    )
-
-    await send_confirmation_email(
-        email=user_from_db.email,
-        token=token,
-        html_file="password_reset_warning.html",
-    )
+    return {"message": "Logout done!"}
 
 
 async def check_auth(
@@ -430,3 +407,54 @@ async def check_auth(
     )
 
     return UserRead.model_validate(profile_and_email)
+
+
+async def reset_password(
+    user_from_db: UserAuthRead,
+):
+    token = create_password_confirmation_token(
+        user_email=user_from_db.email,
+        user_id=user_from_db.id,
+    )
+
+    await send_confirmation_email(
+        email=user_from_db.email,
+        token=token,
+        html_file="password_reset_warning.html",
+    )
+
+    return {"message": "Password reset link has been sent to your email"}
+
+
+async def forgot_password(
+    email: EmailStr,
+    session: AsyncSession,
+):
+    if not email:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Please enter an email",
+        )
+
+    statement = select(User).filter_by(email=email)
+    user_from_db = await session.scalars(statement)
+    user_from_db = user_from_db.first()
+
+    if not user_from_db:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"User not found",
+        )
+
+    token = create_password_confirmation_token(
+        user_email=user_from_db.email,
+        user_id=user_from_db.id,
+    )
+
+    await send_confirmation_email(
+        email=user_from_db.email,
+        token=token,
+        html_file="forgot_password_warning.html",
+    )
+
+    return {"message": "Password reset link has been sent to your email"}

@@ -86,13 +86,39 @@ async def reset_password_redirect(
         ):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="You cannot use previous password as new",
+                detail="The new password must be different from the previous one.",
             )
 
         await session.commit()
         await session.refresh(user_from_db)
 
-        # сделать страничку после редиректа
+        return {"message": "You changed password"}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"{e}")
+
+
+async def forgot_password_redirect(
+    token: str,
+    new_password: str,
+    session: AsyncSession,
+):
+    try:
+        dict_token = decode_jwt(token)
+        check_expiration_after_redirect(payload=dict_token)
+
+        user_from_db = await session.get(User, int(dict_token["sub"]))
+
+        if validate_password(
+            password=new_password, hashed_password=str(user_from_db.hashed_password)
+        ):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="The new password must be different from the previous one.",
+            )
+
+        await session.commit()
+        await session.refresh(user_from_db)
+
         return {"message": "You changed password"}
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"{e}")
