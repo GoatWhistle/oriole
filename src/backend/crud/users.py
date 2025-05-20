@@ -65,7 +65,6 @@ async def update_user_email(
     user = await session.get(User, user_id)
     user.email = user_data.email
 
-
     user.is_verified = False
     token = create_email_confirmation_token(
         user_id=user.id,
