@@ -2,6 +2,7 @@ FROM python:3.13.0-bookworm
 
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
+ENV PATH="/root/.local/bin:${PATH}"
 
 WORKDIR /backend
 

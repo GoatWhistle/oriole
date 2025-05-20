@@ -14,28 +14,21 @@ services:
       - ${APP_CONFIG__RUN__PORT}:8000
     volumes:
       - ./src/backend:/backend
-    develop:
-      watch:
-        - action: sync+restart
-          path: src/backend
-          target: /backend
-        - action: rebuild
-          path: poetry.lock
     networks:
       - app-net
 
   frontend:
-      build:
-        dockerfile: docker_build/frontend/Dockerfile
-        context: ./
-      volumes:
-        - ./src/frontend:/frontend
-      depends_on:
-        - backend
-      ports:
-        - "80:80"
-      networks:
-        - app-net
+    build:
+      dockerfile: docker_build/frontend/Dockerfile
+      context: ./
+    volumes:
+      - ./src/frontend:/frontend
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
+    networks:
+      - app-net
 
   pg:
     image: postgres
@@ -93,17 +86,55 @@ services:
     build:
       context: ./
       dockerfile: docker_build/backend/Dockerfile
-    command: celery -A core.celery.celery_worker.celery_app worker --loglevel=info
+    command: celery -A core.celery.celery_worker.celery_app worker --loglevel=info --pool=solo
     depends_on:
       - redis
       - backend
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - APP_CONFIG__DB__DB_URL=${APP_CONFIG__DB__DB_URL}
     networks:
       - app-net
+    volumes:
+      - ./src/backend:/backend
+
+  celery-beat:
+    build:
+      context: ./
+      dockerfile: docker_build/backend/Dockerfile
+    command: celery -A core.celery.celery_worker.celery_app beat --loglevel=info
+    depends_on:
+      - redis
+      - backend
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - APP_CONFIG__DB__DB_URL=${APP_CONFIG__DB__DB_URL}
+    networks:
+      - app-net
+    volumes:
+      - ./src/backend:/backend
+
+  flower:
+    build:
+      context: ./
+      dockerfile: docker_build/backend/Dockerfile
+    command: python -m flower --broker=redis://redis:6379/0 --port=5555
+    ports:
+      - "5555:5555"
+    depends_on:
+      redis:
+        condition: service_healthy
+      backend:
+        condition: service_started
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+    networks:
+      - app-net
+    volumes:
+      - ./src/backend:/backend
 
 volumes:
   pgdata:
 
 networks:
   app-net:
-
-
