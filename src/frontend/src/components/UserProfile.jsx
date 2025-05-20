@@ -1,22 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Button, Form, Input, Typography, Divider, message, Spin } from 'antd';
 import axios from 'axios';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 const { Title, Text } = Typography;
 
 const UserProfile = () => {
-  const [user, setUser] = useState(null);
+  const [user, setUser ] = useState(null);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [form] = Form.useForm();
-  const { userId } = useParams();
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const response = await axios.get(`/api/v1/users/${userId}`, {
+        const response = await axios.get('/api/v1/check-auth', {
           withCredentials: true
         });
         setUser(response.data);
@@ -29,7 +28,7 @@ const UserProfile = () => {
     };
 
     fetchUserData();
-  }, [userId]);
+  }, []);
 
   const handleEdit = () => {
     form.setFieldsValue({
@@ -52,16 +51,16 @@ const UserProfile = () => {
           patronymic: values.patronymic
         }
       };
-
       const response = await axios.patch(
-        `/api/v1/users/${userId}`,
+        `/api/v1/users/${user.profile.user_id}`,
         updatedData,
         { withCredentials: true }
       );
 
-      setUser(response.data);
+      setUser (response.data);
       setEditing(false);
       message.success('Профиль успешно обновлен!');
+      navigate('/user-profile'); // Перенаправление на страницу профиля
     } catch (error) {
       message.error('Ошибка при обновлении профиля');
       console.error(error);
