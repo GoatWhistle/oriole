@@ -9,7 +9,6 @@ from contextlib import asynccontextmanager
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await redis_connection.connect()
-
     yield
 
     await redis_connection.close()
