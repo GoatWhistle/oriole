@@ -62,7 +62,7 @@ class OAuth2PasswordBearerWithCookie(OAuth2PasswordBearer):
 
 
 OAuth2_scheme = OAuth2PasswordBearerWithCookie(
-    tokenUrl="/api/v1/token",
+    tokenUrl="/api/v1/auth/token",
     auto_error=False,
 )
 
@@ -125,7 +125,6 @@ async def get_non_expire_payload_token(
             token = new_token
         return get_current_token_payload(token)
 
-    # значит что токенов нет: есть только рефреш
     new_token = await refresh_tokens(request, response, session)
     return get_current_token_payload(new_token)
 
@@ -264,6 +263,7 @@ async def register_user(
             email=user_data.email,
             token=token,
             html_file="verified_email",
+            address_type="email_verify",
         )
 
         return UserAuthRead.model_validate(user)
@@ -421,6 +421,7 @@ async def reset_password(
         email=user_from_db.email,
         token=token,
         html_file="password_reset_warning.html",
+        address_type="reset_password_redirect",
     )
 
     return {"message": "Password reset link has been sent to your email"}
@@ -455,6 +456,7 @@ async def forgot_password(
         email=user_from_db.email,
         token=token,
         html_file="forgot_password_warning.html",
+        address_type="forgot_password_redirect",
     )
 
     return {"message": "Password reset link has been sent to your email"}

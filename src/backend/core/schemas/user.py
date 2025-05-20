@@ -59,12 +59,25 @@ class UserRead(BaseModel):
     )
 
 
-class UserUpdate(UserProfile):
+class EmailUpdate(BaseModel):
     email: Annotated[Optional[EmailStr], Field(max_length=63)]
 
 
-class UserUpdatePartial(UserUpdate):
-    email: Annotated[Optional[EmailStr], Field(max_length=63)] = None
+class EmailUpdateRead(EmailUpdate):
+    user_id: int
+
+    model_config = ConfigDict(
+        from_attributes=True,
+    )
+
+
+class UserProfileUpdate(BaseModel):
+    name: Annotated[str, Field(max_length=31)]
+    surname: Annotated[str, Field(max_length=31)]
+    patronymic: Annotated[Optional[str], Field(max_length=63)] = None
+
+
+class UserProfileUpdatePartial(BaseModel):
     name: Annotated[str, Field(max_length=31)] = None
     surname: Annotated[str, Field(max_length=31)] = None
     patronymic: Annotated[Optional[str], Field(max_length=63)] = None

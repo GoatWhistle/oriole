@@ -24,7 +24,9 @@ async def send_confirmation_email(
     email: EmailStr,
     token: str,
     html_file: str,
+    address_type: str = "email_verify",
 ):
+
     conf = ConnectionConfig(
         MAIL_USERNAME=settings.smtp_email.user,
         MAIL_PASSWORD=settings.smtp_email.password,
@@ -36,7 +38,8 @@ async def send_confirmation_email(
         MAIL_STARTTLS=True,
     )
 
-    link = f"http://127.0.0.1:{settings.run.port}{settings.api.prefix}{settings.api.v1.prefix}{settings.api.v1.email_verify}/{token}"
+    address = getattr(settings.api.v1, address_type, "/default-path")
+    link = f"http://127.0.0.1:{settings.run.port}{settings.api.prefix}{settings.api.v1.prefix}{address}/{token}"
 
     html_body = templates.get_template(html_file).render(link=link)
 
@@ -64,7 +67,6 @@ async def verify(
         await session.commit()
         await session.refresh(user)
 
-        # сделать страничку после редиректа
         return {"message": "You are verified"}
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"{e}")

@@ -42,6 +42,7 @@ router.include_router(
 router.include_router(
     router=auth_router,
     tags=[settings.api.v1.auth[1:].capitalize()],
+    prefix=settings.api.v1.auth,
 )
 
 router.include_router(

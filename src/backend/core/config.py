@@ -50,6 +50,8 @@ class ApiV1Prefix(BaseModel):
     auth: str = "/auth"
     learn: str = "/learn"
     email_verify: str = "/verify"
+    reset_password: str = "/reset_password_redirect"
+    forgot_password: str = "/forgot_password_redirect"
 
 
 class ApiPrefix(BaseModel):

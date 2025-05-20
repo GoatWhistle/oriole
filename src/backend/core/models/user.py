@@ -19,5 +19,9 @@ class User(Base, IdIntPkMixin):
     is_superuser: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     is_verified: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
-    profile: Mapped["UserProfile"] = relationship(back_populates="user")
-    access_token: Mapped["AccessToken"] = relationship(back_populates="user")
+    profile: Mapped["UserProfile"] = relationship(
+        back_populates="user", cascade="all, delete-orphan"
+    )
+    access_token: Mapped["AccessToken"] = relationship(
+        back_populates="user", cascade="all, delete-orphan"
+    )

@@ -23,10 +23,16 @@ class UserProfile(Base):
     )
     user: Mapped["User"] = relationship(back_populates="profile")
 
-    accounts: Mapped[list["Account"]] = relationship(back_populates="user_profile")
+    accounts: Mapped[list["Account"]] = relationship(
+        back_populates="user_profile",
+        cascade="all, delete-orphan",
+    )
 
     name: Mapped[str] = mapped_column(String(31), index=True)
     surname: Mapped[str] = mapped_column(String(31), index=True)
     patronymic: Mapped[str] = mapped_column(String(63), index=True)
 
-    admin_assignments: Mapped[list["Assignment"]] = relationship(back_populates="admin")
+    admin_assignments: Mapped[list["Assignment"]] = relationship(
+        back_populates="admin",
+        cascade="all, delete-orphan",
+    )

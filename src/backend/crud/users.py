@@ -1,92 +1,84 @@
-from fastapi import HTTPException, status
+from fastapi import HTTPException
 
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import joinedload
 
+from crud.email_access import send_confirmation_email
 from exceptions.user import check_user_exists
 from core.schemas.user import (
-    UserRead,
-    UserUpdate,
-    UserUpdatePartial,
+    EmailUpdate,
+    EmailUpdateRead,
+    UserProfileUpdate,
+    UserProfileRead,
+    UserProfileUpdatePartial,
 )
-from core.models import User, Account, Assignment
+from core.models import User
+from utils.JWT import create_email_confirmation_token
 
 
 async def delete_user(
     session: AsyncSession,
-    current_user_id: int,
-    deleted_user_id: int,
-) -> None:
-    await check_user_exists(session=session, user_id=deleted_user_id)
-
-    if not deleted_user_id == current_user_id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Only owner can delete his account",
-        )
-
-    deleted_user = await session.get(User, deleted_user_id)
-
-    async with session.begin_nested():
-        accounts = await session.execute(
-            select(Account).where(Account.user_id == deleted_user)
-        )
-        for account in accounts.scalars():
-            await session.delete(account)
-
-        await session.delete(deleted_user.profile)
-
-        assignments = await session.execute(
-            select(Assignment).where(Assignment.admin_id == deleted_user_id)
-        )
-        for assignment in assignments.scalars():
-            await session.delete(assignment)
-
-        await session.delete(deleted_user)
-
-    await session.commit()
-
-
-# TODO: в случае если апдейт по почте ебанной, то поставить is_verified = False
-async def update_user(
-    session: AsyncSession,
     user_id: int,
-    user_data: UserUpdate | UserUpdatePartial,
-    current_user_id: int,
-    partial: bool = False,
-) -> UserRead:
+) -> None:
     await check_user_exists(session=session, user_id=user_id)
-
-    if user_id != current_user_id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="You can only update your own profile",
-        )
 
     user = await session.get(User, user_id)
 
-    user_to_go = {}
-    profile_to_go = {}
+    await session.delete(user)
+    await session.commit()
 
-    for key, value in user_data.model_dump(exclude_unset=partial).items():
-        if key == "email":
-            user_to_go[key] = value
-        elif key in {"name", "surname", "patronymic"}:
-            profile_to_go[key] = value
 
-    if profile_to_go:
-        for key, value in profile_to_go.items():
-            setattr(user.profile, key, value)
-        session.add(user.profile)
-        await session.flush()
+async def update_user_profile(
+    session: AsyncSession,
+    user_data: UserProfileUpdate | UserProfileUpdatePartial,
+    user_id: int,
+    partial: bool = False,
+) -> UserProfileRead:
+    await check_user_exists(session=session, user_id=user_id)
 
-    if user_to_go:
-        for key, value in user_to_go.items():
-            setattr(user, key, value)
-        session.add(user)
-        await session.flush()
+    user = await session.get(User, user_id, options=[joinedload(User.profile)])
+
+    if not user.profile:
+        raise HTTPException(
+            status_code=400,
+            detail="User profile not exists",
+        )
+
+    update_data = user_data.model_dump(exclude_unset=partial)
+    for field in {"name", "surname", "patronymic"}:
+        if field in update_data:
+            setattr(user.profile, field, update_data[field])
 
     await session.commit()
     await session.refresh(user)
 
-    return UserRead.model_validate(user)
+    return UserProfileRead.model_validate(user.profile)
+
+
+async def update_user_email(
+    session: AsyncSession,
+    user_data: EmailUpdate,
+    user_id: int,
+) -> EmailUpdateRead:
+    await check_user_exists(session=session, user_id=user_id)
+
+    user = await session.get(User, user_id)
+    user.email = user_data.email
+
+
+    user.is_verified = False
+    token = create_email_confirmation_token(
+        user_id=user.id,
+        user_email=user_data.email,
+    )
+
+    await send_confirmation_email(
+        email=user_data.email,
+        token=token,
+        html_file="verified_email",
+        address_type="email_verify",
+    )
+    await session.commit()
+    await session.refresh(user)
+
+    return EmailUpdateRead.model_validate(user)
