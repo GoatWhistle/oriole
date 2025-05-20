@@ -1,9 +1,9 @@
 <div align="center">
   <h1>
-    <img src="oriole-icon.png" alt="Oriole Logo" width="80" style="vertical-align: middle; margin-right: 20px;"/>
+    <img src="https://github.com/GoatWhistle/oriole/blob/feature-logic/oriole-icon.png" alt="Oriole Logo" width="80" style="vertical-align: middle; margin-right: 20px;"/>
     <span style="vertical-align: middle;">Oriole</span>
   </h1>
-  <p><a href="https://github.com/GoatWhistle/oriole/i18n/README_ru.md">Russian README</a> | <a href="#features">Features</a> | <a href="#tech-stack">Technologies</a> | <a href="#team"> Team</a> </p>
+  <p><a href="https://github.com/GoatWhistle/oriole/blob/feature-logic/i18n/README_ru.md">Russian README</a> | <a href="#features">Features</a> | <a href="#tech-stack">Technologies</a> | <a href="#team"> Team</a> </p>
 </div>
 
 ## 🚀 Modern Learning Collaboration Platform
@@ -80,88 +80,32 @@ technical stack.
 
 #
 
-## 👥 <span id="team" style="color: #9aa5ce;">Our Team</span>
+## 👥 <span id="team">Our Team</span>
 
-<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px; margin: 40px 0;">
-
-<!-- Teamlead and DevOps -->
-<div style="background: #1e1e2e; border: 1px solid #38384d; border-radius: 12px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">
-  <div style="display: flex; gap: 20px; align-items: center; margin-bottom: 15px;">
-    <a href="https://github.com/timofeipupykin" target="_blank">
-      <img src="https://github.com/timofeipupykin.png" width="80" style="border-radius: 50%; border: 3px solid #7d8cc4; box-shadow: 0 0 10px rgba(125,140,196,0.4);">
-    </a>
-    <div>
-      <h3 style="margin: 0 0 5px 0; font-size: 1.2em; color: #c7d0ff;">Pupykin Timofey</h3>
-      <p style="margin: 0; color: #9aa5ce; font-weight: 500;">Teamlead & DevOps</p>
-    </div>
-  </div>
-  <div style="background: linear-gradient(135deg, #25253a 0%, #2a2a40 100%); padding: 12px; border-radius: 8px; border-left: 4px solid #7d8cc4;">
-    <p style="margin: 0; font-size: 0.95em; color: #e0e5ff; font-weight: 500;">
-      <span style="color: #7d8cc4;">⟣</span> System Architecture<br>
-      <span style="color: #7d8cc4;">⟣</span> Infrastructure Design<br>
-      <span style="color: #7d8cc4;">⟣</span> CI/CD Pipelines
-    </p>
-  </div>
+<div align="center">
+  
+| | |
+|:-:|:-:|
+| <a href="https://github.com/timofeipupykin" target="_blank"><img src="https://github.com/timofeipupykin.png" width="80" style="border-radius: 50%"></a> | **Timofey Pupykin**<br>*Teamlead & DevOps*<br> |
 </div>
 
-<!-- Backend Developer 1 -->
-<div style="background: #1e1e2e; border: 1px solid #38384d; border-radius: 12px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">
-  <div style="display: flex; gap: 20px; align-items: center; margin-bottom: 15px;">
-    <a href="https://github.com/AI-AVENGER-S" target="_blank">
-      <img src="https://github.com/AI-AVENGER-S.png" width="80" style="border-radius: 50%; border: 3px solid #a78bfa; box-shadow: 0 0 10px rgba(167,139,250,0.3);">
-    </a>
-    <div>
-      <h3 style="margin: 0 0 5px 0; font-size: 1.2em; color: #c7d0ff;">Saveliev Artem</h3>
-      <p style="margin: 0; color: #9aa5ce; font-weight: 500;">Backend Developer</p>
-    </div>
-  </div>
-  <div style="background: linear-gradient(135deg, #25253a 0%, #2a2a40 100%); padding: 12px; border-radius: 8px; border-left: 4px solid #a78bfa;">
-    <p style="margin: 0; font-size: 0.95em; color: #e0e5ff; font-weight: 500;">
-      <span style="color: #a78bfa;">⟣</span> API Development<br>
-      <span style="color: #a78bfa;">⟣</span> Performance Optimization<br>
-      <span style="color: #a78bfa;">⟣</span> Security Implementation
-    </p>
-  </div>
-</div>
+<div align="center">
 
-<!-- Backend Developer 2 -->
-<div style="background: #1e1e2e; border: 1px solid #38384d; border-radius: 12px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">
-  <div style="display: flex; gap: 20px; align-items: center; margin-bottom: 15px;">
-    <a href="https://github.com/mikhailkhorokhorin" target="_blank">
-      <img src="https://github.com/mikhailkhorokhorin.png" width="80" style="border-radius: 50%; border: 3px solid #a78bfa; box-shadow: 0 0 10px rgba(167,139,250,0.3);">
-    </a>
-    <div>
-      <h3 style="margin: 0 0 5px 0; font-size: 1.2em; color: #c7d0ff;">Khorokhorin Mikhail</h3>
-      <p style="margin: 0; color: #9aa5ce; font-weight: 500;">Backend Developer</p>
-    </div>
-  </div>
-  <div style="background: linear-gradient(135deg, #25253a 0%, #2a2a40 100%); padding: 12px; border-radius: 8px; border-left: 4px solid #a78bfa;">
-    <p style="margin: 0; font-size: 0.95em; color: #e0e5ff; font-weight: 500;">
-      <span style="color: #a78bfa;">⟣</span> API Development<br>
-      <span style="color: #a78bfa;">⟣</span> Database Design<br>
-      <span style="color: #a78bfa;">⟣</span> System Integration
-    </p>
-  </div>
+| | |
+|:-:|:-:|
+| <a href="https://github.com/AI-AVENGER-S" target="_blank"><img src="https://github.com/AI-AVENGER-S.png" width="80" style="border-radius: 50%"></a> | **Artem Saveliev**<br>*Backend Developer*<br>|
 </div>
-
-<!-- Frontend Developer -->
-<div style="background: #1e1e2e; border: 1px solid #38384d; border-radius: 12px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">
-  <div style="display: flex; gap: 20px; align-items: center; margin-bottom: 15px;">
-    <a href="https://github.com/amemeansrain" target="_blank">
-      <img src="https://github.com/amemeansrain.png" width="80" style="border-radius: 50%; border: 3px solid #7dd3fc; box-shadow: 0 0 10px rgba(125,211,252,0.3);">
-    </a>
-    <div>
-      <h3 style="margin: 0 0 5px 0; font-size: 1.2em; color: #c7d0ff;">Savitskas Robert</h3>
-      <p style="margin: 0; color: #9aa5ce; font-weight: 500;">Frontend Developer</p>
-    </div>
-  </div>
-  <div style="background: linear-gradient(135deg, #25253a 0%, #2a2a40 100%); padding: 12px; border-radius: 8px; border-left: 4px solid #7dd3fc;">
-    <p style="margin: 0; font-size: 0.95em; color: #e0e5ff; font-weight: 500;">
-      <span style="color: #7dd3fc;">⟣</span> UI/UX Design<br>
-      <span style="color: #7dd3fc;">⟣</span> Interactive Components<br>
-      <span style="color: #7dd3fc;">⟣</span> Frontend Architecture
-    </p>
-  </div>
+  
+<div align="center">
+  
+| | |
+|:-:|:-:|
+| <a href="https://github.com/mikhailkhorokhorin" target="_blank"><img src="https://github.com/mikhailkhorokhorin.png" width="80" style="border-radius: 50%"></a> | **Mikhail Khorokhorin**<br>*Backend Developer*<br>|
 </div>
-
+  
+<div align="center">
+  
+| | |
+|:-:|:-:|
+| <a href="https://github.com/amemeansrain" target="_blank"><img src="https://github.com/amemeansrain.png" width="80" style="border-radius: 50%"></a> | **Robert Savitskas**<br>*Frontend Developer*<br>|
 </div>
