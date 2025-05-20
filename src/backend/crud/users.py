@@ -1,4 +1,4 @@
-from fastapi import HTTPException
+from fastapi import HTTPException, Response, Request
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
@@ -19,12 +19,22 @@ from utils.JWT import create_email_confirmation_token
 async def delete_user(
     session: AsyncSession,
     user_id: int,
+    request: Request,
+    response: Response | None = None,
 ) -> None:
     await check_user_exists(session=session, user_id=user_id)
 
     user = await session.get(User, user_id)
 
     await session.delete(user)
+
+
+    response.delete_cookie("access_token")
+    response.delete_cookie("refresh_token")
+
+    if "authorization" in request.headers:
+        response.headers["Authorization"] = ""
+
     await session.commit()
 
 
@@ -59,6 +69,8 @@ async def update_user_email(
     session: AsyncSession,
     user_data: EmailUpdate,
     user_id: int,
+    request: Request,
+    response: Response | None = None,
 ) -> EmailUpdateRead:
     await check_user_exists(session=session, user_id=user_id)
 
@@ -77,6 +89,14 @@ async def update_user_email(
         html_file="verified_email",
         address_type="email_verify",
     )
+
+
+    response.delete_cookie("access_token")
+    response.delete_cookie("refresh_token")
+
+    if "authorization" in request.headers:
+        response.headers["Authorization"] = ""
+
     await session.commit()
     await session.refresh(user)
 
