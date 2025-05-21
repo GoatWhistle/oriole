@@ -7,6 +7,7 @@ import Login from './pages/Login';
 import Registration from './pages/Registration';
 import Profile from './pages/Profile';
 import Verify from './pages/Verify';
+import Assignment from './pages/Assignment'
 
 export default function App() {
   return (
@@ -18,6 +19,7 @@ export default function App() {
         <Route path="/registration" element={<Registration />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/verify" element={<Verify />} />
+        <Route path="/assignment/:assignment_id" element={<Assignment />} />
       </Routes>
     </div>
   );

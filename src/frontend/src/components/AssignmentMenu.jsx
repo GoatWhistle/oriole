@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Menu, message } from 'antd';
+import { useNavigate } from 'react-router-dom';
 
 const AssignmentMenu = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [assignments, setAssignments] = useState([]);
+    const navigate = useNavigate();
 
     useEffect(() => {
         const fetchUserAssignments = async () => {
@@ -27,7 +29,6 @@ const AssignmentMenu = () => {
                     const menuItems = data.map(assignment => ({
                         key: assignment.id,
                         label: assignment.title,
-                        // Можно добавить дополнительную информацию в tooltip
                         title: assignment.description
                     }));
                     setAssignments(menuItems);
@@ -47,8 +48,7 @@ const AssignmentMenu = () => {
 
     const onClick = (e) => {
         if (e.key !== 'no-assignments') {
-            console.log('Выбрано задание с ID:', e.key);
-            // Здесь можно добавить логику обработки выбора задания
+            navigate(`/assignment/${e.key}`);
         }
     };
 
