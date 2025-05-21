@@ -65,7 +65,7 @@ class AuthJWT(BaseModel):
     algorithm: str = "RS256"
     access_token_lifetime_seconds: int = 900  # 15 минут
     refresh_token_lifetime_seconds: int = 604_800  # неделя
-    email_token_lifetime_seconds: int = 900  # 15 минут
+    email_token_lifetime_seconds: int = 7200  # 2 часа
     password_token_lifetime_seconds: int = 600  # 10 минут
 
 
