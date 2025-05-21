@@ -131,10 +131,6 @@ async def forgot_password(
 
 
 async def send_confirmation_email_again(
-    payload: dict = Depends(crud.get_non_expire_payload_token),
-    session: AsyncSession = Depends(db_helper.dependency_session_getter),
+    user_data: UserAuthRead = Depends(crud.get_current_auth_user),
 ):
-    return await crud.send_confirmation_email_again(
-        session=session,
-        payload=payload,
-    )
+    return await crud.send_confirmation_email_again(user_data=user_data)

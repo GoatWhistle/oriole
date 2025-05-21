@@ -467,22 +467,16 @@ async def forgot_password(
 
 
 async def send_confirmation_email_again(
-    payload: dict,
-    session: AsyncSession,
+    user_data: UserAuthRead,
 ):
-    user_from_db = await check_auth(
-        session=session,
-        payload=payload,
-    )
 
-    user_id = payload.get("sub")
     token = create_password_confirmation_token(
-        user_email=user_from_db.email,
-        user_id=user_id,
+        user_email=user_data.email,
+        user_id=user_data.id,
     )
 
     await send_confirmation_email(
-        email=user_from_db.email,
+        email=user_data.email,
         token=token,
         html_file="verified_email.html",
         address_type="email_verify",
