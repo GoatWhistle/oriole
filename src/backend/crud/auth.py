@@ -38,7 +38,8 @@ from sqlalchemy.orm import Mapped
 
 from core.schemas.user import (
     UserAuth,
-    RegisterUser,
+    RegisterUserInput,
+    RegisterUserInternal,
     UserAuthRead,
     UserLogin,
     UserRead,
@@ -219,7 +220,7 @@ async def refresh_tokens(
 async def register_user(
     request: Request,
     session: AsyncSession,
-    user_data: RegisterUser,
+    user_data: RegisterUserInput,
 ) -> UserAuth:
     access_token_cookie = request.cookies.get("access_token")
     refresh_token_cookie = request.cookies.get("refresh_token")
@@ -233,8 +234,9 @@ async def register_user(
         )
 
     try:
-        user_data.is_active = True
-        user_data.is_verified = False
+        internal_data = RegisterUserInternal(**user_data.model_dump())
+        internal_data.is_active = True
+        internal_data.is_verified = False
 
         user = User(
             email=user_data.email,
@@ -262,7 +264,7 @@ async def register_user(
         await send_confirmation_email(
             email=user_data.email,
             token=token,
-            html_file="verified_email",
+            html_file="verified_email.html",
             address_type="email_verify",
         )
 

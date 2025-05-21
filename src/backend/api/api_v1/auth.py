@@ -18,7 +18,7 @@ from slowapi import Limiter
 from slowapi.util import get_remote_address
 
 from core.schemas.user import (
-    RegisterUser,
+    RegisterUserInput,
     UserAuthRead,
     UserRead,
 )
@@ -35,7 +35,7 @@ limiter = Limiter(key_func=get_remote_address)
 )
 async def register_user(
     request: Request,
-    user_data: RegisterUser,
+    user_data: RegisterUserInput,
     session: AsyncSession = Depends(db_helper.dependency_session_getter),
 ):
     return await crud.register_user(

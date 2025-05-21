@@ -28,7 +28,6 @@ async def delete_user(
 
     await session.delete(user)
 
-
     response.delete_cookie("access_token")
     response.delete_cookie("refresh_token")
 
@@ -89,7 +88,6 @@ async def update_user_email(
         html_file="verified_email",
         address_type="email_verify",
     )
-
 
     response.delete_cookie("access_token")
     response.delete_cookie("refresh_token")
