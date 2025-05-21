@@ -73,3 +73,16 @@ async def delete_user(
         request=request,
         response=response,
     )
+
+
+@router.get("/get-role/")
+async def get_int_role_in_group(
+    group_id: int,
+    session: AsyncSession = Depends(db_helper.dependency_session_getter),
+    user_id: int = Depends(get_current_active_auth_user_id),
+) -> int:
+    return await crud.get_int_role_in_group(
+        session=session,
+
+        user_id=user_id,group_id=group_id,
+    )

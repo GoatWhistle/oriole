@@ -4,6 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
 from crud.email_access import send_confirmation_email
+from exceptions.group import check_group_exists, check_user_in_group
 from exceptions.user import check_user_exists
 from core.schemas.user import (
     EmailUpdate,
@@ -12,8 +13,11 @@ from core.schemas.user import (
     UserProfileRead,
     UserProfileUpdatePartial,
 )
-from core.models import User
+from core.models import User, Account
 from utils.JWT import create_email_confirmation_token
+from sqlalchemy import select
+from sqlalchemy.engine import Result
+
 
 
 async def delete_user(
@@ -99,3 +103,19 @@ async def update_user_email(
     await session.refresh(user)
 
     return EmailUpdateRead.model_validate(user)
+
+
+async def get_int_role_in_group(
+    session: AsyncSession,
+    user_id: int,
+    group_id: int,
+) -> int:
+    await check_user_exists(session=session, user_id=user_id)
+    await check_group_exists(session=session, group_id=group_id)
+    await check_user_in_group(session=session, user_id=user_id, group_id=group_id)
+
+    statement_account = select(Account).where(Account.user_id == user_id)
+    result_account: Result = await session.execute(statement_account)
+    account = result_account.scalars().first()
+
+    return account.role
