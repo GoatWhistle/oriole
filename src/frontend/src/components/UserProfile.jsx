@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom';
 const { Title, Text } = Typography;
 
 const UserProfile = () => {
-  const [user, setUser ] = useState(null);
+  const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [form] = Form.useForm();
@@ -32,7 +32,6 @@ const UserProfile = () => {
 
   const handleEdit = () => {
     form.setFieldsValue({
-      email: user.email,
       name: user.profile.name,
       surname: user.profile.surname,
       patronymic: user.profile.patronymic
@@ -41,31 +40,29 @@ const UserProfile = () => {
   };
 
   const handleSave = async () => {
-    try {
-      const values = await form.validateFields();
-      const updatedData = {
-        email: values.email,
-        profile: {
+      try {
+        const values = await form.validateFields();
+        const updatedData = {
           name: values.name,
           surname: values.surname,
-          patronymic: values.patronymic
-        }
-      };
-      const response = await axios.patch(
-        `/api/v1/users/${user.profile.user_id}`,
-        updatedData,
-        { withCredentials: true }
-      );
+          patronymic: values.patronymic,
+        };
 
-      setUser (response.data);
-      setEditing(false);
-      message.success('Профиль успешно обновлен!');
-      navigate('/user-profile'); // Перенаправление на страницу профиля
-    } catch (error) {
-      message.error('Ошибка при обновлении профиля');
-      console.error(error);
-    }
-  };
+        const response = await axios.patch(
+          `/api/v1/users/${user.profile.user_id}/profile`,
+          updatedData,
+          { withCredentials: true }
+        );
+
+        setUser(response.data);
+        setEditing(false);
+        navigate('/');
+        message.success('Профиль успешно обновлен!');
+      } catch (error) {
+        message.error('Ошибка при обновлении профиля');
+        console.error(error);
+      }
+    };
 
   const handleCancel = () => {
     setEditing(false);
@@ -75,7 +72,7 @@ const UserProfile = () => {
     try {
       await axios.delete('/api/v1/auth/logout', { withCredentials: true });
       message.success('Вы успешно вышли из системы');
-      navigate('/'); // Перенаправление на страницу входа
+      navigate('/');
     } catch (error) {
       message.error('Ошибка при выходе из системы');
       console.error(error);
@@ -107,17 +104,6 @@ const UserProfile = () => {
       >
         {editing ? (
           <Form form={form} layout="vertical">
-            <Form.Item
-              label="Email"
-              name="email"
-              rules={[
-                { required: true, message: 'Введите email' },
-                { type: 'email', message: 'Некорректный email' }
-              ]}
-            >
-              <Input />
-            </Form.Item>
-
             <Form.Item
               label="Имя"
               name="name"

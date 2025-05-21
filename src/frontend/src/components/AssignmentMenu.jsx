@@ -12,19 +12,26 @@ const AssignmentMenu = () => {
                 const response = await fetch('/api/v1/assignments/');
 
                 if (!response.ok) {
-                    throw new Error('Войдите в аккаунт для отображения групп');
+                    throw new Error('Для отображения работ войдите в аккаунт');
                 }
 
                 const data = await response.json();
 
-
-                const menuItems = data.map(assignment => ({
-                    key: assignment.id,
-                    label: assignment.title,
-                    // Можно добавить дополнительную информацию в tooltip
-                    title: assignment.description
-                }));
-                setAssignments(menuItems);
+                if (data.length === 0) {
+                    setAssignments([{
+                        key: 'no-assignments',
+                        label: 'У вас пока нет заданий',
+                        disabled: true
+                    }]);
+                } else {
+                    const menuItems = data.map(assignment => ({
+                        key: assignment.id,
+                        label: assignment.title,
+                        // Можно добавить дополнительную информацию в tooltip
+                        title: assignment.description
+                    }));
+                    setAssignments(menuItems);
+                }
 
                 setLoading(false);
             } catch (err) {
