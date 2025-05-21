@@ -1,10 +1,10 @@
 import React from 'react';
 import Header from "/src/components/Header.jsx";
-import GroupUsersMenu from "/src/components/GroupUsersMenu.jsx";
+import GroupDetails from "/src/components/GroupDetails.jsx";
 
-export default function Profile() {
+export default function Group() {
   return <div>
             <Header />
-            <GroupUsersMenu />
+            <GroupDetails />
          </div>
 }

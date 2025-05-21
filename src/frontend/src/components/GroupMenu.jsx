@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Menu, message } from 'antd';
+import { useNavigate } from 'react-router-dom';
 
 const GroupMenu = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [userGroups, setUserGroups] = useState([]);
+    const navigate = useNavigate();
 
     useEffect(() => {
         const fetchUserGroups = async () => {
@@ -26,7 +28,8 @@ const GroupMenu = () => {
                 } else {
                     const menuItems = data.map(group => ({
                         key: group.id,
-                        label: group.title
+                        label: group.title,
+                        title: group.description // Добавляем описание в tooltip
                     }));
                     setUserGroups(menuItems);
                 }
@@ -45,7 +48,7 @@ const GroupMenu = () => {
 
     const onClick = (e) => {
         if (e.key !== 'no-groups') {
-            console.log('Выбрана группа с ID:', e.key);
+            navigate(`/group/${e.key}`);
         }
     };
 
