@@ -15,7 +15,7 @@ const RegistrationForm = () => {
     try {
       const userData = {
         email: values.email,
-        hashed_password: values.password,
+        password: values.password, // Изменено на 'password' вместо 'hashed_password'
         name: values.firstName,
         surname: values.lastName,
         patronymic: values.middleName || null,

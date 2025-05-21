@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
-import { Button, Form, Input, message, Typography, Divider, Row, Col } from 'antd';
+import { Button, Form, Input, message, Typography, Divider, Row, Col, Checkbox } from 'antd';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
-const { Title, Text } = Typography;
+const { Title } = Typography;
 
 const LoginForm = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const [form] = Form.useForm();
 
   const onFinish = async (values) => {
     setLoading(true);
@@ -15,35 +16,35 @@ const LoginForm = () => {
       const formData = new URLSearchParams();
       formData.append('username', values.email);
       formData.append('password', values.password);
-      formData.append('grant_type', 'password');
 
-      const response = await axios.post('http://localhost:8000/api/v1/token', formData, {
+      const response = await axios.post('/api/v1/token', formData, {
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
-          'Accept': 'application/json',
         },
       });
 
-      localStorage.setItem('access_token', response.data.access_token);
-      message.success('Вход выполнен успешно!');
-      navigate('/');
+      console.log('Login response:', response.data);
+
+      if (response.data.access_token) {
+        navigate('/');
+      } else {
+        throw new Error('Токен не получен');
+      }
 
     } catch (error) {
       console.error('Ошибка входа:', error);
+      console.error('Детали ошибки:', error.response?.data);
 
       if (error.response) {
-        switch (error.response.status) {
-          case 401:
-            message.error('Неверный email или пароль');
-            break;
-          case 404:
-            message.error('Пользователь не найден');
-            break;
-          default:
-            message.error(`Ошибка сервера: ${error.response.status}`);
+        if (error.response.status === 400 || error.response.status === 401) {
+          message.error('Неверный email или пароль');
+        } else if (error.response.status === 422) {
+          message.error('Ошибка валидации данных');
+        } else {
+          message.error(`Ошибка сервера: ${error.response.status}`);
         }
       } else {
-        message.error('Ошибка сети. Проверьте подключение');
+        message.error('Ошибка сети или сервера');
       }
     } finally {
       setLoading(false);
@@ -63,13 +64,13 @@ const LoginForm = () => {
         padding: '32px',
         borderRadius: '8px',
         boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-        width: '400px'
+        width: '450px'
       }}>
         <Title level={2} style={{ textAlign: 'center', marginBottom: 24 }}>Вход в систему</Title>
 
         <Form
+          form={form}
           name="login"
-          initialValues={{ remember: true }}
           onFinish={onFinish}
           layout="vertical"
         >
@@ -77,8 +78,8 @@ const LoginForm = () => {
             label="Email"
             name="email"
             rules={[
-              { required: true, message: 'Введите ваш email!' },
-              { type: 'email', message: 'Неверный формат email' }
+              { required: true, message: 'Пожалуйста, введите ваш email!' },
+              { type: 'email', message: 'Введите корректный email адрес' },
             ]}
           >
             <Input placeholder="example@mail.com" size="large" />
@@ -87,9 +88,22 @@ const LoginForm = () => {
           <Form.Item
             label="Пароль"
             name="password"
-            rules={[{ required: true, message: 'Введите пароль!' }]}
+            rules={[
+              { required: true, message: 'Пожалуйста, введите пароль!' },
+            ]}
           >
-            <Input.Password placeholder="Ваш пароль" size="large" />
+            <Input.Password placeholder="Введите пароль" size="large" />
+          </Form.Item>
+
+          <Form.Item>
+            <Row justify="space-between" align="middle">
+              <Col>
+                <Checkbox name="remember">Запомнить меня</Checkbox>
+              </Col>
+              <Col>
+                <Link to="/forgot-password">Забыли пароль?</Link>
+              </Col>
+            </Row>
           </Form.Item>
 
           <Form.Item>
@@ -104,12 +118,11 @@ const LoginForm = () => {
             </Button>
           </Form.Item>
 
-          <Divider plain>или</Divider>
+          <Divider plain>Еще нет аккаунта?</Divider>
 
           <Row justify="center" style={{ marginTop: 16 }}>
             <Col>
-              <Text>Нет аккаунта? </Text>
-              <Link to="/registration" style={{ fontWeight: 500 }}>Зарегистрируйтесь</Link>
+              <Link to="/register" style={{ fontWeight: 500 }}>Зарегистрироваться</Link>
             </Col>
           </Row>
         </Form>

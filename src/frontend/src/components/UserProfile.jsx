@@ -71,6 +71,17 @@ const UserProfile = () => {
     setEditing(false);
   };
 
+  const handleLogout = async () => {
+    try {
+      await axios.delete('/api/v1/logout', { withCredentials: true });
+      message.success('Вы успешно вышли из системы');
+      navigate('/'); // Перенаправление на страницу входа
+    } catch (error) {
+      message.error('Ошибка при выходе из системы');
+      console.error(error);
+    }
+  };
+
   if (loading) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', padding: '50px' }}>
@@ -173,6 +184,9 @@ const UserProfile = () => {
             <div style={{ marginTop: '32px', textAlign: 'right' }}>
               <Button type="primary" onClick={handleEdit}>
                 Редактировать профиль
+              </Button>
+              <Button type="danger" onClick={handleLogout} style={{ marginLeft: '16px' }}>
+                Выйти
               </Button>
             </div>
           </>
