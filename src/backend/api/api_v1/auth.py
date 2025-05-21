@@ -107,7 +107,7 @@ async def check_auth(
     )
 
 
-@router.put("/reset_password")
+@router.post("/reset_password")
 async def reset_password(
     user_from_db: UserAuthRead = Depends(crud.get_current_auth_user),
 ):
@@ -116,7 +116,7 @@ async def reset_password(
     )
 
 
-@router.put("/forgot_password")
+@router.post("/forgot_password")
 @limiter.limit("5/minute")
 async def forgot_password(
     email: Annotated[EmailStr, Field(max_length=63)],

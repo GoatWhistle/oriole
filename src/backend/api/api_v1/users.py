@@ -6,8 +6,8 @@ from core.schemas.user import (
     UserProfileRead,
     UserProfileUpdate,
     UserProfileUpdatePartial,
-    EmailUpdate,
     EmailUpdateRead,
+    EmailUpdate,
 )
 
 from crud import users as crud
