@@ -241,8 +241,8 @@ async def register_user(
         user = User(
             email=user_data.email,
             hashed_password=hash_password(user_data.password),
-            is_active=True,
-            is_verified=True,
+            is_active=internal_data.is_active,
+            is_verified=internal_data.is_verified,
         )
         session.add(user)
         await session.flush()
@@ -313,6 +313,8 @@ async def login_user(
     statement = select(User).filter_by(email=user_data.email)
     user_by_email = await session.scalars(statement)
     user_by_email = user_by_email.first()
+
+    await validate_activity_and_verification(user_from_db=user_by_email)
 
     access_token = create_access_token(user_by_email.id, user_by_email.email)
     refresh_token = create_refresh_token(user_by_email.id, user_by_email.email)
