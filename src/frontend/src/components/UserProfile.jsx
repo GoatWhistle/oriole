@@ -15,7 +15,7 @@ const UserProfile = () => {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const response = await axios.get('/api/v1/check-auth', {
+        const response = await axios.get('/api/v1/auth/check-auth', {
           withCredentials: true
         });
         setUser(response.data);
@@ -73,7 +73,7 @@ const UserProfile = () => {
 
   const handleLogout = async () => {
     try {
-      await axios.delete('/api/v1/logout', { withCredentials: true });
+      await axios.delete('/api/v1/auth/logout', { withCredentials: true });
       message.success('Вы успешно вышли из системы');
       navigate('/'); // Перенаправление на страницу входа
     } catch (error) {

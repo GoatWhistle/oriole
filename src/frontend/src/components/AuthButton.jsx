@@ -10,7 +10,7 @@ const AuthButton = () => {
     const checkAuthStatus = async () => {
       try {
         // Отправляем запрос с куками (withCredentials: true)
-        const response = await axios.get('/api/v1/check-auth', {
+        const response = await axios.get('/api/v1/auth/check-auth', {
           withCredentials: true
         });
 

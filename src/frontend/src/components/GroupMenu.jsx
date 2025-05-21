@@ -12,24 +12,17 @@ const GroupMenu = () => {
                 const response = await fetch('/api/v1/learn/groups/');
 
                 if (!response.ok) {
-                    throw new Error('Для отображения групп войдите в аккаунт');
+                    throw new Error('Войдите в аккаунт для отображения групп');
                 }
 
                 const data = await response.json();
 
-                if (data.length === 0) {
-                    setUserGroups([{
-                        key: 'no-groups',
-                        label: 'У вас пока нет групп',
-                        disabled: true
-                    }]);
-                } else {
-                    const menuItems = data.map(group => ({
-                        key: group.id,
-                        label: group.title
-                    }));
-                    setUserGroups(menuItems);
-                }
+
+                const menuItems = data.map(group => ({
+                    key: group.id,
+                    label: group.title
+                }));
+                setUserGroups(menuItems);
 
                 setLoading(false);
             } catch (err) {

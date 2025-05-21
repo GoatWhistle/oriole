@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Button, Form, Input, message, Typography, Divider, Row, Col, Checkbox } from 'antd';
+import { Button, Form, Input, message, Typography, Divider, Row, Col } from 'antd';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
@@ -7,6 +7,7 @@ const { Title } = Typography;
 
 const LoginForm = () => {
   const [loading, setLoading] = useState(false);
+  const [forgotPasswordLoading, setForgotPasswordLoading] = useState(false);
   const navigate = useNavigate();
   const [form] = Form.useForm();
 
@@ -17,13 +18,11 @@ const LoginForm = () => {
       formData.append('username', values.email);
       formData.append('password', values.password);
 
-      const response = await axios.post('/api/v1/token', formData, {
+      const response = await axios.post('/api/v1/auth/token', formData, {
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
         },
       });
-
-      console.log('Login response:', response.data);
 
       if (response.data.access_token) {
         navigate('/');
@@ -33,8 +32,6 @@ const LoginForm = () => {
 
     } catch (error) {
       console.error('Ошибка входа:', error);
-      console.error('Детали ошибки:', error.response?.data);
-
       if (error.response) {
         if (error.response.status === 400 || error.response.status === 401) {
           message.error('Неверный email или пароль');
@@ -48,6 +45,33 @@ const LoginForm = () => {
       }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleForgotPassword = async () => {
+    const email = form.getFieldValue('email');
+    if (!email) {
+      message.error('Пожалуйста, введите ваш email для восстановления пароля');
+      return;
+    }
+
+    setForgotPasswordLoading(true);
+    try {
+      const response = await axios.post('api/v1/auth/forgot_password', { email });
+      message.success(response.data.message || 'Инструкции по восстановлению пароля отправлены на ваш email');
+    } catch (error) {
+      console.error('Ошибка восстановления пароля:', error);
+      if (error.response) {
+        if (error.response.status === 404) {
+          message.error('Пользователь с таким email не найден');
+        } else {
+          message.error(`Ошибка: ${error.response.data.detail || 'Неизвестная ошибка сервера'}`);
+        }
+      } else {
+        message.error('Ошибка сети или сервера');
+      }
+    } finally {
+      setForgotPasswordLoading(false);
     }
   };
 
@@ -98,10 +122,9 @@ const LoginForm = () => {
           <Form.Item>
             <Row justify="space-between" align="middle">
               <Col>
-                <Checkbox name="remember">Запомнить меня</Checkbox>
-              </Col>
-              <Col>
-                <Link to="/forgot-password">Забыли пароль?</Link>
+                <a onClick={handleForgotPassword} disabled={forgotPasswordLoading}>
+                  {forgotPasswordLoading ? 'Отправка...' : 'Забыли пароль?'}
+                </a>
               </Col>
             </Row>
           </Form.Item>
