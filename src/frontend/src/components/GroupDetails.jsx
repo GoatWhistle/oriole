@@ -81,7 +81,7 @@ const GroupDetails = () => {
 
                 <Divider />
 
-                <Title level={4}>Задания:</Title>
+                <Title level={4}>Модули:</Title>
                 <List
                     dataSource={group.assignments}
                     renderItem={assignment => (

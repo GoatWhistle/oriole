@@ -37,7 +37,7 @@ export default function Home() {
 
           <div style={{ width: 350 }}>
             <Card
-              title={<span style={{ fontSize: '18px' }}>Мои работы</span>}
+              title={<span style={{ fontSize: '18px' }}>Мои модули</span>}
               bordered={false}
               style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}
             >
