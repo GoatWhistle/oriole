@@ -122,7 +122,7 @@ const LoginForm = () => {
 
           <Row justify="center" style={{ marginTop: 16 }}>
             <Col>
-              <Link to="/register" style={{ fontWeight: 500 }}>Зарегистрироваться</Link>
+              <Link to="/registration" style={{ fontWeight: 500 }}>Зарегистрироваться</Link>
             </Col>
           </Row>
         </Form>
