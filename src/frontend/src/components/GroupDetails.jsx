@@ -39,9 +39,9 @@ const GroupDetails = () => {
 
     const getRoleName = (role) => {
         switch(role) {
-            case 0: return 'Ученик';
+            case 0: return 'Создатель';
             case 1: return 'Учитель';
-            case 2: return 'Администратор';
+            case 2: return 'Ученик';
             default: return 'Неизвестная роль';
         }
     };
@@ -68,8 +68,8 @@ const GroupDetails = () => {
                                 title={`user${account.user_id}`}
                                 description={
                                     <Tag color={
-                                        account.role === 0 ? 'green' :
-                                        account.role === 1 ? 'orange' : 'red'
+                                        account.role === 0 ? 'red' :
+                                        account.role === 1 ? 'orange' : 'green'
                                     }>
                                         {getRoleName(account.role)}
                                     </Tag>
