@@ -47,6 +47,10 @@ class AutoCacheMiddleware(BaseHTTPMiddleware):
                 return Response(content=cached, media_type="application/json")
 
             response = await call_next(request)
+
+            if "application/json" not in response.headers.get("content-type", ""):
+                return response
+
             body = [chunk async for chunk in response.body_iterator]
             full_body = b"".join(body)
 
