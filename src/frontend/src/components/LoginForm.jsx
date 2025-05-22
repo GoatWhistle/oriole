@@ -57,7 +57,7 @@ const LoginForm = () => {
 
     setForgotPasswordLoading(true);
     try {
-      const response = await axios.post('api/v1/auth/forgot_password', { email });
+      const response = await axios.post('/api/v1/auth/forgot_password', { email });
       message.success(response.data.message || 'Инструкции по восстановлению пароля отправлены на ваш email');
     } catch (error) {
       console.error('Ошибка восстановления пароля:', error);
