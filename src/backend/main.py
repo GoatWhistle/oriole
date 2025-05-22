@@ -25,8 +25,8 @@ app.add_middleware(
 
 app.add_middleware(
     AutoCacheMiddleware,
-    ttl=1200,
-    exclude_paths=["auth", "verify"]
+    ttl=60,
+    exclude_paths=["auth", "verify", "docs", "openapi.json", "redoc", "static", "docs#"]
 )
 app.add_middleware(LoggingMiddleware)
 
@@ -34,6 +34,10 @@ app.add_middleware(LoggingMiddleware)
 app.include_router(
     api_router,
 )
+
+@app.get("/api/v1/ping")
+def ping():
+    return {"message": "pong"}
 
 if __name__ == "__main__":
     uvicorn.run(
