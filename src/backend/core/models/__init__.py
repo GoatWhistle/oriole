@@ -9,6 +9,7 @@ __all__ = (
     "Assignment",
     "Account",
     "UserReply",
+    "GroupInvite",
 )
 
 from .db_helper import db_helper
@@ -26,3 +27,5 @@ from .user import User
 from .account import Account
 
 from .group import Group
+
+from .group_invite import GroupInvite
