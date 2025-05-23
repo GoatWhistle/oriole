@@ -390,7 +390,7 @@ async def invite_user(
     base_url = str(request.base_url)
     base_url = base_url[:-1] if base_url.endswith("/") else base_url
 
-    return {"link": urljoin(base_url, f"api/v1/learn/groups/join/{code}")}
+    return {"link": urljoin(base_url, f"api/v1/groups/join/{code}")}
 
 
 async def join_by_link(

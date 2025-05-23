@@ -19,7 +19,7 @@ router = APIRouter(
 router.include_router(
     router=groups_router,
     tags=[settings.api.v1.groups[1:].capitalize()],
-    prefix=settings.api.v1.learn + settings.api.v1.groups,
+    prefix=settings.api.v1.groups,
 )
 
 router.include_router(
