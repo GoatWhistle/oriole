@@ -3,6 +3,8 @@ import { Card, Button, Form, Input, Typography, Divider, message, Spin } from 'a
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
+import DeleteUserButton from "/src/components/DeleteUserButton.jsx";
+
 const { Title, Text } = Typography;
 
 const UserProfile = () => {
@@ -49,7 +51,7 @@ const UserProfile = () => {
         };
 
         const response = await axios.patch(
-          `/api/v1/users/${user.profile.user_id}/profile`,
+          `/api/v1/users/profile`,
           updatedData,
           { withCredentials: true }
         );
@@ -174,6 +176,7 @@ const UserProfile = () => {
               <Button type="danger" onClick={handleLogout} style={{ marginLeft: '16px' }}>
                 Выйти
               </Button>
+              <DeleteUserButton />
             </div>
           </>
         )}
