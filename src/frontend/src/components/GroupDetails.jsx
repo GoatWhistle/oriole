@@ -17,7 +17,10 @@ import {
   DatePicker,
   Switch,
   Row,
-  Col
+  Col,
+  InputNumber,
+  Select,
+  Alert
 } from 'antd';
 import {
   CopyOutlined,
@@ -26,12 +29,15 @@ import {
   LogoutOutlined,
   PlusOutlined,
   ArrowUpOutlined,
-  ArrowDownOutlined
+  ArrowDownOutlined,
+  ClockCircleOutlined,
+  InfoCircleOutlined
 } from '@ant-design/icons';
 
 const { Title, Text, Paragraph } = Typography;
 const { TextArea } = Input;
 const { RangePicker } = DatePicker;
+const { Option } = Select;
 
 const GroupDetails = () => {
     const { group_id } = useParams();
@@ -44,6 +50,10 @@ const GroupDetails = () => {
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [isEditModalVisible, setIsEditModalVisible] = useState(false);
     const [isCreateAssignmentModalVisible, setIsCreateAssignmentModalVisible] = useState(false);
+    const [isInviteSettingsModalVisible, setIsInviteSettingsModalVisible] = useState(false);
+    const [expiryTime, setExpiryTime] = useState(null);
+    const [expiresMinutes, setExpiresMinutes] = useState(30);
+    const [inviteType, setInviteType] = useState('single_use');
     const [form] = Form.useForm();
     const [assignmentForm] = Form.useForm();
     const [userTimezone, setUserTimezone] = useState('UTC');
@@ -62,14 +72,17 @@ const GroupDetails = () => {
             try {
                 setUserTimezone(detectTimezone());
 
-                const groupResponse = await fetch(`/api/v1/learn/groups/${group_id}/`);
+                const [groupResponse, roleResponse] = await Promise.all([
+                    fetch(`/api/v1/groups/${group_id}/`),
+                    fetch(`/api/v1/users/get-role/group/${group_id}/`)
+                ]);
+
                 if (!groupResponse.ok) {
                     throw new Error('Не удалось загрузить информацию о группе');
                 }
                 const groupData = await groupResponse.json();
                 setGroup(groupData);
 
-                const roleResponse = await fetch(`/api/v1/users/get-role/group/${group_id}/`);
                 if (!roleResponse.ok) {
                     throw new Error('Не удалось определить вашу роль в группе');
                 }
@@ -89,25 +102,43 @@ const GroupDetails = () => {
 
     const handleGenerateInviteLink = async () => {
         try {
-            const response = await fetch(`/api/v1/learn/groups/${group_id}/invite/`, {
-                method: 'POST'
+            const response = await fetch(`/api/v1/groups/${group_id}/invite/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    expires_minutes: expiresMinutes
+                })
             });
 
             if (!response.ok) {
-                throw new Error('Не удалось сгенерировать ссылку для вступления');
+                const errorData = await response.json();
+                throw new Error(errorData.detail || 'Не удалось сгенерировать ссылку для вступления');
             }
 
             const data = await response.json();
             setInviteLink(data.link);
+
+            // Calculate expiry time
+            const expiry = new Date();
+            expiry.setMinutes(expiry.getMinutes() + expiresMinutes);
+            setExpiryTime(expiry);
+
             setIsModalVisible(true);
+            setIsInviteSettingsModalVisible(false);
         } catch (err) {
             message.error(err.message);
         }
     };
 
+    const showInviteSettingsModal = () => {
+        setIsInviteSettingsModalVisible(true);
+    };
+
     const handleDeleteGroup = async () => {
         try {
-            const response = await fetch(`/api/v1/learn/groups/${group_id}/`, {
+            const response = await fetch(`/api/v1/groups/${group_id}/`, {
                 method: 'DELETE'
             });
 
@@ -124,7 +155,7 @@ const GroupDetails = () => {
 
     const handlePromoteToTeacher = async (userId) => {
         try {
-            const response = await fetch(`/api/v1/learn/groups/${group_id}/promote/${userId}/`, {
+            const response = await fetch(`/api/v1/groups/${group_id}/promote/${userId}/`, {
                 method: 'PATCH'
             });
 
@@ -152,7 +183,7 @@ const GroupDetails = () => {
 
     const handleDemoteToStudent = async (userId) => {
         try {
-            const response = await fetch(`/api/v1/learn/groups/${group_id}/demote/${userId}/`, {
+            const response = await fetch(`/api/v1/groups/${group_id}/demote/${userId}/`, {
                 method: 'PATCH'
             });
 
@@ -198,7 +229,7 @@ const GroupDetails = () => {
 
     const handleRemoveUser = async (removeUserId) => {
         try {
-            const response = await fetch(`/api/v1/learn/groups/${group_id}/kick/${removeUserId}/`, {
+            const response = await fetch(`/api/v1/groups/${group_id}/kick/${removeUserId}/`, {
                 method: 'DELETE'
             });
 
@@ -220,7 +251,7 @@ const GroupDetails = () => {
 
     const handleLeaveGroup = async () => {
         try {
-            const response = await fetch(`/api/v1/learn/groups/${group_id}/leave/`, {
+            const response = await fetch(`/api/v1/groups/${group_id}/leave/`, {
                 method: 'DELETE'
             });
 
@@ -246,7 +277,7 @@ const GroupDetails = () => {
     const handleEditSubmit = async () => {
         try {
             const values = await form.validateFields();
-            const response = await fetch(`/api/v1/learn/groups/${group_id}/`, {
+            const response = await fetch(`/api/v1/groups/${group_id}/`, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
@@ -271,9 +302,8 @@ const GroupDetails = () => {
         try {
             const values = await assignmentForm.validateFields();
 
-            // Функция для преобразования даты в ISO формат
             const formatToISO = (momentDate) => {
-                return momentDate.format('YYYY-MM-DDTHH:mm:ss');
+                return momentDate.toISOString();
             };
 
             const assignmentData = {
@@ -337,9 +367,10 @@ const GroupDetails = () => {
                         <>
                             <Button
                                 type="primary"
-                                onClick={handleGenerateInviteLink}
+                                onClick={showInviteSettingsModal}
+                                icon={<PlusOutlined />}
                             >
-                                Ссылка для вступления
+                                Пригласить участников
                             </Button>
                             <Button
                                 icon={<EditOutlined />}
@@ -497,6 +528,46 @@ const GroupDetails = () => {
                 />
             </Card>
 
+            {/* Модальное окно настроек приглашения */}
+            <Modal
+                title="Настройки приглашения"
+                visible={isInviteSettingsModalVisible}
+                onOk={handleGenerateInviteLink}
+                onCancel={() => setIsInviteSettingsModalVisible(false)}
+                okText="Сгенерировать ссылку"
+                cancelText="Отмена"
+            >
+                <Form layout="vertical">
+                    <Form.Item label="Тип приглашения">
+                        <Select
+                            value={inviteType}
+                            onChange={setInviteType}
+                            disabled // Пока оставляем только single_use
+                        >
+                            <Option value="single_use">Одноразовое</Option>
+                            <Option value="multi_use" disabled>Многоразовое (в разработке)</Option>
+                        </Select>
+                    </Form.Item>
+                    <Form.Item label="Срок действия (минуты)">
+                        <InputNumber
+                            min={5}
+                            max={10080} // 1 неделя
+                            value={expiresMinutes}
+                            onChange={setExpiresMinutes}
+                            style={{ width: '100%' }}
+                        />
+                    </Form.Item>
+                    <Alert
+                        message="Информация"
+                        description="Ссылка будет действительна только в течение указанного времени. После истечения срока действия потребуется создать новую ссылку."
+                        type="info"
+                        showIcon
+                        icon={<InfoCircleOutlined />}
+                    />
+                </Form>
+            </Modal>
+
+            {/* Модальное окно ссылки для вступления */}
             <Modal
                 title="Ссылка для вступления в группу"
                 visible={isModalVisible}
@@ -506,8 +577,9 @@ const GroupDetails = () => {
                         key="copy"
                         icon={<CopyOutlined />}
                         onClick={copyToClipboard}
+                        type="primary"
                     >
-                        Скопировать
+                        Скопировать ссылку
                     </Button>,
                     <Button
                         key="close"
@@ -520,12 +592,25 @@ const GroupDetails = () => {
                 <Input
                     value={inviteLink || 'Генерация ссылки...'}
                     readOnly
+                    addonBefore="Ссылка:"
+                    style={{ marginBottom: 16 }}
                 />
-                <Text type="secondary" style={{ marginTop: '8px', display: 'block' }}>
-                    Отправьте эту ссылку ученикам для вступления в группу
-                </Text>
+                <div style={{ display: 'flex', alignItems: 'center', color: 'rgba(0, 0, 0, 0.45)' }}>
+                    <ClockCircleOutlined style={{ marginRight: 8 }} />
+                    <Text type="secondary">
+                        Ссылка действительна до: {expiryTime ? expiryTime.toLocaleString() : 'неизвестно'}
+                    </Text>
+                </div>
+                <Alert
+                    message="Инструкция"
+                    description="Отправьте эту ссылку пользователям, которых вы хотите добавить в группу. После перехода по ссылке они автоматически станут участниками группы."
+                    type="info"
+                    showIcon
+                    style={{ marginTop: 16 }}
+                />
             </Modal>
 
+            {/* Модальное окно редактирования группы */}
             <Modal
                 title="Редактирование группы"
                 visible={isEditModalVisible}
@@ -554,6 +639,7 @@ const GroupDetails = () => {
                 </Form>
             </Modal>
 
+            {/* Модальное окно создания задания */}
             <Modal
                 title="Создание нового модуля"
                 visible={isCreateAssignmentModalVisible}
@@ -599,7 +685,7 @@ const GroupDetails = () => {
                     >
                         <RangePicker
                             showTime
-                            format="YYYY-MM-DD HH:mm"
+                            format="YYYY-MM-DD HH:mm:ss"
                             style={{ width: '100%' }}
                         />
                     </Form.Item>
