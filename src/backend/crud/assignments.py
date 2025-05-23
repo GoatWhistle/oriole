@@ -13,10 +13,10 @@ from exceptions.task import (
     check_timezone_is_valid,
 )
 from exceptions.user import check_user_exists
-from exceptions.assignment import check_assignment_exists
+from exceptions.assignment import get_assignment_if_exists
 
 from exceptions.group import (
-    check_group_exists,
+    get_group_if_exists,
     check_admin_permission_in_group,
     check_user_in_group,
 )
@@ -49,7 +49,7 @@ async def create_assignment(
     assignment_in: AssignmentCreate,
 ) -> AssignmentRead:
     await check_user_exists(session=session, user_id=user_id)
-    await check_group_exists(session=session, group_id=assignment_in.group_id)
+    _ = await get_group_if_exists(session=session, group_id=assignment_in.group_id)
 
     await check_user_in_group(
         session=session,
@@ -111,11 +111,11 @@ async def get_assignment_by_id(
     assignment_id: int,
 ) -> AssignmentRead:
     await check_user_exists(session=session, user_id=user_id)
-    await check_assignment_exists(session=session, assignment_id=assignment_id)
+    assignment = await get_assignment_if_exists(
+        session=session, assignment_id=assignment_id
+    )
 
-    assignment = await session.get(Assignment, assignment_id)
-
-    await check_group_exists(session=session, group_id=assignment.group_id)
+    await get_group_if_exists(session=session, group_id=assignment.group_id)
     await check_user_in_group(
         session=session, user_id=user_id, group_id=assignment.group_id
     )
@@ -266,10 +266,11 @@ async def update_assignment(
 ) -> AssignmentRead:
     await check_user_exists(session=session, user_id=user_id)
 
-    await check_assignment_exists(session=session, assignment_id=assignment_id)
-    assignment = await session.get(Assignment, assignment_id)
+    assignment = await get_assignment_if_exists(
+        session=session, assignment_id=assignment_id
+    )
 
-    await check_group_exists(session=session, group_id=assignment.group_id)
+    _ = await get_group_if_exists(session=session, group_id=assignment.group_id)
     await check_user_in_group(
         session=session,
         user_id=user_id,
@@ -360,10 +361,11 @@ async def delete_assignment(
     assignment_id: int,
 ) -> None:
     await check_user_exists(session=session, user_id=user_id)
-    await check_assignment_exists(session=session, assignment_id=assignment_id)
-    assignment = await session.get(Assignment, assignment_id)
+    assignment = await get_assignment_if_exists(
+        session=session, assignment_id=assignment_id
+    )
 
-    await check_group_exists(session=session, group_id=assignment.group_id)
+    _ = await get_group_if_exists(session=session, group_id=assignment.group_id)
     await check_user_in_group(
         session=session,
         user_id=user_id,
@@ -386,10 +388,11 @@ async def get_tasks_in_assignment(
 
     await check_user_exists(session=session, user_id=user_id)
 
-    await check_assignment_exists(session=session, assignment_id=assignment_id)
-    assignment = await session.get(Assignment, assignment_id)
+    assignment = await get_assignment_if_exists(
+        session=session, assignment_id=assignment_id
+    )
 
-    await check_group_exists(session=session, group_id=assignment.group_id)
+    _ = await get_group_if_exists(session=session, group_id=assignment.group_id)
 
     await check_user_in_group(
         session=session,

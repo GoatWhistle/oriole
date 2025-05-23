@@ -1,17 +1,21 @@
+from datetime import datetime, timedelta
 from typing import Sequence
-
+from fastapi import Request
 from sqlalchemy import select, func
 from sqlalchemy.engine import Result
 from sqlalchemy.ext.asyncio import AsyncSession
+from urllib.parse import urljoin
 
+from core.models.group_invite import GroupInvite
 from exceptions.user import check_user_exists
 
 from exceptions.group import (
-    check_group_exists,
+    get_group_if_exists,
     check_admin_permission_in_group,
     check_owner_permission_in_group,
     check_user_in_group,
     check_user_is_member,
+    validate_invite_code,
 )
 
 from core.schemas.user import UserProfileRead
@@ -33,6 +37,7 @@ from core.models import (
     Task,
     UserReply,
 )
+from utils.code_generator import generate_alphanum_code
 
 
 async def create_group(
@@ -40,9 +45,7 @@ async def create_group(
     user_id: int,
     group_in: GroupCreate,
 ) -> GroupRead:
-
     await check_user_exists(session=session, user_id=user_id)
-
     group = Group(**group_in.model_dump())
 
     session.add(group)
@@ -72,10 +75,9 @@ async def get_group_by_id(
     group_id: int,
 ) -> GroupRead:
     await check_user_exists(session=session, user_id=user_id)
-    await check_group_exists(session=session, group_id=group_id)
-    await check_user_in_group(session=session, user_id=user_id, group_id=group_id)
+    group = await get_group_if_exists(session=session, group_id=group_id)
 
-    group = await session.get(Group, group_id)
+    await check_user_in_group(session=session, user_id=user_id, group_id=group_id)
 
     statement_accounts = select(Account).where(Account.group_id == group_id)
     result_accounts: Result = await session.execute(statement_accounts)
@@ -167,13 +169,11 @@ async def update_group(
     is_partial: bool = False,
 ) -> GroupRead:
     await check_user_exists(session=session, user_id=user_id)
-    await check_group_exists(session=session, group_id=group_id)
+    group = await get_group_if_exists(session=session, group_id=group_id)
     await check_user_in_group(session=session, user_id=user_id, group_id=group_id)
     await check_owner_permission_in_group(
         session=session, user_id=user_id, group_id=group_id
     )
-
-    group = await session.get(Group, group_id)
 
     for key, value in group_update.model_dump(exclude_unset=is_partial).items():
         setattr(group, key, value)
@@ -253,13 +253,11 @@ async def delete_group(
     group_id: int,
 ) -> None:
     await check_user_exists(session=session, user_id=user_id)
-    await check_group_exists(session=session, group_id=group_id)
+    group = await get_group_if_exists(session=session, group_id=group_id)
     await check_user_in_group(session=session, user_id=user_id, group_id=group_id)
     await check_owner_permission_in_group(
         session=session, user_id=user_id, group_id=group_id
     )
-
-    group = await session.get(Group, group_id)
 
     statement = select(Account).where(Account.group_id == group_id)
     result: Result = await session.execute(statement)
@@ -278,7 +276,7 @@ async def get_users_in_group(
     group_id: int,
 ) -> Sequence[UserProfileRead]:
     await check_user_exists(session=session, user_id=user_id)
-    await check_group_exists(session=session, group_id=group_id)
+    _ = await get_group_if_exists(session=session, group_id=group_id)
     await check_user_in_group(session=session, user_id=user_id, group_id=group_id)
 
     statement_accounts = select(Account).where(Account.group_id == group_id)
@@ -302,7 +300,7 @@ async def get_assignments_in_group(
     group_id: int,
 ) -> Sequence[AssignmentReadPartial]:
     await check_user_exists(session=session, user_id=user_id)
-    await check_group_exists(session=session, group_id=group_id)
+    _ = await get_group_if_exists(session=session, group_id=group_id)
     await check_user_in_group(session=session, user_id=user_id, group_id=group_id)
 
     statement = (
@@ -357,6 +355,7 @@ async def get_assignments_in_group(
                 is_contest=assignment.is_contest,
                 tasks_count=tasks_count,
                 user_completed_tasks_count=user_completed_tasks_count,
+                is_active=assignment.is_active,
             )
         )
 
@@ -366,51 +365,62 @@ async def get_assignments_in_group(
 async def invite_user(
     session: AsyncSession,
     user_id: int,
+    request: Request,
     group_id: int,
-):
-    await check_user_exists(session=session, user_id=user_id)
-    await check_group_exists(session=session, group_id=group_id)
-    await check_user_in_group(session=session, user_id=user_id, group_id=group_id)
+    expires_minutes: int,
+) -> dict:
     await check_admin_permission_in_group(
-        session=session, user_id=user_id, group_id=group_id
+        session=session,
+        user_id=user_id,
+        group_id=group_id,
     )
 
-    return {"link": f"http://oriole.com/learn/groups/{group_id}/join/"}
+    code = generate_alphanum_code()
+
+    invite = GroupInvite(
+        code=code,
+        group_id=group_id,
+        expires_at=datetime.now() + timedelta(minutes=expires_minutes),
+        is_active=True,
+    )
+
+    session.add(invite)
+    await session.commit()
+
+    base_url = str(request.base_url)
+    base_url = base_url[:-1] if base_url.endswith("/") else base_url
+
+    return {"link": urljoin(base_url, f"api/v1/learn/groups/join/{code}")}
 
 
 async def join_by_link(
     session: AsyncSession,
     user_id: int,
-    group_id: int,
-) -> None:
+    invite_code: str,
+) -> str:
+
     await check_user_exists(session=session, user_id=user_id)
-    await check_group_exists(session=session, group_id=group_id)
 
-    await check_user_in_group(
-        session=session,
-        user_id=user_id,
-        group_id=group_id,
-        is_correct=False,
-    )
-    profile = await session.get(UserProfile, user_id)
+    invite = await validate_invite_code(session, invite_code)
+    group_id = invite.group_id
 
-    new_account = Account(
-        user_id=profile.user_id,
-        group_id=group_id,
-        role=AccountRole.MEMBER.value,
-    )
+    await check_user_in_group(session, user_id, group_id, is_correct=False)
 
-    session.add(new_account)
-    await session.commit()
-
-    count_accounts = await session.execute(
+    existing_accounts = await session.execute(
         select(Account).where(Account.group_id == group_id)
     )
-    total_accounts = len(count_accounts.scalars().all())
+    role = (
+        AccountRole.OWNER
+        if not existing_accounts.scalars().all()
+        else AccountRole.MEMBER
+    )
 
-    if total_accounts == 1:
-        new_account.role = AccountRole.OWNER.value
-        await session.commit()
+    account = Account(user_id=user_id, group_id=group_id, role=role.value)
+    invite.is_active = False
+    session.add(account)
+    await session.commit()
+
+    return "success"
 
 
 async def promote_user_to_admin(
@@ -422,7 +432,7 @@ async def promote_user_to_admin(
     await check_user_exists(session=session, user_id=user_id)
     await check_user_exists(session=session, user_id=promote_user_id)
 
-    await check_group_exists(session=session, group_id=group_id)
+    _ = await get_group_if_exists(session=session, group_id=group_id)
 
     await check_user_in_group(session=session, group_id=group_id, user_id=user_id)
     await check_user_in_group(
@@ -455,7 +465,7 @@ async def demote_user_to_member(
     await check_user_exists(session=session, user_id=user_id)
     await check_user_exists(session=session, user_id=demote_user_id)
 
-    await check_group_exists(session=session, group_id=group_id)
+    _ = await get_group_if_exists(session=session, group_id=group_id)
 
     await check_user_in_group(session=session, group_id=group_id, user_id=user_id)
     await check_user_in_group(
@@ -494,7 +504,7 @@ async def remove_user_from_group(
     await check_user_exists(session=session, user_id=user_id)
     await check_user_exists(session=session, user_id=remove_user_id)
 
-    await check_group_exists(session=session, group_id=group_id)
+    _ = await get_group_if_exists(session=session, group_id=group_id)
 
     await check_user_in_group(session=session, group_id=group_id, user_id=user_id)
     await check_user_in_group(
@@ -521,7 +531,7 @@ async def leave_from_group(
     group_id: int,
 ) -> None:
     await check_user_exists(session=session, user_id=user_id)
-    await check_group_exists(session=session, group_id=group_id)
+    _ = await get_group_if_exists(session=session, group_id=group_id)
     await check_user_in_group(session=session, user_id=user_id, group_id=group_id)
 
     account = await session.execute(

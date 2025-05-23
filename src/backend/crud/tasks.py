@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from exceptions.user import check_user_exists
 from exceptions.task import (
-    check_task_exists,
+    get_task_if_exists,
     check_counter_limit,
     check_task_is_already_correct,
     check_timezone_is_valid,
@@ -18,10 +18,10 @@ from exceptions.task import (
     check_task_start_deadline_before_assignment_start,
     check_task_end_deadline_after_assignment_end,
 )
-from exceptions.assignment import check_assignment_exists
+from exceptions.assignment import get_assignment_if_exists
 
 from exceptions.group import (
-    check_group_exists,
+    get_group_if_exists,
     check_admin_permission_in_group,
     check_user_in_group,
 )
@@ -53,10 +53,10 @@ async def create_task(
 ) -> TaskRead:
     await check_user_exists(session=session, user_id=user_id)
 
-    await check_assignment_exists(session=session, assignment_id=task_in.assignment_id)
-    assignment = await session.get(Assignment, task_in.assignment_id)
-
-    await check_group_exists(session=session, group_id=assignment.group_id)
+    assignment = await get_assignment_if_exists(
+        session=session, assignment_id=task_in.assignment_id
+    )
+    _ = await get_group_if_exists(session=session, group_id=assignment.group_id)
 
     await check_user_in_group(
         user_id=user_id,
@@ -152,14 +152,13 @@ async def get_task_by_id(
     task_id: int,
 ) -> TaskRead:
     await check_user_exists(session=session, user_id=user_id)
-    await check_task_exists(session=session, task_id=task_id)
 
-    task = await session.get(Task, task_id)
+    task = await get_task_if_exists(session=session, task_id=task_id)
+    assignment = await get_assignment_if_exists(
+        session=session, assignment_id=task.assignment_id
+    )
+    _ = await get_group_if_exists(session=session, group_id=assignment.group_id)
 
-    await check_assignment_exists(session=session, assignment_id=task.assignment_id)
-    assignment = await session.get(Assignment, task.assignment_id)
-
-    await check_group_exists(session=session, group_id=assignment.group_id)
     await check_user_in_group(
         session=session,
         user_id=user_id,
@@ -282,13 +281,12 @@ async def update_task(
 ) -> TaskRead:
     await check_user_exists(session=session, user_id=user_id)
 
-    await check_task_exists(session=session, task_id=task_id)
-    task = await session.get(Task, task_id)
+    task = await get_task_if_exists(session=session, task_id=task_id)
+    assignment = await get_assignment_if_exists(
+        session=session, assignment_id=task.assignment_id
+    )
+    _ = await get_group_if_exists(session=session, group_id=assignment.group_id)
 
-    await check_assignment_exists(session=session, assignment_id=task.assignment_id)
-    assignment = await session.get(Assignment, task.assignment_id)
-
-    await check_group_exists(session=session, group_id=assignment.group_id)
     await check_user_in_group(
         user_id=user_id,
         group_id=assignment.group_id,
@@ -374,13 +372,12 @@ async def delete_task(
 ) -> None:
     await check_user_exists(session=session, user_id=user_id)
 
-    await check_task_exists(session=session, task_id=task_id)
-    task = await session.get(Task, task_id)
+    task = await get_task_if_exists(session=session, task_id=task_id)
+    assignment = await get_assignment_if_exists(
+        session=session, assignment_id=task.assignment_id
+    )
+    _ = await get_group_if_exists(session=session, group_id=assignment.group_id)
 
-    await check_assignment_exists(session=session, assignment_id=task.assignment_id)
-    assignment = await session.get(Assignment, task.assignment_id)
-
-    await check_group_exists(session=session, group_id=assignment.group_id)
     await check_user_in_group(
         user_id=user_id,
         group_id=assignment.group_id,
@@ -412,13 +409,12 @@ async def try_to_complete_task(
     user_answer: str,
 ) -> TaskRead:
     await check_user_exists(session=session, user_id=user_id)
-    await check_task_exists(session=session, task_id=task_id)
 
-    task = await session.get(Task, task_id)
-    await check_assignment_exists(session=session, assignment_id=task.assignment_id)
-
-    assignment = await session.get(Assignment, task.assignment_id)
-    await check_group_exists(session=session, group_id=assignment.group_id)
+    task = await get_task_if_exists(session=session, task_id=task_id)
+    assignment = await get_assignment_if_exists(
+        session=session, assignment_id=task.assignment_id
+    )
+    _ = await get_group_if_exists(session=session, group_id=assignment.group_id)
 
     await check_user_in_group(
         user_id=user_id,
@@ -465,13 +461,13 @@ async def try_to_complete_task(
         session=session,
         user_id=user_id,
         user_reply_id=user_reply.id,
-        task_id=task_id,
+        task=task,
     )
     await check_counter_limit(
         session=session,
         user_id=user_id,
         user_reply_id=user_reply.id,
-        task_id=task_id,
+        task=task,
     )
     user_reply.user_attempts += 1
 

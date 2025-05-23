@@ -14,6 +14,7 @@ from utils.number_optimizer import get_number_one_bit_less as num_opt
 if TYPE_CHECKING:
     from .assignment import Assignment
     from .account import Account
+    from .group_invite import GroupInvite
 
 
 class Group(Base, IdIntPkMixin):
@@ -22,3 +23,4 @@ class Group(Base, IdIntPkMixin):
 
     accounts: Mapped[list["Account"]] = relationship(back_populates="group")
     assignments: Mapped[list["Assignment"]] = relationship(back_populates="group")
+    invites: Mapped[list["GroupInvite"]] = relationship(back_populates="group")
