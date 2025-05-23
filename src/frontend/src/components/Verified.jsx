@@ -5,7 +5,7 @@ const { Title } = Typography;
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 
-export default function Verify() {
+export default function Verified() {
   const { token } = useParams();
   const [status, setStatus] = useState('loading');
   const [message, setMessage] = useState('');
