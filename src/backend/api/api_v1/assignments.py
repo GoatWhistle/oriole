@@ -18,6 +18,7 @@ from core.schemas.assignment import (
 )
 
 from core.models import db_helper
+from crud.assignments import copy_assignment_to_group
 from crud.auth import get_current_active_auth_user_id
 from crud import assignments as crud
 
@@ -196,4 +197,31 @@ async def get_tasks_in_assignment(
         user_id=user_id,
         assignment_id=assignment_id,
         is_correct=is_correct,
+    )
+
+
+@router.post(
+    "/{assignment_id}/copy-to-group/{target_group_id}",
+    response_model=AssignmentRead,
+    status_code=status.HTTP_201_CREATED,
+)
+async def copy_assignment(
+    session: Annotated[
+        AsyncSession,
+        Depends(db_helper.dependency_session_getter),
+    ],
+    user_id: Annotated[
+        int,
+        Depends(get_current_active_auth_user_id),
+    ],
+    assignment_id: int,
+    target_group_id: int,
+    user_timezone: str,
+):
+    return await copy_assignment_to_group(
+        session=session,
+        user_id=user_id,
+        user_timezone=user_timezone,
+        assignment_id=assignment_id,
+        target_group_id=target_group_id,
     )
