@@ -130,6 +130,7 @@ async def forgot_password(
     )
 
 
+@router.post("/send_email_again")
 async def send_confirmation_email_again(
     user_data: UserAuthRead = Depends(crud.get_current_auth_user),
 ):

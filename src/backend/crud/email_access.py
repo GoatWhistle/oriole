@@ -67,7 +67,7 @@ async def verify(
         await session.commit()
         await session.refresh(user)
 
-        return {"message": "You are verified"}
+        return {"status": "success", "message": "You are verified"}
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"{e}")
 
@@ -94,7 +94,7 @@ async def reset_password_redirect(
         await session.commit()
         await session.refresh(user_from_db)
 
-        return {"message": "You changed password"}
+        return {"status": "success", "message": "You changed password"}
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"{e}")
 
@@ -121,6 +121,6 @@ async def forgot_password_redirect(
         await session.commit()
         await session.refresh(user_from_db)
 
-        return {"message": "You changed password"}
+        return {"status": "success", "message": "You changed password"}
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"{e}")
