@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Button, Form, Input, Typography, Divider, message, Spin } from 'antd';
+import { Card, Button, Form, Input, Typography, Divider, message, Spin, Modal } from 'antd';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
-import DeleteUserButton from "/src/components/DeleteUserButton.jsx";
-
 const { Title, Text } = Typography;
+const { confirm } = Modal;
 
 const UserProfile = () => {
   const [user, setUser] = useState(null);
@@ -42,29 +41,29 @@ const UserProfile = () => {
   };
 
   const handleSave = async () => {
-      try {
-        const values = await form.validateFields();
-        const updatedData = {
-          name: values.name,
-          surname: values.surname,
-          patronymic: values.patronymic,
-        };
+    try {
+      const values = await form.validateFields();
+      const updatedData = {
+        name: values.name,
+        surname: values.surname,
+        patronymic: values.patronymic,
+      };
 
-        const response = await axios.patch(
-          `/api/v1/users/profile`,
-          updatedData,
-          { withCredentials: true }
-        );
+      const response = await axios.patch(
+        `/api/v1/users/profile`,
+        updatedData,
+        { withCredentials: true }
+      );
 
-        setUser(response.data);
-        setEditing(false);
-        window.location.reload();
-        message.success('Профиль успешно обновлен!');
-      } catch (error) {
-        message.error('Ошибка при обновлении профиля');
-        console.error(error);
-      }
-    };
+      setUser(response.data);
+      setEditing(false);
+      window.location.reload();
+      message.success('Профиль успешно обновлен!');
+    } catch (error) {
+      message.error('Ошибка при обновлении профиля');
+      console.error(error);
+    }
+  };
 
   const handleCancel = () => {
     setEditing(false);
@@ -79,6 +78,31 @@ const UserProfile = () => {
       message.error('Ошибка при выходе из системы');
       console.error(error);
     }
+  };
+
+  const handleDeleteAccount = () => {
+    confirm({
+      title: 'Удаление аккаунта',
+      content: 'Вы уверены, что хотите удалить свой аккаунт? Это действие невозможно отменить.',
+      okText: 'Удалить',
+      okType: 'danger',
+      cancelText: 'Отмена',
+      async onOk() {
+        try {
+          await axios.delete('/api/v1/users', {
+            withCredentials: true
+          });
+          message.success('Ваш аккаунт был успешно удален');
+          navigate('/');
+        } catch (error) {
+          message.error('Ошибка при удалении аккаунта');
+          console.error(error);
+        }
+      },
+      onCancel() {
+        console.log('Отмена удаления аккаунта');
+      },
+    });
   };
 
   if (loading) {
@@ -173,10 +197,16 @@ const UserProfile = () => {
               <Button type="primary" onClick={handleEdit}>
                 Редактировать профиль
               </Button>
-              <Button type="danger" onClick={handleLogout} style={{ marginLeft: '16px' }}>
+              <Button
+                danger
+                onClick={handleDeleteAccount}
+                style={{ marginLeft: '16px' }}
+              >
+                Удалить аккаунт
+              </Button>
+              <Button onClick={handleLogout} style={{ marginLeft: '16px' }}>
                 Выйти
               </Button>
-              <DeleteUserButton />
             </div>
           </>
         )}

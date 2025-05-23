@@ -22,6 +22,7 @@ export default function App() {
         <Route path="/verify/:token" element={<Verify />} />
         <Route path="/assignment/:assignment_id" element={<Assignment />} />
         <Route path="/group/:group_id" element={<Group />} />
+        <Route path="/api/v1/groups/join/:code" element={<Group />} />
       </Routes>
     </div>
   );
