@@ -19,7 +19,7 @@ export default function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/registration" element={<Registration />} />
         <Route path="/profile" element={<Profile />} />
-        <Route path="/verify" element={<Verify />} />
+        <Route path="/verify/:token" element={<Verify />} />
         <Route path="/assignment/:assignment_id" element={<Assignment />} />
         <Route path="/group/:group_id" element={<Group />} />
       </Routes>

@@ -39,7 +39,7 @@ async def send_confirmation_email(
     )
 
     address = getattr(settings.api.v1, address_type, "/default-path")
-    link = f"http://127.0.0.1:{settings.run.port}{settings.api.prefix}{settings.api.v1.prefix}{address}/{token}"
+    link = f"http://127.0.0.1:{80}{address}/{token}"
 
     html_body = templates.get_template(html_file).render(link=link)
 
