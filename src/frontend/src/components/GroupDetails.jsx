@@ -132,10 +132,9 @@ const GroupDetails = () => {
                 throw new Error('Не удалось повысить пользователя до учителя');
             }
 
-            // Обновляем список участников
             const updatedAccounts = group.accounts.map(account => {
                 if (account.user_id === userId) {
-                    return { ...account, role: 1 }; // 1 - роль учителя
+                    return { ...account, role: 1 };
                 }
                 return account;
             });
@@ -161,10 +160,9 @@ const GroupDetails = () => {
                 throw new Error('Не удалось понизить пользователя до ученика');
             }
 
-            // Обновляем список участников
             const updatedAccounts = group.accounts.map(account => {
                 if (account.user_id === userId) {
-                    return { ...account, role: 2 }; // 2 - роль ученика
+                    return { ...account, role: 2 };
                 }
                 return account;
             });
@@ -273,13 +271,18 @@ const GroupDetails = () => {
         try {
             const values = await assignmentForm.validateFields();
 
+            // Функция для преобразования даты в ISO формат
+            const formatToISO = (momentDate) => {
+                return momentDate.format('YYYY-MM-DDTHH:mm:ss');
+            };
+
             const assignmentData = {
                 title: values.title,
-                description: values.description,
-                is_contest: values.is_contest,
+                description: values.description || "",
+                is_contest: Boolean(values.is_contest),
                 group_id: parseInt(group_id),
-                start_datetime: values.dateRange[0].format('YYYY-MM-DD HH:mm:ss'),
-                end_datetime: values.dateRange[1].format('YYYY-MM-DD HH:mm:ss')
+                start_datetime: formatToISO(values.dateRange[0]),
+                end_datetime: formatToISO(values.dateRange[1])
             };
 
             const response = await fetch('/api/v1/assignments/', {
@@ -295,25 +298,27 @@ const GroupDetails = () => {
 
             if (!response.ok) {
                 const errorData = await response.json();
-                throw new Error(errorData.detail || 'Не удалось создать модуль');
+                throw new Error(errorData.detail || errorData.message || 'Не удалось создать модуль');
             }
 
             const newAssignment = await response.json();
 
-            setGroup({
-                ...group,
-                assignments: [...group.assignments, {
+            setGroup(prev => ({
+                ...prev,
+                assignments: [...prev.assignments, {
                     ...newAssignment,
                     tasks_count: 0,
                     user_completed_tasks_count: 0
                 }]
-            });
+            }));
 
             setIsCreateAssignmentModalVisible(false);
             assignmentForm.resetFields();
-            message.success('Модуль успешно создан');
+            message.success('Модуль успешно создан!');
+
         } catch (err) {
-            message.error(err.message);
+            console.error("Ошибка при создании модуля:", err);
+            message.error(`Ошибка: ${err.message}`);
         }
     };
 
