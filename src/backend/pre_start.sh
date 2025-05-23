@@ -16,5 +16,6 @@ done
 echo "db available"
 
 alembic upgrade head
+alembic current
 
 echo "Migrations completed"
