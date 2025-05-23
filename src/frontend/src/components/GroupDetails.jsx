@@ -231,7 +231,7 @@ const GroupDetails = () => {
             }
 
             message.success('Вы успешно вышли из группы');
-            navigate('/groups');
+            navigate('/');
         } catch (err) {
             message.error(err.message);
         }
