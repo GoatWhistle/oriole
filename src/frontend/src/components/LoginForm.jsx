@@ -49,31 +49,58 @@ const LoginForm = () => {
   };
 
   const handleForgotPassword = async () => {
-    const email = form.getFieldValue('email');
-    if (!email) {
-      message.error('Пожалуйста, введите ваш email для восстановления пароля');
-      return;
-    }
+      const email = form.getFieldValue('email');
 
-    setForgotPasswordLoading(true);
-    try {
-      const response = await axios.post('/api/v1/auth/forgot_password', { email });
-      message.success(response.data.message || 'Инструкции по восстановлению пароля отправлены на ваш email');
-    } catch (error) {
-      console.error('Ошибка восстановления пароля:', error);
-      if (error.response) {
-        if (error.response.status === 404) {
-          message.error('Пользователь с таким email не найден');
-        } else {
-          message.error(`Ошибка: ${error.response.data.detail || 'Неизвестная ошибка сервера'}`);
-        }
-      } else {
-        message.error('Ошибка сети или сервера');
+      if (!email) {
+        message.error('Пожалуйста, введите email');
+        return;
       }
-    } finally {
-      setForgotPasswordLoading(false);
-    }
-  };
+
+      setForgotPasswordLoading(true);
+
+      try {
+        // Отправляем как JSON-объект, а не как строку
+        const response = await axios.post(
+          '/api/v1/auth/forgot_password',
+          { email },  // Ключевое изменение: объект с полем email
+          {
+            withCredentials: true
+          }
+        );
+
+        message.success(response.data.message || 'Инструкции по восстановлению пароля отправлены на ваш email');
+
+      } catch (error) {
+        console.error('Ошибка восстановления пароля:', error);
+
+        if (axios.isAxiosError(error)) {
+          // Обработка ошибок Axios
+          if (error.response) {
+            switch (error.response.status) {
+              case 400:
+                message.error('Неверный формат email');
+                break;
+              case 404:
+                message.error('Пользователь с таким email не найден');
+                break;
+              case 429:
+                message.error('Слишком много запросов. Попробуйте позже');
+                break;
+              default:
+                message.error(error.response.data?.detail || 'Ошибка сервера');
+            }
+          } else if (error.request) {
+            message.error('Нет ответа от сервера');
+          } else {
+            message.error('Ошибка при настройке запроса');
+          }
+        } else {
+          message.error('Неизвестная ошибка');
+        }
+      } finally {
+        setForgotPasswordLoading(false);
+      }
+    };
 
   return (
     <div style={{
