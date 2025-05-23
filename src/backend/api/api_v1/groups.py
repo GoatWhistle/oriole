@@ -1,8 +1,4 @@
-from fastapi import (
-    APIRouter,
-    Depends,
-    status,
-)
+from fastapi import APIRouter, Depends, status, Request
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Annotated, Sequence
@@ -218,6 +214,7 @@ async def get_assignments_in_group(
     status_code=status.HTTP_200_OK,
 )
 async def invite_user(
+    request: Request,
     session: Annotated[
         AsyncSession,
         Depends(db_helper.dependency_session_getter),
@@ -227,16 +224,19 @@ async def invite_user(
         Depends(get_current_active_auth_user_id),
     ],
     group_id: int,
+    expires_minutes: int = 30,
 ):
     return await crud.invite_user(
         session=session,
         user_id=user_id,
+        request=request,
         group_id=group_id,
+        expires_minutes=expires_minutes,
     )
 
 
 @router.post(
-    "/{group_id}/join/",
+    "/join/{invite_code}",
     status_code=status.HTTP_200_OK,
 )
 async def join_by_link(
@@ -248,12 +248,12 @@ async def join_by_link(
         int,
         Depends(get_current_active_auth_user_id),
     ],
-    group_id: int,
+    invite_code: str,
 ):
     await crud.join_by_link(
         session=session,
         user_id=user_id,
-        group_id=group_id,
+        invite_code=invite_code,
     )
 
 
