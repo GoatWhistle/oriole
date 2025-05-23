@@ -4,7 +4,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
 from crud.email_access import send_confirmation_email
+from crud.groups import get_user_groups
 from exceptions.group import get_group_if_exists, check_user_in_group
+from core.schemas.account import AccountRole
 from exceptions.user import check_user_exists
 from core.schemas.user import (
     EmailUpdate,
@@ -29,13 +31,51 @@ async def delete_user(
 
     user = await session.get(User, user_id)
 
+    groups = await get_user_groups(session=session, user_id=user_id)
+
+    for group in groups:
+        account = await session.execute(
+            select(Account).where(
+                Account.user_id == user_id, Account.group_id == group.id
+            )
+        )
+        account = account.scalars().first()
+
+        if account.role == AccountRole.OWNER.value:
+            admins = await session.execute(
+                select(Account).where(
+                    Account.group_id == group.id,
+                    Account.role == AccountRole.ADMIN.value,
+                )
+            )
+            admin_accounts = admins.scalars().all()
+
+            if admin_accounts:
+                new_owner = min(admin_accounts, key=lambda a: a.user_id)
+                new_owner.role = AccountRole.OWNER.value
+            else:
+                members = await session.execute(
+                    select(Account).where(
+                        Account.group_id == group.id,
+                        Account.role == AccountRole.MEMBER.value,
+                    )
+                )
+                member_accounts = members.scalars().all()
+
+                if member_accounts:
+                    new_owner = min(member_accounts, key=lambda a: a.user_id)
+                    new_owner.role = AccountRole.OWNER.value
+
+        await session.delete(account)
+
     await session.delete(user)
 
-    response.delete_cookie("access_token")
-    response.delete_cookie("refresh_token")
+    if response is not None:
+        response.delete_cookie("access_token")
+        response.delete_cookie("refresh_token")
 
-    if "authorization" in request.headers:
-        response.headers["Authorization"] = ""
+        if "authorization" in request.headers:
+            response.headers["Authorization"] = ""
 
     await session.commit()
 

@@ -16,7 +16,7 @@ from crud.auth import get_current_active_auth_user_id
 router = APIRouter()
 
 
-@router.put("/{user_id}/profile", response_model=UserProfileRead)
+@router.put("/profile", response_model=UserProfileRead)
 async def update_user(
     user_data: UserProfileUpdate | UserProfileUpdatePartial,
     session: AsyncSession = Depends(db_helper.dependency_session_getter),
@@ -29,7 +29,7 @@ async def update_user(
     )
 
 
-@router.patch("/{user_id}/profile", response_model=UserProfileRead)
+@router.patch("/profile", response_model=UserProfileRead)
 async def update_user_partial(
     user_data: UserProfileUpdatePartial,
     session: AsyncSession = Depends(db_helper.dependency_session_getter),
@@ -43,7 +43,7 @@ async def update_user_partial(
     )
 
 
-@router.put("/{user_id}/email", response_model=EmailUpdateRead)
+@router.put("/email", response_model=EmailUpdateRead)
 async def update_user_email(
     response: Response,
     request: Request,
@@ -60,7 +60,7 @@ async def update_user_email(
     )
 
 
-@router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_user(
     response: Response,
     request: Request,
@@ -83,6 +83,6 @@ async def get_int_role_in_group(
 ) -> int:
     return await crud.get_int_role_in_group(
         session=session,
-
-        user_id=user_id,group_id=group_id,
+        user_id=user_id,
+        group_id=group_id,
     )
