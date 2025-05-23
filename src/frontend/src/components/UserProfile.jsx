@@ -56,7 +56,7 @@ const UserProfile = () => {
 
         setUser(response.data);
         setEditing(false);
-        navigate('/');
+        window.location.reload();
         message.success('Профиль успешно обновлен!');
       } catch (error) {
         message.error('Ошибка при обновлении профиля');

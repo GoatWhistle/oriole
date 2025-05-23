@@ -2,8 +2,9 @@ import React from 'react';
 import Header from "/src/components/Header.jsx";
 import GroupMenu from "/src/components/GroupMenu.jsx";
 import AssignmentMenu from "/src/components/AssignmentMenu.jsx";
-import { Card, Typography } from 'antd';
+import CreateGroupButton from "/src/components/CreateGroupButton.jsx";
 
+import { Card, Typography } from 'antd';
 const { Title } = Typography;
 
 export default function Home() {
@@ -44,6 +45,7 @@ export default function Home() {
               <AssignmentMenu />
             </Card>
           </div>
+          <CreateGroupButton />
         </div>
       </div>
     </div>

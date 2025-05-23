@@ -147,7 +147,7 @@ const GroupDetails = () => {
             }
 
             message.success('Группа успешно удалена');
-            navigate('/groups');
+            navigate('/');
         } catch (err) {
             message.error(err.message);
         }
