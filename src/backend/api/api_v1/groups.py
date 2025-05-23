@@ -349,3 +349,25 @@ async def leave_from_group(
         user_id=user_id,
         group_id=group_id,
     )
+
+
+@router.delete(
+    "/{group_id}/delete-invites/",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+async def delete_group_invites(
+    session: Annotated[
+        AsyncSession,
+        Depends(db_helper.dependency_session_getter),
+    ],
+    user_id: Annotated[
+        int,
+        Depends(get_current_active_auth_user_id),
+    ],
+    group_id: int,
+) -> None:
+    await crud.delete_group_invites(
+        session=session,
+        user_id=user_id,
+        group_id=group_id,
+    )

@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from typing import Sequence
 from fastapi import Request
-from sqlalchemy import select, func
+from sqlalchemy import select, func, delete
 from sqlalchemy.engine import Result
 from sqlalchemy.ext.asyncio import AsyncSession
 from urllib.parse import urljoin
@@ -259,12 +259,33 @@ async def delete_group(
         session=session, user_id=user_id, group_id=group_id
     )
 
-    statement = select(Account).where(Account.group_id == group_id)
-    result: Result = await session.execute(statement)
-    accounts_to_delete = result.scalars().all()
+    await session.execute(
+        delete(UserReply).where(
+            UserReply.task_id.in_(
+                select(Task.id).where(
+                    Task.assignment_id.in_(
+                        select(Assignment.id).where(Assignment.group_id == group_id)
+                    )
+                )
+            )
+        )
+    )
 
-    for account in accounts_to_delete:
-        await session.delete(account)
+    await session.execute(
+        delete(Task).where(
+            Task.assignment_id.in_(
+                select(Assignment.id).where(Assignment.group_id == group_id)
+            )
+        )
+    )
+
+    await session.execute(delete(Assignment).where(Assignment.group_id == group_id))
+    await delete_group_invites(
+        session=session,
+        user_id=user_id,
+        group_id=group_id,
+    )
+    await session.execute(delete(Account).where(Account.group_id == group_id))
 
     await session.delete(group)
     await session.commit()
@@ -368,6 +389,7 @@ async def invite_user(
     request: Request,
     group_id: int,
     expires_minutes: int,
+    single_use: False,
 ) -> dict:
     await check_admin_permission_in_group(
         session=session,
@@ -376,6 +398,7 @@ async def invite_user(
     )
 
     code = generate_alphanum_code()
+    code += "1" if single_use else "0"
 
     invite = GroupInvite(
         code=code,
@@ -400,8 +423,8 @@ async def join_by_link(
 ) -> dict:
 
     await check_user_exists(session=session, user_id=user_id)
-
-    invite = await validate_invite_code(session, invite_code)
+    single_use = invite_code[-1] == "1"
+    invite = await validate_invite_code(session, invite_code[:-1])
     group_id = invite.group_id
 
     await check_user_in_group(session, user_id, group_id, is_correct=False)
@@ -416,11 +439,27 @@ async def join_by_link(
     )
 
     account = Account(user_id=user_id, group_id=group_id, role=role.value)
-    invite.is_active = False
+    invite.is_active = not single_use
     session.add(account)
     await session.commit()
 
     return {"group_id": group_id}
+
+
+async def delete_group_invites(
+    session: AsyncSession,
+    user_id: int,
+    group_id: int,
+) -> None:
+    await check_user_exists(session=session, user_id=user_id)
+    _ = await get_group_if_exists(session=session, group_id=group_id)
+    await check_user_in_group(session=session, group_id=group_id, user_id=user_id)
+    await check_admin_permission_in_group(
+        session=session, user_id=user_id, group_id=group_id
+    )
+
+    await session.execute(delete(GroupInvite).where(GroupInvite.group_id == group_id))
+    await session.commit()
 
 
 async def promote_user_to_admin(
@@ -553,9 +592,7 @@ async def leave_from_group(
             account.role = AccountRole.MEMBER.value
         else:
             members = await session.execute(
-                select(Account).where(
-                    Account.group_id == group_id, Account.role == "member"
-                )
+                select(Account).where(Account.group_id == group_id, Account.role == 2)
             )
             member_accounts = members.scalars().all()
 
