@@ -9,6 +9,7 @@ import Profile from './pages/Profile';
 import Verify from './pages/Verify';
 import Assignment from './pages/Assignment';
 import Group from './pages/Group';
+import JoinGroup from './pages/JoinGroup';
 
 export default function App() {
   return (
@@ -22,7 +23,7 @@ export default function App() {
         <Route path="/verify/:token" element={<Verify />} />
         <Route path="/assignment/:assignment_id" element={<Assignment />} />
         <Route path="/group/:group_id" element={<Group />} />
-        <Route path="/api/v1/groups/join/:code" element={<Group />} />
+        <Route path="/api/v1/groups/join/:code" element={<JoinGroup />} />
       </Routes>
     </div>
   );
