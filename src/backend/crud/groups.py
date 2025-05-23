@@ -398,7 +398,6 @@ async def invite_user(
     )
 
     code = generate_alphanum_code()
-    code += "1" if single_use else "0"
 
     invite = GroupInvite(
         code=code,
@@ -412,6 +411,7 @@ async def invite_user(
 
     base_url = str(request.base_url)
     base_url = base_url[:-1] if base_url.endswith("/") else base_url
+    code += "1" if single_use else "0"
 
     return {"link": urljoin(base_url, f"/groups/join/{code}")}
 
