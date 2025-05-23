@@ -225,6 +225,7 @@ async def invite_user(
     ],
     group_id: int,
     expires_minutes: int = 30,
+    single_use: bool = False,
 ):
     return await crud.invite_user(
         session=session,
@@ -232,6 +233,7 @@ async def invite_user(
         request=request,
         group_id=group_id,
         expires_minutes=expires_minutes,
+        single_use=single_use,
     )
 
 

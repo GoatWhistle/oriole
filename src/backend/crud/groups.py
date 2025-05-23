@@ -389,7 +389,7 @@ async def invite_user(
     request: Request,
     group_id: int,
     expires_minutes: int,
-    single_use: False,
+    single_use: bool,
 ) -> dict:
     await check_admin_permission_in_group(
         session=session,
@@ -592,7 +592,10 @@ async def leave_from_group(
             account.role = AccountRole.MEMBER.value
         else:
             members = await session.execute(
-                select(Account).where(Account.group_id == group_id, Account.role == 2)
+                select(Account).where(
+                    Account.group_id == group_id,
+                    Account.role == AccountRole.MEMBER.value,
+                )
             )
             member_accounts = members.scalars().all()
 
