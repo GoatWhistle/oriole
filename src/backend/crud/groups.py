@@ -397,7 +397,7 @@ async def join_by_link(
     session: AsyncSession,
     user_id: int,
     invite_code: str,
-) -> str:
+) -> dict:
 
     await check_user_exists(session=session, user_id=user_id)
 
@@ -420,7 +420,7 @@ async def join_by_link(
     session.add(account)
     await session.commit()
 
-    return "success"
+    return {"group_id": group_id}
 
 
 async def promote_user_to_admin(

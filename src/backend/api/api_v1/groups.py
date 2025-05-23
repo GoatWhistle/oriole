@@ -250,7 +250,7 @@ async def join_by_link(
     ],
     invite_code: str,
 ):
-    await crud.join_by_link(
+    return await crud.join_by_link(
         session=session,
         user_id=user_id,
         invite_code=invite_code,
