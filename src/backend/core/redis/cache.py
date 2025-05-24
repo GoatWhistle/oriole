@@ -16,20 +16,29 @@ class AutoCacheMiddleware(BaseHTTPMiddleware):
         return "cache:" + hashlib.sha256((request.url.path + query).encode()).hexdigest()
 
     def make_tag_key(self, path: str) -> str:
-        return f"tag:{path}"
+        path = path.replace("/api/v1", "")
+        segments = [segment for segment in path.split("/") if segment]
+        return f"tag:{segments[0]}" if segments else "tag:root"
 
     async def cache_set(self, key: str, tag: str, value: str):
-        await redis_connection.redis.setex(key, self.ttl, value)
-        await redis_connection.redis.sadd(tag, key)
+        try:
+            await redis_connection.redis.setex(key, self.ttl, value)
+            await redis_connection.redis.sadd(tag, key)
+        except Exception as e:
+            print(f"Redis get error: {e}")
 
     async def invalidate_tag(self, tag_key: str):
-        keys = await redis_connection.redis.smembers(tag_key)
-        if keys:
-            await redis_connection.redis.delete(*keys)
-        await redis_connection.redis.delete(tag_key)
+        try:
+            keys = await redis_connection.redis.smembers(tag_key)
+            if keys:
+                await redis_connection.redis.delete(*keys)
+            await redis_connection.redis.delete(tag_key)
+        except Exception as e:
+            print(f"Redis get error: {e}")
+
 
     def is_excluded(self, path: str) -> bool:
-        return any(path in ex.split("/") for ex in self.exclude_paths)
+        return any(path.startswith(f"/api/v1/{ex}") or path.startswith(f"{ex}") for ex in self.exclude_paths)
 
     async def dispatch(self, request: Request, call_next):
         method = request.method.upper()
@@ -42,9 +51,14 @@ class AutoCacheMiddleware(BaseHTTPMiddleware):
 
         if method == "GET":
             cache_key = self.make_cache_key(request)
-            cached = await redis_connection.redis.get(cache_key)
+            try:
+                cached = await redis_connection.redis.get(cache_key)
+            except Exception as e:
+                print(f"Redis get error: {e}")
+                cached = None
             if cached:
-                return Response(content=cached, media_type="application/json")
+                #print(f"cached - {cached}")
+                return Response(content=cached.encode(), media_type="application/json")
 
             response = await call_next(request)
 
@@ -53,12 +67,13 @@ class AutoCacheMiddleware(BaseHTTPMiddleware):
 
             body = [chunk async for chunk in response.body_iterator]
             full_body = b"".join(body)
+            #print(f"full body - {full_body}")
 
             await self.cache_set(cache_key, tag_key, full_body.decode())
             return Response(content=full_body, status_code=response.status_code,
                             headers=dict(response.headers), media_type="application/json")
 
-        elif method in {"POST", "PUT", "DELETE"}:
+        elif method in {"POST", "PUT", "DELETE", "PATCH"}:
             await self.invalidate_tag(tag_key)
             return await call_next(request)
 
