@@ -1,5 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Button, Form, Input, Typography, Divider, message, Spin, Modal } from 'antd';
+import {
+  Card,
+  Button,
+  Form,
+  Input,
+  Typography,
+  Divider,
+  message,
+  Spin,
+  Modal
+} from 'antd';
+import { ExclamationCircleFilled } from '@ant-design/icons';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
@@ -80,29 +91,17 @@ const UserProfile = () => {
     }
   };
 
-  const handleDeleteAccount = () => {
-    confirm({
-      title: 'Удаление аккаунта',
-      content: 'Вы уверены, что хотите удалить свой аккаунт? Это действие невозможно отменить.',
-      okText: 'Удалить',
-      okType: 'danger',
-      cancelText: 'Отмена',
-      async onOk() {
-        try {
-          await axios.delete('/api/v1/users', {
+  const handleDeleteAccount = async () => {
+    try {
+      await axios.delete('/api/v1/users', {
             withCredentials: true
           });
-          message.success('Ваш аккаунт был успешно удален');
-          navigate('/');
-        } catch (error) {
-          message.error('Ошибка при удалении аккаунта');
-          console.error(error);
-        }
-      },
-      onCancel() {
-        console.log('Отмена удаления аккаунта');
-      },
-    });
+      message.success('Аккаунт успешно удален');
+      navigate('/');
+    } catch (error) {
+      message.error('Произошла ошибка при удалении аккаунта');
+      console.error(error);
+    }
   };
 
   if (loading) {
