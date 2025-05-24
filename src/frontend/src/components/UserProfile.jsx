@@ -8,9 +8,10 @@ import {
   Divider,
   message,
   Spin,
-  Modal
+  Modal,
+  Popconfirm
 } from 'antd';
-import { ExclamationCircleFilled } from '@ant-design/icons';
+import { ExclamationCircleFilled, CloseOutlined } from '@ant-design/icons';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
@@ -196,13 +197,17 @@ const UserProfile = () => {
               <Button type="primary" onClick={handleEdit}>
                 Редактировать профиль
               </Button>
-              <Button
-                danger
-                onClick={handleDeleteAccount}
-                style={{ marginLeft: '16px' }}
+              <Popconfirm
+                  title={`Вы уверены, что хотите удалить аккаунт? Это действие нельзя отменить!`}
+                  onConfirm={handleDeleteAccount}
+                  okText="Да, удалить"
+                  cancelText="Отмена"
+                  okButtonProps={{ danger: true }}
               >
-                Удалить аккаунт
-              </Button>
+                  <Button danger icon={<CloseOutlined />}>
+                      Удалить аккаунт
+                  </Button>
+              </Popconfirm>
               <Button onClick={handleLogout} style={{ marginLeft: '16px' }}>
                 Выйти
               </Button>
