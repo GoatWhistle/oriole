@@ -10,6 +10,7 @@ import Verify from './pages/Verify';
 import Assignment from './pages/Assignment';
 import Group from './pages/Group';
 import JoinGroup from './pages/JoinGroup';
+import ForgotPassword from './pages/ForgotPassword';
 
 export default function App() {
   return (
@@ -24,6 +25,7 @@ export default function App() {
         <Route path="/assignment/:assignment_id" element={<Assignment />} />
         <Route path="/group/:group_id" element={<Group />} />
         <Route path="/groups/join/:invite_code" element={<JoinGroup />} />
+        <Route path="/forgot-password/:token" element={<ForgotPassword />} />
       </Routes>
     </div>
   );
