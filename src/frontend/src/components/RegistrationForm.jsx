@@ -15,10 +15,10 @@ const RegistrationForm = () => {
     try {
       const userData = {
         email: values.email,
-        password: values.password, // Изменено на 'password' вместо 'hashed_password'
+        password: values.password,
         name: values.firstName,
         surname: values.lastName,
-        patronymic: values.middleName || null,
+        patronymic: values.middleName || '',
         is_active: true,
         is_superuser: false,
         is_verified: false
@@ -119,6 +119,7 @@ const RegistrationForm = () => {
             rules={[
               { max: 63, message: 'Отчество не должно превышать 63 символа' }
             ]}
+            initialValue=""
           >
             <Input placeholder="Иванович (необязательно)" size="large" />
           </Form.Item>

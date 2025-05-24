@@ -40,7 +40,13 @@ const CreateGroupButton = () => {
   const onFinish = async (values) => {
     setConfirmLoading(true);
     try {
-      const response = await axios.post('api/v1/groups/', values, {
+      // Явно устанавливаем пустую строку, если description отсутствует или undefined
+      const groupData = {
+        title: values.title,
+        description: values.description || '',
+      };
+
+      const response = await axios.post('api/v1/groups/', groupData, {
         withCredentials: true,
       });
 
@@ -48,7 +54,6 @@ const CreateGroupButton = () => {
       form.resetFields();
       setOpen(false);
 
-      // Здесь можно добавить обновление списка групп или другие действия после успешного создания
     } catch (error) {
       console.error('Ошибка при создании группы:', error);
       message.error('Не удалось создать группу');
@@ -59,7 +64,7 @@ const CreateGroupButton = () => {
   };
 
   if (loadingAuthCheck) {
-    return null; // или можно вернуть лоадер
+    return null;
   }
 
   if (!isAuthenticated) {
@@ -97,6 +102,7 @@ const CreateGroupButton = () => {
           <Form.Item
             label="Описание (необязательно)"
             name="description"
+            initialValue="" // Явно устанавливаем начальное значение как пустую строку
           >
             <Input.TextArea rows={4} placeholder="Введите описание группы" />
           </Form.Item>
