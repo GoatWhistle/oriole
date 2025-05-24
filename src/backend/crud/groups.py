@@ -561,6 +561,8 @@ async def remove_user_from_group(
     result: Result = await session.execute(statement)
     account = result.scalars().first()
 
+    await session.execute(delete(UserReply).where(UserReply.account_id == account.id))
+
     await session.delete(account)
     await session.commit()
 
@@ -579,6 +581,7 @@ async def leave_from_group(
     )
     account = account.scalars().first()
 
+    await session.execute(delete(UserReply).where(UserReply.account_id == account.id))
     if account.role == AccountRole.OWNER.value:
         admins = await session.execute(
             select(Account).where(
@@ -601,7 +604,7 @@ async def leave_from_group(
             member_accounts = members.scalars().all()
 
             if member_accounts:
-                new_owner = min(member_accounts, key=lambda a: a.user__id)
+                new_owner = min(member_accounts, key=lambda a: a.user_id)
                 new_owner.role = AccountRole.OWNER.value
                 account.role = AccountRole.MEMBER.value
 
