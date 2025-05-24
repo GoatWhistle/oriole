@@ -15,6 +15,7 @@ from utils.JWT import decode_jwt, validate_password
 from exceptions.token import check_expiration_after_redirect
 
 from fastapi.templating import Jinja2Templates
+from utils.JWT import hash_password
 
 
 templates = Jinja2Templates(directory="templates/email_templates")
@@ -90,13 +91,14 @@ async def reset_password_redirect(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="The new password must be different from the previous one.",
             )
-
+        user_from_db.hashed_password = hash_password(new_password)
         await session.commit()
         await session.refresh(user_from_db)
 
         return {"status": "success", "message": "You changed password"}
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"{e}")
+
 
 
 async def forgot_password_redirect(
@@ -117,7 +119,7 @@ async def forgot_password_redirect(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="The new password must be different from the previous one.",
             )
-
+        user_from_db.hashed_password = hash_password(new_password)
         await session.commit()
         await session.refresh(user_from_db)
 
