@@ -61,8 +61,7 @@ const GroupDetails = () => {
     useEffect(() => {
         const detectTimezone = () => {
             try {
-                const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-                return timezone || 'UTC';
+                return Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
             } catch (e) {
                 return 'UTC';
             }
@@ -71,6 +70,7 @@ const GroupDetails = () => {
         const fetchData = async () => {
             try {
                 setUserTimezone(detectTimezone());
+                setLoading(true);
 
                 const [groupResponse, roleResponse] = await Promise.all([
                     fetch(`/api/v1/groups/${group_id}/`),
@@ -81,19 +81,19 @@ const GroupDetails = () => {
                     throw new Error('Не удалось загрузить информацию о группе');
                 }
                 const groupData = await groupResponse.json();
-                setGroup(groupData);
 
                 if (!roleResponse.ok) {
                     throw new Error('Не удалось определить вашу роль в группе');
                 }
                 const roleData = await roleResponse.json();
-                setUserRole(roleData);
 
-                setLoading(false);
+                setGroup(groupData);
+                setUserRole(roleData);
             } catch (err) {
                 setError(err.message);
-                setLoading(false);
                 message.error(err.message);
+            } finally {
+                setLoading(false);
             }
         };
 
@@ -108,7 +108,8 @@ const GroupDetails = () => {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    expires_minutes: expiresMinutes
+                    expires_minutes: expiresMinutes,
+                    single_use: inviteType === 'single_use'
                 })
             });
 
@@ -120,92 +121,16 @@ const GroupDetails = () => {
             const data = await response.json();
             setInviteLink(data.link);
 
-            // Calculate expiry time
             const expiry = new Date();
             expiry.setMinutes(expiry.getMinutes() + expiresMinutes);
             setExpiryTime(expiry);
 
             setIsModalVisible(true);
             setIsInviteSettingsModalVisible(false);
+            message.success('Ссылка для вступления успешно создана');
         } catch (err) {
-            message.error(err.message);
-        }
-    };
-
-    const showInviteSettingsModal = () => {
-        setIsInviteSettingsModalVisible(true);
-    };
-
-    const handleDeleteGroup = async () => {
-        try {
-            const response = await fetch(`/api/v1/groups/${group_id}/`, {
-                method: 'DELETE'
-            });
-
-            if (!response.ok) {
-                throw new Error('Не удалось удалить группу');
-            }
-
-            message.success('Группа успешно удалена');
-            navigate('/');
-        } catch (err) {
-            message.error(err.message);
-        }
-    };
-
-    const handlePromoteToTeacher = async (userId) => {
-        try {
-            const response = await fetch(`/api/v1/groups/${group_id}/promote/${userId}/`, {
-                method: 'PATCH'
-            });
-
-            if (!response.ok) {
-                throw new Error('Не удалось повысить пользователя до учителя');
-            }
-
-            const updatedAccounts = group.accounts.map(account => {
-                if (account.user_id === userId) {
-                    return { ...account, role: 1 };
-                }
-                return account;
-            });
-
-            setGroup({
-                ...group,
-                accounts: updatedAccounts
-            });
-
-            message.success('Пользователь успешно повышен до учителя');
-        } catch (err) {
-            message.error(err.message);
-        }
-    };
-
-    const handleDemoteToStudent = async (userId) => {
-        try {
-            const response = await fetch(`/api/v1/groups/${group_id}/demote/${userId}/`, {
-                method: 'PATCH'
-            });
-
-            if (!response.ok) {
-                throw new Error('Не удалось понизить пользователя до ученика');
-            }
-
-            const updatedAccounts = group.accounts.map(account => {
-                if (account.user_id === userId) {
-                    return { ...account, role: 2 };
-                }
-                return account;
-            });
-
-            setGroup({
-                ...group,
-                accounts: updatedAccounts
-            });
-
-            message.success('Пользователь понижен до ученика');
-        } catch (err) {
-            message.error(err.message);
+            console.error("Ошибка при генерации ссылки:", err);
+            message.error(err.message || 'Ошибка при генерации ссылки');
         }
     };
 
@@ -215,21 +140,21 @@ const GroupDetails = () => {
     };
 
     const getRoleName = (role) => {
-        switch(role) {
-            case 0: return 'Создатель';
-            case 1: return 'Учитель';
-            case 2: return 'Ученик';
-            default: return 'Неизвестная роль';
-        }
+        const roles = {
+            0: 'Создатель',
+            1: 'Учитель',
+            2: 'Ученик'
+        };
+        return roles[role] || 'Неизвестная роль';
     };
 
     const handleAssignmentClick = (assignmentId) => {
         navigate(`/assignment/${assignmentId}`);
     };
 
-    const handleRemoveUser = async (removeUserId) => {
+    const handleRemoveUser = async (userId) => {
         try {
-            const response = await fetch(`/api/v1/groups/${group_id}/kick/${removeUserId}/`, {
+            const response = await fetch(`/api/v1/groups/${group_id}/kick/${userId}/`, {
                 method: 'DELETE'
             });
 
@@ -237,11 +162,10 @@ const GroupDetails = () => {
                 throw new Error('Не удалось удалить пользователя из группы');
             }
 
-            const updatedAccounts = group.accounts.filter(account => account.user_id !== removeUserId);
-            setGroup({
-                ...group,
-                accounts: updatedAccounts
-            });
+            setGroup(prev => ({
+                ...prev,
+                accounts: prev.accounts.filter(account => account.user_id !== userId)
+            }));
 
             message.success('Пользователь успешно удален из группы');
         } catch (err) {
@@ -260,6 +184,69 @@ const GroupDetails = () => {
             }
 
             message.success('Вы успешно вышли из группы');
+            navigate('/');
+        } catch (err) {
+            message.error(err.message);
+        }
+    };
+
+    const handlePromoteToTeacher = async (userId) => {
+        try {
+            const response = await fetch(`/api/v1/groups/${group_id}/promote/${userId}/`, {
+                method: 'PATCH'
+            });
+
+            if (!response.ok) {
+                throw new Error('Не удалось повысить пользователя до учителя');
+            }
+
+            setGroup(prev => ({
+                ...prev,
+                accounts: prev.accounts.map(account =>
+                    account.user_id === userId ? { ...account, role: 1 } : account
+                )
+            }));
+
+            message.success('Пользователь повышен до учителя');
+        } catch (err) {
+            message.error(err.message);
+        }
+    };
+
+    const handleDemoteToStudent = async (userId) => {
+        try {
+            const response = await fetch(`/api/v1/groups/${group_id}/demote/${userId}/`, {
+                method: 'PATCH'
+            });
+
+            if (!response.ok) {
+                throw new Error('Не удалось понизить пользователя до ученика');
+            }
+
+            setGroup(prev => ({
+                ...prev,
+                accounts: prev.accounts.map(account =>
+                    account.user_id === userId ? { ...account, role: 2 } : account
+                )
+            }));
+
+            message.success('Пользователь понижен до ученика');
+        } catch (err) {
+            message.error(err.message);
+        }
+    };
+
+    const handleDeleteGroup = async () => {
+        try {
+            const response = await fetch(`/api/v1/groups/${group_id}/`, {
+                method: 'DELETE'
+            });
+
+            if (!response.ok) {
+                throw new Error('Не удалось удалить группу');
+            }
+
+            message.success('Группа успешно удалена');
             navigate('/');
         } catch (err) {
             message.error(err.message);
@@ -302,17 +289,13 @@ const GroupDetails = () => {
         try {
             const values = await assignmentForm.validateFields();
 
-            const formatToISO = (momentDate) => {
-                return momentDate.toISOString();
-            };
-
             const assignmentData = {
                 title: values.title,
                 description: values.description || "",
                 is_contest: Boolean(values.is_contest),
                 group_id: parseInt(group_id),
-                start_datetime: formatToISO(values.dateRange[0]),
-                end_datetime: formatToISO(values.dateRange[1])
+                start_datetime: values.dateRange[0].toISOString(),
+                end_datetime: values.dateRange[1].toISOString()
             };
 
             const response = await fetch('/api/v1/assignments/', {
@@ -328,7 +311,7 @@ const GroupDetails = () => {
 
             if (!response.ok) {
                 const errorData = await response.json();
-                throw new Error(errorData.detail || errorData.message || 'Не удалось создать модуль');
+                throw new Error(errorData.detail || 'Не удалось создать задание');
             }
 
             const newAssignment = await response.json();
@@ -344,11 +327,10 @@ const GroupDetails = () => {
 
             setIsCreateAssignmentModalVisible(false);
             assignmentForm.resetFields();
-            message.success('Модуль успешно создан!');
-
+            message.success('Задание успешно создано!');
         } catch (err) {
-            console.error("Ошибка при создании модуля:", err);
-            message.error(`Ошибка: ${err.message}`);
+            console.error("Ошибка при создании задания:", err);
+            message.error(err.message);
         }
     };
 
@@ -367,7 +349,7 @@ const GroupDetails = () => {
                         <>
                             <Button
                                 type="primary"
-                                onClick={showInviteSettingsModal}
+                                onClick={() => setIsInviteSettingsModalVisible(true)}
                                 icon={<PlusOutlined />}
                             >
                                 Пригласить участников
@@ -382,16 +364,13 @@ const GroupDetails = () => {
                     )}
                     {userRole === 0 && (
                         <Popconfirm
-                            title={`Вы уверены, что хотите полностью удалить группу "${group.title}"? Это действие нельзя отменить!`}
+                            title={`Вы уверены, что хотите удалить группу "${group.title}"? Это действие нельзя отменить!`}
                             onConfirm={handleDeleteGroup}
                             okText="Да, удалить"
                             cancelText="Отмена"
                             okButtonProps={{ danger: true }}
                         >
-                            <Button
-                                danger
-                                icon={<CloseOutlined />}
-                            >
+                            <Button danger icon={<CloseOutlined />}>
                                 Удалить группу
                             </Button>
                         </Popconfirm>
@@ -402,10 +381,7 @@ const GroupDetails = () => {
                         okText="Да"
                         cancelText="Нет"
                     >
-                        <Button
-                            danger
-                            icon={<LogoutOutlined />}
-                        >
+                        <Button danger icon={<LogoutOutlined />}>
                             Покинуть группу
                         </Button>
                     </Popconfirm>
@@ -486,14 +462,14 @@ const GroupDetails = () => {
                 <Divider />
 
                 <Row justify="space-between" align="middle" style={{ marginBottom: 16 }}>
-                    <Title level={4} style={{ margin: 0 }}>Модули:</Title>
+                    <Title level={4} style={{ margin: 0 }}>Задания:</Title>
                     {(userRole === 0 || userRole === 1) && (
                         <Button
                             type="primary"
                             icon={<PlusOutlined />}
                             onClick={() => setIsCreateAssignmentModalVisible(true)}
                         >
-                            Создать модуль
+                            Создать задание
                         </Button>
                     )}
                 </Row>
@@ -531,7 +507,7 @@ const GroupDetails = () => {
             {/* Модальное окно настроек приглашения */}
             <Modal
                 title="Настройки приглашения"
-                visible={isInviteSettingsModalVisible}
+                open={isInviteSettingsModalVisible}
                 onOk={handleGenerateInviteLink}
                 onCancel={() => setIsInviteSettingsModalVisible(false)}
                 okText="Сгенерировать ссылку"
@@ -542,16 +518,15 @@ const GroupDetails = () => {
                         <Select
                             value={inviteType}
                             onChange={setInviteType}
-                            disabled // Пока оставляем только single_use
                         >
                             <Option value="single_use">Одноразовое</Option>
-                            <Option value="multi_use" disabled>Многоразовое (в разработке)</Option>
+                            <Option value="multi_use">Многоразовое</Option>
                         </Select>
                     </Form.Item>
                     <Form.Item label="Срок действия (минуты)">
                         <InputNumber
                             min={5}
-                            max={10080} // 1 неделя
+                            max={10080}
                             value={expiresMinutes}
                             onChange={setExpiresMinutes}
                             style={{ width: '100%' }}
@@ -570,7 +545,7 @@ const GroupDetails = () => {
             {/* Модальное окно ссылки для вступления */}
             <Modal
                 title="Ссылка для вступления в группу"
-                visible={isModalVisible}
+                open={isModalVisible}
                 onCancel={() => setIsModalVisible(false)}
                 footer={[
                     <Button
@@ -613,16 +588,13 @@ const GroupDetails = () => {
             {/* Модальное окно редактирования группы */}
             <Modal
                 title="Редактирование группы"
-                visible={isEditModalVisible}
+                open={isEditModalVisible}
                 onOk={handleEditSubmit}
                 onCancel={() => setIsEditModalVisible(false)}
                 okText="Сохранить"
                 cancelText="Отмена"
             >
-                <Form
-                    form={form}
-                    layout="vertical"
-                >
+                <Form form={form} layout="vertical">
                     <Form.Item
                         name="title"
                         label="Название группы"
@@ -634,35 +606,32 @@ const GroupDetails = () => {
                         name="description"
                         label="Описание группы"
                     >
-                        <Input.TextArea rows={4} />
+                        <TextArea rows={4} />
                     </Form.Item>
                 </Form>
             </Modal>
 
             {/* Модальное окно создания задания */}
             <Modal
-                title="Создание нового модуля"
-                visible={isCreateAssignmentModalVisible}
+                title="Создание нового задания"
+                open={isCreateAssignmentModalVisible}
                 onOk={handleCreateAssignment}
                 onCancel={() => setIsCreateAssignmentModalVisible(false)}
                 okText="Создать"
                 cancelText="Отмена"
                 width={700}
             >
-                <Form
-                    form={assignmentForm}
-                    layout="vertical"
-                >
+                <Form form={assignmentForm} layout="vertical">
                     <Form.Item
                         name="title"
-                        label="Название модуля"
-                        rules={[{ required: true, message: 'Пожалуйста, введите название модуля' }]}
+                        label="Название задания"
+                        rules={[{ required: true, message: 'Пожалуйста, введите название задания' }]}
                     >
                         <Input />
                     </Form.Item>
                     <Form.Item
                         name="description"
-                        label="Описание модуля"
+                        label="Описание задания"
                     >
                         <TextArea rows={4} />
                     </Form.Item>
