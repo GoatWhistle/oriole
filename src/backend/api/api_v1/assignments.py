@@ -40,13 +40,11 @@ async def create_assignment(
         int,
         Depends(get_current_active_auth_user_id),
     ],
-    user_timezone: str,
     assignment_in: AssignmentCreate,
 ):
     return await crud.create_assignment(
         session=session,
         user_id=user_id,
-        user_timezone=user_timezone,
         assignment_in=assignment_in,
     )
 
@@ -65,13 +63,11 @@ async def get_assignment_by_id(
         int,
         Depends(get_current_active_auth_user_id),
     ],
-    user_timezone: str,
     assignment_id: int,
 ):
     return await crud.get_assignment_by_id(
         session=session,
         user_id=user_id,
-        user_timezone=user_timezone,
         assignment_id=assignment_id,
     )
 
@@ -111,14 +107,12 @@ async def update_assignment(
         int,
         Depends(get_current_active_auth_user_id),
     ],
-    user_timezone: str,
     assignment_update: AssignmentUpdate,
     assignment_id: int,
 ):
     return await crud.update_assignment(
         session=session,
         user_id=user_id,
-        user_timezone=user_timezone,
         assignment_id=assignment_id,
         assignment_update=assignment_update,
         is_partial=False,
@@ -139,14 +133,12 @@ async def update_assignment_partial(
         int,
         Depends(get_current_active_auth_user_id),
     ],
-    user_timezone: str,
     assignment_update: AssignmentUpdatePartial,
     assignment_id: int,
 ):
     return await crud.update_assignment(
         session=session,
         user_id=user_id,
-        user_timezone=user_timezone,
         assignment_id=assignment_id,
         assignment_update=assignment_update,
         is_partial=True,
@@ -216,12 +208,10 @@ async def copy_assignment(
     ],
     assignment_id: int,
     target_group_id: int,
-    user_timezone: str,
 ):
     return await copy_assignment_to_group(
         session=session,
         user_id=user_id,
-        user_timezone=user_timezone,
         assignment_id=assignment_id,
         target_group_id=target_group_id,
     )

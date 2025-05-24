@@ -1,11 +1,11 @@
 from datetime import datetime
 from typing import TYPE_CHECKING
-
+from pytz import utc
 from core.models.assignment import Assignment
 from .base import Base
 from .mixins.id_int_pk import IdIntPkMixin
 
-from sqlalchemy import String, ForeignKey, Integer, DateTime, func
+from sqlalchemy import String, ForeignKey, Integer
 from sqlalchemy.orm import (
     Mapped,
     mapped_column,
@@ -30,10 +30,14 @@ class Task(Base, IdIntPkMixin):
 
     max_attempts: Mapped[int] = mapped_column(Integer, default=0)
 
-    start_datetime: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.timezone("UTC", func.now())
+    start_datetime: Mapped[int] = mapped_column(
+        Integer,
+        default=lambda: int(datetime.now(utc).timestamp()),
+        nullable=False,
     )
-    end_datetime: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.timezone("UTC", func.now())
+    end_datetime: Mapped[int] = mapped_column(
+        Integer,
+        default=lambda: int(datetime.now(utc).timestamp()),
+        nullable=False,
     )
     is_active: Mapped[bool] = mapped_column(default=False)

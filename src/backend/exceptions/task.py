@@ -1,11 +1,10 @@
-from datetime import datetime
-from pytz import all_timezones, utc
 from fastapi import HTTPException, status
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped
 
 from core.models import Task, UserReply
+from utils.time_manager import get_current_utc_timestamp
 
 
 async def get_task_if_exists(
@@ -50,13 +49,6 @@ async def check_task_is_already_correct(
         )
 
 
-async def check_timezone_is_valid(user_timezone: str) -> None:
-    if user_timezone not in all_timezones:
-        raise HTTPException(
-            status_code=400, detail=f"Unknown timezone: {user_timezone}"
-        )
-
-
 async def check_deadline_not_passed(
     task: Task,
 ) -> None:
@@ -68,8 +60,8 @@ async def check_deadline_not_passed(
 
 
 async def check_end_time_is_after_start_time(
-    start_datetime: datetime | Mapped[datetime],
-    end_datetime: datetime | Mapped[datetime],
+    start_datetime: int | Mapped[int],
+    end_datetime: int | Mapped[int],
 ) -> None:
     if start_datetime >= end_datetime:
         raise HTTPException(
@@ -79,9 +71,9 @@ async def check_end_time_is_after_start_time(
 
 
 async def check_start_time_not_in_past(
-    start_datetime: datetime | Mapped[datetime],
+    start_datetime: int | Mapped[int],
 ) -> None:
-    if start_datetime < datetime.now(utc):
+    if start_datetime < get_current_utc_timestamp():
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Start time cannot be in the past.",
@@ -89,9 +81,9 @@ async def check_start_time_not_in_past(
 
 
 async def check_end_time_not_in_past(
-    end_datetime: datetime | Mapped[datetime],
+    end_datetime: int | Mapped[int],
 ) -> None:
-    if end_datetime < datetime.now(utc):
+    if end_datetime < get_current_utc_timestamp() :
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="End time cannot be in the past.",
@@ -99,8 +91,8 @@ async def check_end_time_not_in_past(
 
 
 async def check_task_start_deadline_before_assignment_start(
-    task_start_deadline: datetime | Mapped[datetime],
-    assignment_start_deadline: datetime | Mapped[datetime],
+    task_start_deadline: int | Mapped[int],
+    assignment_start_deadline: int | Mapped[int],
 ) -> None:
     if task_start_deadline < assignment_start_deadline:
         raise HTTPException(
@@ -110,8 +102,8 @@ async def check_task_start_deadline_before_assignment_start(
 
 
 async def check_task_end_deadline_after_assignment_end(
-    task_end_deadline: datetime | Mapped[datetime],
-    assignment_end_deadline: datetime | Mapped[datetime],
+    task_end_deadline: int | Mapped[int],
+    assignment_end_deadline: int | Mapped[int],
 ) -> None:
     if task_end_deadline > assignment_end_deadline:
         raise HTTPException(

@@ -1,5 +1,3 @@
-from datetime import datetime
-from pytz import utc, timezone
 from typing import Sequence
 
 from sqlalchemy import select, func
@@ -10,7 +8,6 @@ from exceptions.task import (
     check_start_time_not_in_past,
     check_end_time_not_in_past,
     check_end_time_is_after_start_time,
-    check_timezone_is_valid,
 )
 from exceptions.user import check_user_exists
 from exceptions.assignment import get_assignment_if_exists
@@ -39,13 +36,13 @@ from core.models import (
     UserReply,
     UserProfile,
 )
-from utils.utc_converter import to_utc
+
+from utils.time_manager import get_current_utc_timestamp
 
 
 async def create_assignment(
     session: AsyncSession,
     user_id: int,
-    user_timezone: str,
     assignment_in: AssignmentCreate,
 ) -> AssignmentRead:
     await check_user_exists(session=session, user_id=user_id)
@@ -62,16 +59,11 @@ async def create_assignment(
         group_id=assignment_in.group_id,
     )
 
-    await check_timezone_is_valid(user_timezone=user_timezone)
-
-    start_datetime_utc = to_utc(assignment_in.start_datetime, timezone(user_timezone))
-    end_datetime_utc = to_utc(assignment_in.end_datetime, timezone(user_timezone))
-
-    await check_start_time_not_in_past(start_datetime=start_datetime_utc)
-    await check_end_time_not_in_past(end_datetime=end_datetime_utc)
+    await check_start_time_not_in_past(start_datetime=assignment_in.start_datetime)
+    await check_end_time_not_in_past(end_datetime=assignment_in.end_datetime)
     await check_end_time_is_after_start_time(
-        start_datetime=start_datetime_utc,
-        end_datetime=end_datetime_utc,
+        start_datetime=assignment_in.start_datetime,
+        end_datetime=assignment_in.end_datetime,
     )
 
     assignment = Assignment(
@@ -80,9 +72,11 @@ async def create_assignment(
         is_contest=assignment_in.is_contest,
         group_id=assignment_in.group_id,
         admin_id=user_id,
-        is_active=start_datetime_utc <= datetime.now(utc) <= end_datetime_utc,
-        start_datetime=start_datetime_utc,
-        end_datetime=end_datetime_utc,
+        is_active=assignment_in.start_datetime
+        <= get_current_utc_timestamp()
+        <= assignment_in.end_datetime,
+        start_datetime=assignment_in.start_datetime,
+        end_datetime=assignment_in.end_datetime,
     )
 
     session.add(assignment)
@@ -99,15 +93,14 @@ async def create_assignment(
         is_active=assignment.is_active,
         admin_id=assignment.admin_id,
         tasks=[],
-        start_datetime=assignment.start_datetime,
-        end_datetime=assignment.end_datetime,
+        start_datetime=assignment_in.start_datetime,
+        end_datetime=assignment_in.end_datetime,
     )
 
 
 async def get_assignment_by_id(
     session: AsyncSession,
     user_id: int,
-    user_timezone: str,
     assignment_id: int,
 ) -> AssignmentRead:
     await check_user_exists(session=session, user_id=user_id)
@@ -119,8 +112,6 @@ async def get_assignment_by_id(
     await check_user_in_group(
         session=session, user_id=user_id, group_id=assignment.group_id
     )
-
-    await check_timezone_is_valid(user_timezone=user_timezone)
 
     statement = (
         select(
@@ -178,8 +169,8 @@ async def get_assignment_by_id(
             for task in tasks
         ],
         is_active=assignment.is_active,
-        start_datetime=assignment.start_datetime.astimezone(timezone(user_timezone)),
-        end_datetime=assignment.end_datetime.astimezone(timezone(user_timezone)),
+        start_datetime=assignment.start_datetime,
+        end_datetime=assignment.end_datetime,
     )
 
 
@@ -259,7 +250,6 @@ async def get_user_assignments(
 async def update_assignment(
     session: AsyncSession,
     user_id: int,
-    user_timezone: str,
     assignment_id: int,
     assignment_update: AssignmentUpdate | AssignmentUpdatePartial,
     is_partial: bool = False,
@@ -280,23 +270,15 @@ async def update_assignment(
         session=session, user_id=user_id, group_id=assignment.group_id
     )
 
-    await check_timezone_is_valid(user_timezone=user_timezone)
-
     if "start_datetime" in assignment_update.model_dump(exclude_unset=is_partial):
-        start_datetime_utc = to_utc(
-            assignment_update.start_datetime, timezone(user_timezone)
+        await check_start_time_not_in_past(
+            start_datetime=assignment_update.start_datetime
         )
-
-        await check_start_time_not_in_past(start_datetime=start_datetime_utc)
-        assignment.start_datetime = start_datetime_utc
+        assignment.start_datetime = assignment_update.start_datetime
 
     if "end_datetime" in assignment_update.model_dump(exclude_unset=is_partial):
-        end_datetime_utc = to_utc(
-            assignment_update.end_datetime, timezone(user_timezone)
-        )
-
-        await check_end_time_not_in_past(end_datetime=end_datetime_utc)
-        assignment.end_datetime = end_datetime_utc
+        await check_end_time_not_in_past(end_datetime=assignment_update.end_datetime)
+        assignment.end_datetime = assignment_update.end_datetime
 
     await check_end_time_is_after_start_time(
         start_datetime=assignment.start_datetime,
@@ -338,8 +320,10 @@ async def update_assignment(
         is_contest=assignment.is_contest,
         tasks_count=assignment.tasks_count,
         user_completed_tasks_count=user_completed_tasks_count,
-        is_active=assignment.is_active,
         admin_id=assignment.admin_id,
+        is_active=assignment.start_datetime
+        <= get_current_utc_timestamp()
+        <= assignment.end_datetime,
         start_datetime=assignment.start_datetime,
         end_datetime=assignment.end_datetime,
         tasks=[
@@ -453,7 +437,9 @@ async def check_and_update_assignment_deadlines(session: AsyncSession):
     assignments = result.scalars().all()
     for assignment in assignments:
         assignment.is_active = (
-            assignment.start_datetime <= datetime.now(utc) <= assignment.end_datetime
+            assignment.start_datetime
+            <= get_current_utc_timestamp()
+            <= assignment.end_datetime
         )
     await session.commit()
 
@@ -461,7 +447,6 @@ async def check_and_update_assignment_deadlines(session: AsyncSession):
 async def copy_assignment_to_group(
     session: AsyncSession,
     user_id: int,
-    user_timezone: str,
     assignment_id: int,
     target_group_id: int,
 ) -> AssignmentRead:
@@ -545,8 +530,6 @@ async def copy_assignment_to_group(
             )
             for task in new_tasks
         ],
-        start_datetime=new_assignment.start_datetime.astimezone(
-            timezone(user_timezone)
-        ),
-        end_datetime=new_assignment.end_datetime.astimezone(timezone(user_timezone)),
+        start_datetime=new_assignment.start_datetime,
+        end_datetime=new_assignment.end_datetime,
     )

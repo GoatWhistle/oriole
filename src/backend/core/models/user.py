@@ -6,7 +6,6 @@ from .mixins.id_int_pk import IdIntPkMixin
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from .access_token import AccessToken
     from .user_profile import UserProfile
 
 
@@ -20,8 +19,5 @@ class User(Base, IdIntPkMixin):
     is_verified: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
     profile: Mapped["UserProfile"] = relationship(
-        back_populates="user", cascade="all, delete-orphan"
-    )
-    access_token: Mapped["AccessToken"] = relationship(
         back_populates="user", cascade="all, delete-orphan"
     )

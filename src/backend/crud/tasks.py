@@ -1,7 +1,4 @@
-from datetime import datetime
 from typing import Sequence
-
-from pytz import utc, timezone
 from sqlalchemy import select
 from sqlalchemy.engine import Result
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -11,7 +8,6 @@ from exceptions.task import (
     get_task_if_exists,
     check_counter_limit,
     check_task_is_already_correct,
-    check_timezone_is_valid,
     check_start_time_not_in_past,
     check_end_time_not_in_past,
     check_end_time_is_after_start_time,
@@ -42,13 +38,12 @@ from core.models import (
     UserReply,
     UserProfile,
 )
-from utils.utc_converter import to_utc
+from utils.time_manager import get_current_utc_timestamp
 
 
 async def create_task(
     session: AsyncSession,
     user_id: int,
-    user_timezone: str,
     task_in: TaskCreate,
 ) -> TaskRead:
     await check_user_exists(session=session, user_id=user_id)
@@ -69,24 +64,19 @@ async def create_task(
         group_id=assignment.group_id,
     )
 
-    await check_timezone_is_valid(user_timezone=user_timezone)
-
-    start_datetime_utc = to_utc(task_in.start_datetime, timezone(user_timezone))
-    end_datetime_utc = to_utc(task_in.end_datetime, timezone(user_timezone))
-
-    await check_start_time_not_in_past(start_datetime=start_datetime_utc)
-    await check_end_time_not_in_past(end_datetime=end_datetime_utc)
+    await check_start_time_not_in_past(start_datetime=task_in.start_datetime)
+    await check_end_time_not_in_past(end_datetime=task_in.end_datetime)
     await check_end_time_is_after_start_time(
-        start_datetime=start_datetime_utc,
-        end_datetime=end_datetime_utc,
+        start_datetime=task_in.start_datetime,
+        end_datetime=task_in.end_datetime,
     )
 
     await check_task_start_deadline_before_assignment_start(
-        task_start_deadline=start_datetime_utc,
+        task_start_deadline=task_in.start_datetime,
         assignment_start_deadline=assignment.start_datetime,
     )
     await check_task_end_deadline_after_assignment_end(
-        task_end_deadline=end_datetime_utc,
+        task_end_deadline=task_in.end_datetime,
         assignment_end_deadline=assignment.end_datetime,
     )
 
@@ -109,9 +99,11 @@ async def create_task(
         correct_answer=task_in.correct_answer,
         assignment_id=task_in.assignment_id,
         max_attempts=task_in.max_attempts,
-        is_active=start_datetime_utc <= datetime.now(utc) <= end_datetime_utc,
-        start_datetime=start_datetime_utc,
-        end_datetime=end_datetime_utc,
+        is_active=task_in.start_datetime
+        <= get_current_utc_timestamp()
+        <= task_in.end_datetime,
+        start_datetime=task_in.start_datetime,
+        end_datetime=task_in.end_datetime,
     )
 
     session.add(task)
@@ -148,7 +140,6 @@ async def create_task(
 async def get_task_by_id(
     session: AsyncSession,
     user_id: int,
-    user_timezone: str,
     task_id: int,
 ) -> TaskRead:
     await check_user_exists(session=session, user_id=user_id)
@@ -164,8 +155,6 @@ async def get_task_by_id(
         user_id=user_id,
         group_id=assignment.group_id,
     )
-
-    await check_timezone_is_valid(user_timezone=user_timezone)
 
     profile = await session.get(UserProfile, user_id)
 
@@ -196,8 +185,8 @@ async def get_task_by_id(
         user_attempts=user_reply.user_attempts if user_reply else 0,
         max_attempts=task.max_attempts,
         is_active=task.is_active,
-        start_datetime=task.start_datetime.astimezone(timezone(user_timezone)),
-        end_datetime=task.end_datetime.astimezone(timezone(user_timezone)),
+        start_datetime=task.start_datetime,
+        end_datetime=task.end_datetime,
     )
 
 
@@ -274,7 +263,6 @@ async def get_user_tasks(
 async def update_task(
     session: AsyncSession,
     user_id: int,
-    user_timezone: str,
     task_id: int,
     task_update: TaskUpdate | TaskUpdatePartial,
     is_partial: bool = False,
@@ -298,19 +286,13 @@ async def update_task(
         group_id=assignment.group_id,
     )
 
-    await check_timezone_is_valid(user_timezone=user_timezone)
-
     if "start_datetime" in task_update.model_dump(exclude_unset=is_partial):
-        start_datetime_utc = to_utc(task_update.start_datetime, timezone(user_timezone))
-
-        await check_start_time_not_in_past(start_datetime=start_datetime_utc)
-        task.start_datetime = start_datetime_utc
+        await check_start_time_not_in_past(start_datetime=task_update.start_datetime)
+        task.start_datetime = task_update.start_datetime
 
     if "end_datetime" in task_update.model_dump(exclude_unset=is_partial):
-        end_datetime_utc = to_utc(task_update.end_datetime, timezone(user_timezone))
-
-        await check_end_time_not_in_past(end_datetime=end_datetime_utc)
-        task.end_datetime = end_datetime_utc
+        await check_end_time_not_in_past(end_datetime=task_update.end_datetime)
+        task.end_datetime = task_update.end_datetime
 
     await check_end_time_is_after_start_time(
         start_datetime=task.start_datetime,
@@ -359,9 +341,11 @@ async def update_task(
         ),
         user_attempts=user_reply.user_attempts if user_reply else 0,
         max_attempts=task.max_attempts,
-        is_active=task.start_datetime <= datetime.now(utc) <= task.end_datetime,
-        start_datetime=task.start_datetime.astimezone(timezone(user_timezone)),
-        end_datetime=task.end_datetime.astimezone(timezone(user_timezone)),
+        is_active=task.start_datetime
+        <= get_current_utc_timestamp()
+        <= task.end_datetime,
+        start_datetime=task.start_datetime,
+        end_datetime=task.end_datetime,
     )
 
 
@@ -404,7 +388,6 @@ async def delete_task(
 async def try_to_complete_task(
     session: AsyncSession,
     user_id: int,
-    user_timezone: str,
     task_id: int,
     user_answer: str,
 ) -> TaskRead:
@@ -474,8 +457,6 @@ async def try_to_complete_task(
     await session.commit()
     await session.refresh(user_reply)
 
-    user_tz = timezone(user_timezone)
-
     return TaskRead(
         id=task.id,
         title=task.title,
@@ -484,9 +465,11 @@ async def try_to_complete_task(
         user_answer=user_answer,
         user_attempts=user_reply.user_attempts,
         max_attempts=task.max_attempts,
-        is_active=task.start_datetime <= datetime.now(utc) <= task.end_datetime,
-        start_datetime=task.start_datetime.astimezone(user_tz),
-        end_datetime=task.end_datetime.astimezone(user_tz),
+        is_active=task.start_datetime
+        <= get_current_utc_timestamp()
+        <= task.end_datetime,
+        start_datetime=task.start_datetime,
+        end_datetime=task.end_datetime,
     )
 
 
@@ -494,5 +477,68 @@ async def check_and_update_task_deadlines(session: AsyncSession):
     result = await session.execute(select(Task))
     tasks = result.scalars().all()
     for task in tasks:
-        task.is_active = task.start_datetime <= datetime.now(utc) <= task.end_datetime
+        task.is_active = (
+            task.start_datetime <= get_current_utc_timestamp() <= task.end_datetime
+        )
     await session.commit()
+
+
+async def copy_task_to_assignment(
+    session: AsyncSession,
+    user_id: int,
+    source_task_id: int,
+    target_assignment_id: int,
+) -> TaskRead:
+
+    await check_user_exists(session=session, user_id=user_id)
+
+    source_task = await get_task_if_exists(
+        session=session,
+        task_id=source_task_id,
+    )
+    source_assignment = await get_assignment_if_exists(
+        session=session, assignment_id=source_task.assignment_id
+    )
+
+    await check_admin_permission_in_group(
+        session=session,
+        user_id=user_id,
+        group_id=source_assignment.group_id,
+    )
+
+    target_assignment = await get_assignment_if_exists(
+        session=session, assignment_id=target_assignment_id
+    )
+    await check_admin_permission_in_group(
+        session=session,
+        user_id=user_id,
+        group_id=target_assignment.group_id,
+    )
+
+    new_task = Task(
+        title=source_task.title,
+        description=source_task.description,
+        correct_answer=source_task.correct_answer,
+        is_active=source_task.is_active,
+        assignment_id=target_assignment_id,
+        max_attempts=source_task.max_attempts,
+        start_datetime=source_task.start_datetime,
+        end_datetime=source_task.end_datetime,
+    )
+
+    session.add(new_task)
+    await session.commit()
+    await session.refresh(new_task)
+
+    return TaskRead(
+        id=new_task.id,
+        title=new_task.title,
+        description=new_task.description,
+        user_answer="",
+        is_correct=False,
+        user_attempts=0,
+        max_attempts=new_task.max_attempts,
+        is_active=new_task.is_active,
+        start_datetime=new_task.start_datetime,
+        end_datetime=new_task.end_datetime,
+    )
