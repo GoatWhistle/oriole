@@ -38,6 +38,7 @@ from core.models import (
     UserReply,
 )
 from utils.code_generator import generate_alphanum_code
+from utils.time_manager import get_current_utc_timestamp
 
 
 async def create_group(
@@ -398,11 +399,12 @@ async def invite_user(
     )
 
     code = generate_alphanum_code()
+    code += "1" if single_use else "0"
 
     invite = GroupInvite(
         code=code,
         group_id=group_id,
-        expires_at=datetime.now() + timedelta(minutes=expires_minutes),
+        expires_at=get_current_utc_timestamp(offset_minutes=expires_minutes),
         is_active=True,
     )
 
@@ -411,7 +413,6 @@ async def invite_user(
 
     base_url = str(request.base_url)
     base_url = base_url[:-1] if base_url.endswith("/") else base_url
-    code += "1" if single_use else "0"
 
     return {"link": urljoin(base_url, f"/groups/join/{code}")}
 
@@ -424,7 +425,7 @@ async def join_by_link(
 
     await check_user_exists(session=session, user_id=user_id)
     single_use = invite_code[-1] == "1"
-    invite = await validate_invite_code(session, invite_code[:-1])
+    invite = await validate_invite_code(session, invite_code)
     group_id = invite.group_id
 
     await check_user_in_group(session, user_id, group_id, is_correct=False)
