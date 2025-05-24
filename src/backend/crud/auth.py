@@ -425,7 +425,7 @@ async def reset_password(
         email=user_from_db.email,
         token=token,
         html_file="password_reset_warning.html",
-        address_type="reset_password_redirect",
+        address_type="reset_password",
     )
 
     return {"message": "Password reset link has been sent to your email"}
@@ -460,7 +460,7 @@ async def forgot_password(
         email=user_from_db.email,
         token=token,
         html_file="forgot_password_warning.html",
-        address_type="forgot_password_redirect",
+        address_type="forgot_password",
     )
 
     return {"message": "Password reset link has been sent to your email"}
