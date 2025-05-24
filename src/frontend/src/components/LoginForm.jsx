@@ -49,6 +49,7 @@ const LoginForm = () => {
   };
 
   const handleForgotPassword = async () => {
+    try {
       const email = form.getFieldValue('email');
 
       if (!email) {
@@ -58,49 +59,50 @@ const LoginForm = () => {
 
       setForgotPasswordLoading(true);
 
-      try {
-        // Отправляем как JSON-объект, а не как строку
-        const response = await axios.post(
-          '/api/v1/auth/forgot_password',
-          { email },  // Ключевое изменение: объект с полем email
-          {
-            withCredentials: true
+      // Отправляем email как параметр запроса в URL
+      const response = await axios.post(
+        `/api/v1/auth/forgot_password?email=${encodeURIComponent(email)}`,
+        null, // Тело запроса пустое
+        {
+          withCredentials: true,
+          headers: {
+            'Content-Type': 'application/json',
           }
-        );
-
-        message.success(response.data.message || 'Инструкции по восстановлению пароля отправлены на ваш email');
-
-      } catch (error) {
-        console.error('Ошибка восстановления пароля:', error);
-
-        if (axios.isAxiosError(error)) {
-          // Обработка ошибок Axios
-          if (error.response) {
-            switch (error.response.status) {
-              case 400:
-                message.error('Неверный формат email');
-                break;
-              case 404:
-                message.error('Пользователь с таким email не найден');
-                break;
-              case 429:
-                message.error('Слишком много запросов. Попробуйте позже');
-                break;
-              default:
-                message.error(error.response.data?.detail || 'Ошибка сервера');
-            }
-          } else if (error.request) {
-            message.error('Нет ответа от сервера');
-          } else {
-            message.error('Ошибка при настройке запроса');
-          }
-        } else {
-          message.error('Неизвестная ошибка');
         }
-      } finally {
-        setForgotPasswordLoading(false);
+      );
+
+      message.success(response.data.message || 'Ссылка для сброса пароля отправлена на ваш email');
+
+    } catch (error) {
+      console.error('Ошибка восстановления пароля:', error);
+
+      if (error.response) {
+        switch (error.response.status) {
+          case 400:
+            message.error('Неверный формат email');
+            break;
+          case 404:
+            message.error('Пользователь с таким email не найден');
+            break;
+          case 422:
+            message.error('Ошибка валидации данных: ' +
+              (error.response.data.detail || 'неверный формат email'));
+            break;
+          case 429:
+            message.error('Слишком много запросов. Попробуйте позже');
+            break;
+          default:
+            message.error(error.response.data?.detail || 'Ошибка сервера');
+        }
+      } else if (error.request) {
+        message.error('Нет ответа от сервера');
+      } else {
+        message.error('Ошибка при настройке запроса');
       }
-    };
+    } finally {
+      setForgotPasswordLoading(false);
+    }
+  };
 
   return (
     <div style={{
@@ -130,7 +132,10 @@ const LoginForm = () => {
             name="email"
             rules={[
               { required: true, message: 'Пожалуйста, введите ваш email!' },
-              { type: 'email', message: 'Введите корректный email адрес' },
+              {
+                type: 'email',
+                message: 'Введите корректный email адрес'
+              },
             ]}
           >
             <Input placeholder="example@mail.com" size="large" />
@@ -149,9 +154,14 @@ const LoginForm = () => {
           <Form.Item>
             <Row justify="space-between" align="middle">
               <Col>
-                <a onClick={handleForgotPassword} disabled={forgotPasswordLoading}>
+                <Button
+                  type="link"
+                  onClick={handleForgotPassword}
+                  loading={forgotPasswordLoading}
+                  style={{ padding: 0 }}
+                >
                   {forgotPasswordLoading ? 'Отправка...' : 'Забыли пароль?'}
-                </a>
+                </Button>
               </Col>
             </Row>
           </Form.Item>
