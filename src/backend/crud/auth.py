@@ -191,9 +191,9 @@ async def refresh_tokens(
 
         response.set_cookie(
             key="access_token",
-            value=f"Bearer {access_token}",
+            value=access_token,
             httponly=True,
-            secure=False,  # TODO: потом поставить на True!!!
+            secure=True,
             samesite="lax",
             max_age=settings.auth_jwt.access_token_lifetime_seconds,
         )
@@ -202,8 +202,8 @@ async def refresh_tokens(
             key="refresh_token",
             value=refresh_token,
             httponly=True,
-            secure=False,  # TODO: потом поставить на True!!!
-            samesite="lax",
+            secure=True,
+            samesite="strict",
             path="/",
             max_age=settings.auth_jwt.refresh_token_lifetime_seconds,
         )
@@ -321,9 +321,9 @@ async def login_user(
 
     response.set_cookie(
         key="access_token",
-        value=f"Bearer {access_token}",
+        value=access_token,
         httponly=True,
-        secure=False,  # TODO: потом поставить на True!!!
+        secure=True,
         samesite="lax",
         max_age=settings.auth_jwt.access_token_lifetime_seconds,
     )
@@ -332,9 +332,9 @@ async def login_user(
         key="refresh_token",
         value=refresh_token,
         httponly=True,
-        secure=False,  # TODO: потом поставить на True!!!
-        samesite="lax",  # strict
-        path="/",  # auth/refresh
+        secure=True,
+        samesite="strict",
+        path="/",
         max_age=settings.auth_jwt.refresh_token_lifetime_seconds,
     )
 
