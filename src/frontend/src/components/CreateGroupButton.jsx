@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button, Modal, Form, Input, message } from 'antd';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
@@ -6,8 +6,27 @@ import { useNavigate } from 'react-router-dom';
 const CreateGroupButton = () => {
   const [open, setOpen] = useState(false);
   const [confirmLoading, setConfirmLoading] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [loadingAuthCheck, setLoadingAuthCheck] = useState(true);
   const [form] = Form.useForm();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        await axios.get('api/v1/auth/check-auth', {
+          withCredentials: true,
+        });
+        setIsAuthenticated(true);
+      } catch (error) {
+        setIsAuthenticated(false);
+      } finally {
+        setLoadingAuthCheck(false);
+      }
+    };
+
+    checkAuth();
+  }, []);
 
   const showModal = () => {
     setOpen(true);
@@ -38,6 +57,14 @@ const CreateGroupButton = () => {
       window.location.reload();
     }
   };
+
+  if (loadingAuthCheck) {
+    return null; // или можно вернуть лоадер
+  }
+
+  if (!isAuthenticated) {
+    return null;
+  }
 
   return (
     <>
