@@ -22,6 +22,7 @@ const UserProfile = () => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
+  const [resetLoading, setResetLoading] = useState(false);
   const [form] = Form.useForm();
   const navigate = useNavigate();
 
@@ -42,6 +43,24 @@ const UserProfile = () => {
 
     fetchUserData();
   }, []);
+
+  const handleResetPassword = async () => {
+    try {
+      setResetLoading(true);
+      const response = await axios.post(
+        '/api/v1/auth/reset_password',
+        {},
+        { withCredentials: true }
+      );
+
+      message.success(response.data.message || 'Ссылка для сброса пароля отправлена на ваш email');
+    } catch (error) {
+      console.error('Ошибка при запросе сброса пароля:', error);
+      message.error(error.response?.data?.detail || 'Не удалось отправить ссылку для сброса пароля');
+    } finally {
+      setResetLoading(false);
+    }
+  };
 
   const handleEdit = () => {
     form.setFieldsValue({
@@ -95,8 +114,8 @@ const UserProfile = () => {
   const handleDeleteAccount = async () => {
     try {
       await axios.delete('/api/v1/users', {
-            withCredentials: true
-          });
+        withCredentials: true
+      });
       message.success('Аккаунт успешно удален');
       navigate('/');
     } catch (error) {
@@ -169,9 +188,19 @@ const UserProfile = () => {
               <Text style={{ marginLeft: '8px' }}>{user.profile.user_id}</Text>
             </div>
 
-            <div style={{ marginBottom: '24px' }}>
-              <Text strong style={{ fontSize: '16px' }}>Email:</Text>
-              <Text style={{ marginLeft: '8px' }}>{user.email}</Text>
+            <div style={{ marginBottom: '24px', display: 'flex', alignItems: 'center' }}>
+              <div style={{ flex: 1 }}>
+                <Text strong style={{ fontSize: '16px' }}>Email:</Text>
+                <Text style={{ marginLeft: '8px' }}>{user.email}</Text>
+              </div>
+              <Button
+                type="link"
+                onClick={handleResetPassword}
+                loading={resetLoading}
+                style={{ padding: 0 }}
+              >
+                Сбросить пароль
+              </Button>
             </div>
 
             <Divider />
@@ -198,15 +227,15 @@ const UserProfile = () => {
                 Редактировать профиль
               </Button>
               <Popconfirm
-                  title={`Вы уверены, что хотите удалить аккаунт? Это действие нельзя отменить!`}
-                  onConfirm={handleDeleteAccount}
-                  okText="Да, удалить"
-                  cancelText="Отмена"
-                  okButtonProps={{ danger: true }}
+                title={`Вы уверены, что хотите удалить аккаунт? Это действие нельзя отменить!`}
+                onConfirm={handleDeleteAccount}
+                okText="Да, удалить"
+                cancelText="Отмена"
+                okButtonProps={{ danger: true }}
               >
-                  <Button danger icon={<CloseOutlined />}>
-                      Удалить аккаунт
-                  </Button>
+                <Button danger icon={<CloseOutlined />} style={{ marginLeft: '16px' }}>
+                  Удалить аккаунт
+                </Button>
               </Popconfirm>
               <Button onClick={handleLogout} style={{ marginLeft: '16px' }}>
                 Выйти
