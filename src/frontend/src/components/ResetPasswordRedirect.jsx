@@ -23,7 +23,7 @@ const ResetPasswordRedirect = () => {
       setLoading(true);
 
       const response = await axios.get(
-        `/api/v1/auth/reset_password_redirect/${token}`,
+        `/api/v1/verify/reset_password_redirect/${token}`,
         {
           params: { new_password: newPassword },
           withCredentials: true

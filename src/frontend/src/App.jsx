@@ -26,8 +26,8 @@ export default function App() {
         <Route path="/assignment/:assignment_id" element={<Assignment />} />
         <Route path="/group/:group_id" element={<Group />} />
         <Route path="/groups/join/:invite_code" element={<JoinGroup />} />
-        <Route path="/forgot-password/:token" element={<ForgotPassword />} />
-        <Route path="/reset-password/:token" element={<ResetPassword />} />
+        <Route path="/forgot_password_redirect/:token" element={<ForgotPassword />} />
+        <Route path="/reset_password_redirect/:token" element={<ResetPassword />} />
       </Routes>
     </div>
   );
