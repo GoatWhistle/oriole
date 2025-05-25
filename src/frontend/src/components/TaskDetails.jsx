@@ -26,6 +26,7 @@ import {
   ArrowLeftOutlined,
   DeleteOutlined
 } from '@ant-design/icons';
+import dayjs from 'dayjs';
 
 const { Title, Text, Paragraph } = Typography;
 const { TextArea } = Input;
@@ -39,6 +40,8 @@ const TaskDetails = () => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [userRole, setUserRole] = useState(null);
     const [isEditModalVisible, setIsEditModalVisible] = useState(false);
+    const [showResult, setShowResult] = useState(false);
+    const [resultCorrect, setResultCorrect] = useState(null);
     const [form] = Form.useForm();
     const [editForm] = Form.useForm();
 
@@ -59,12 +62,10 @@ const TaskDetails = () => {
                 const taskData = await response.json();
                 setTask(taskData);
 
-                // Устанавливаем текущий ответ пользователя в форму
                 form.setFieldsValue({
                     answer: taskData.user_answer || ''
                 });
 
-                // Получаем роль пользователя в группе
                 const assignmentResponse = await fetch(`/api/v1/assignments/${taskData.assignment_id}/`, {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('access_token')}`
@@ -99,26 +100,36 @@ const TaskDetails = () => {
         try {
             setIsSubmitting(true);
             const values = await form.validateFields();
+            const userAnswer = values.answer;
 
-            const response = await fetch(`/api/v1/tasks/${task_id}/submit/`, {
-                method: 'POST',
+            const response = await fetch(`/api/v1/tasks/${task_id}/complete/`, {
+                method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${localStorage.getItem('access_token')}`
                 },
                 body: JSON.stringify({
-                    user_answer: values.answer
+                    user_answer: userAnswer
                 })
             });
 
             if (!response.ok) {
-                throw new Error('Не удалось отправить ответ');
+                throw new Error('Не удалось отправить ответ на проверку');
             }
 
             const result = await response.json();
-            message.success('Ответ успешно отправлен');
 
-            // Обновляем данные задания после отправки ответа
+            // Показываем результат проверки
+            setResultCorrect(result.is_correct);
+            setShowResult(true);
+
+            if (result.is_correct) {
+                message.success('Правильный ответ!');
+            } else {
+                message.error('Неправильный ответ! Попробуйте еще раз.');
+            }
+
+            // Обновляем данные задания
             const updatedResponse = await fetch(`/api/v1/tasks/${task_id}/`, {
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('access_token')}`
@@ -289,6 +300,15 @@ const TaskDetails = () => {
                         />
                     </Form.Item>
 
+                    {showResult && (
+                        <Alert
+                            message={resultCorrect ? 'Правильный ответ!' : 'Неправильный ответ!'}
+                            type={resultCorrect ? 'success' : 'error'}
+                            showIcon
+                            style={{ marginBottom: 16 }}
+                        />
+                    )}
+
                     {task.user_attempts >= task.max_attempts ? (
                         <Alert
                             message="Вы исчерпали все попытки для этого задания"
@@ -333,7 +353,6 @@ const TaskDetails = () => {
                 )}
             </Card>
 
-            {/* Модальное окно редактирования задания */}
             <Modal
                 title="Редактирование задания"
                 visible={isEditModalVisible}
