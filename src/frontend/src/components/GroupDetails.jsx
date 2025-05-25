@@ -294,8 +294,8 @@ const GroupDetails = () => {
                 description: values.description || "",
                 is_contest: Boolean(values.is_contest),
                 group_id: parseInt(group_id),
-                start_datetime: values.dateRange[0].toISOString(),
-                end_datetime: values.dateRange[1].toISOString()
+                start_datetime: encodeURIComponent(values.dateRange[0].toISOString()),
+                end_datetime: encodeURIComponent(values.dateRange[1].toISOString())
             };
 
             const response = await fetch('/api/v1/assignments/', {
