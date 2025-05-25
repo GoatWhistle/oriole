@@ -14,7 +14,8 @@ import {
   Input,
   InputNumber,
   DatePicker,
-  Space
+  Space,
+  Popconfirm
 } from 'antd';
 import dayjs from 'dayjs';
 import { useAuth } from '../context/AuthContext';
@@ -31,7 +32,9 @@ const AssignmentDetails = () => {
     const [error, setError] = useState(null);
     const [userData, setUserData] = useState(null);
     const [isModalVisible, setIsModalVisible] = useState(false);
+    const [isEditModalVisible, setIsEditModalVisible] = useState(false);
     const [form] = Form.useForm();
+    const [editForm] = Form.useForm();
 
     useEffect(() => {
         const checkAuthentication = async () => {
@@ -126,6 +129,55 @@ const AssignmentDetails = () => {
         }
     };
 
+    const handleDeleteAssignment = async () => {
+        try {
+            const response = await fetch(`/api/v1/assignments/${assignment_id}/`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${currentUser.token}`
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Ошибка при удалении модуля');
+            }
+
+            message.success('Модуль успешно удален!');
+            navigate('/assignments'); // Перенаправляем на страницу со списком модулей
+        } catch (err) {
+            message.error(err.message);
+        }
+    };
+
+    const handleUpdateAssignment = async (values) => {
+        try {
+            const response = await fetch(`/api/v1/assignments/${assignment_id}/`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${currentUser.token}`
+                },
+                body: JSON.stringify({
+                    ...values,
+                    start_datetime: values.dateRange?.[0]?.toISOString(),
+                    end_datetime: values.dateRange?.[1]?.toISOString()
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error('Ошибка при обновлении модуля');
+            }
+
+            const updatedAssignment = await response.json();
+            setAssignment(updatedAssignment);
+            message.success('Модуль успешно обновлен!');
+            setIsEditModalVisible(false);
+            editForm.resetFields();
+        } catch (err) {
+            message.error(err.message);
+        }
+    };
+
     if (loading) return <div>Загрузка задания...</div>;
     if (error) return <div>Ошибка: {error}</div>;
     if (!assignment) return <div>Задание не найдено</div>;
@@ -151,12 +203,41 @@ const AssignmentDetails = () => {
                 title={
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <Title level={2} style={{ margin: 0 }}>{assignment.title}</Title>
-                        <Button
-                            type="primary"
-                            onClick={() => setIsModalVisible(true)}
-                        >
-                            Создать задание
-                        </Button>
+                        <Space>
+                            <Button
+                                type="primary"
+                                onClick={() => setIsModalVisible(true)}
+                            >
+                                Создать задание
+                            </Button>
+                            <Button
+                                type="default"
+                                onClick={() => {
+                                    setIsEditModalVisible(true);
+                                    editForm.setFieldsValue({
+                                        title: assignment.title,
+                                        description: assignment.description,
+                                        is_contest: assignment.is_contest,
+                                        dateRange: [
+                                            dayjs(assignment.start_datetime),
+                                            dayjs(assignment.end_datetime)
+                                        ]
+                                    });
+                                }}
+                            >
+                                Редактировать модуль
+                            </Button>
+                            <Popconfirm
+                                title="Вы уверены, что хотите удалить этот модуль?"
+                                onConfirm={handleDeleteAssignment}
+                                okText="Да"
+                                cancelText="Нет"
+                            >
+                                <Button danger>
+                                    Удалить модуль
+                                </Button>
+                            </Popconfirm>
+                        </Space>
                     </div>
                 }
             >
@@ -227,6 +308,7 @@ const AssignmentDetails = () => {
                 />
             </Card>
 
+            {/* Модальное окно создания задачи */}
             <Modal
                 title="Создание нового задания"
                 visible={isModalVisible}
@@ -285,6 +367,63 @@ const AssignmentDetails = () => {
                             style={{ width: '100%' }}
                             disabledDate={(current) => {
                                 // Запрещаем выбирать даты раньше текущей
+                                return current && current < dayjs().startOf('day');
+                            }}
+                        />
+                    </Form.Item>
+                </Form>
+            </Modal>
+
+            {/* Модальное окно редактирования модуля */}
+            <Modal
+                title="Редактирование модуля"
+                visible={isEditModalVisible}
+                onCancel={() => {
+                    setIsEditModalVisible(false);
+                    editForm.resetFields();
+                }}
+                onOk={() => editForm.submit()}
+                okText="Сохранить"
+                cancelText="Отмена"
+            >
+                <Form
+                    form={editForm}
+                    layout="vertical"
+                    onFinish={handleUpdateAssignment}
+                >
+                    <Form.Item
+                        name="title"
+                        label="Название модуля"
+                        rules={[{ required: true, message: 'Введите название модуля' }]}
+                    >
+                        <Input />
+                    </Form.Item>
+
+                    <Form.Item
+                        name="description"
+                        label="Описание модуля"
+                        rules={[{ required: true, message: 'Введите описание модуля' }]}
+                    >
+                        <TextArea rows={4} />
+                    </Form.Item>
+
+                    <Form.Item
+                        name="is_contest"
+                        label="Тип модуля"
+                        valuePropName="checked"
+                    >
+                        <Input type="checkbox" /> Конкурс
+                    </Form.Item>
+
+                    <Form.Item
+                        name="dateRange"
+                        label="Срок выполнения"
+                        rules={[{ required: true, message: 'Укажите срок выполнения' }]}
+                    >
+                        <DatePicker.RangePicker
+                            showTime
+                            style={{ width: '100%' }}
+                            disabledDate={(current) => {
                                 return current && current < dayjs().startOf('day');
                             }}
                         />
