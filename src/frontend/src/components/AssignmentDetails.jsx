@@ -1,36 +1,130 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
-import { Card, Typography, Divider, Progress, List, message } from 'antd';
+import { useParams, useNavigate } from 'react-router-dom';
+import {
+  Card,
+  Typography,
+  Divider,
+  Progress,
+  List,
+  message,
+  Tag,
+  Button,
+  Modal,
+  Form,
+  Input,
+  InputNumber,
+  DatePicker,
+  Space
+} from 'antd';
+import dayjs from 'dayjs';
+import { useAuth } from '../context/AuthContext';
 
 const { Title, Text, Paragraph } = Typography;
+const { TextArea } = Input;
 
 const AssignmentDetails = () => {
     const { assignment_id } = useParams();
+    const navigate = useNavigate();
+    const { currentUser, logout } = useAuth();
     const [assignment, setAssignment] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [userData, setUserData] = useState(null);
+    const [isModalVisible, setIsModalVisible] = useState(false);
+    const [form] = Form.useForm();
 
     useEffect(() => {
-        const fetchAssignment = async () => {
+        const checkAuthentication = async () => {
             try {
-                const response = await fetch(`/api/v1/assignments/${assignment_id}/`);
+                // Проверяем аутентификацию
+                const authResponse = await fetch('/api/v1/auth/check-auth', {
+                    headers: {
+                        'Authorization': `Bearer ${currentUser.token}`
+                    }
+                });
 
-                if (!response.ok) {
+                if (!authResponse.ok) {
+                    throw new Error('Ошибка аутентификации');
+                }
+
+                const authData = await authResponse.json();
+                setUserData(authData);
+
+                // Загружаем данные задания
+                const assignmentResponse = await fetch(`/api/v1/assignments/${assignment_id}/`, {
+                    headers: {
+                        'Authorization': `Bearer ${currentUser.token}`
+                    }
+                });
+
+                if (!assignmentResponse.ok) {
                     throw new Error('Не удалось загрузить информацию о задании');
                 }
 
-                const data = await response.json();
-                setAssignment(data);
+                const assignmentData = await assignmentResponse.json();
+                setAssignment(assignmentData);
                 setLoading(false);
             } catch (err) {
                 setError(err.message);
                 setLoading(false);
                 message.error(err.message);
+
+                if (err.message.includes('аутентификации')) {
+                    logout();
+                    navigate('/login');
+                }
             }
         };
 
-        fetchAssignment();
-    }, [assignment_id]);
+        if (currentUser?.token) {
+            checkAuthentication();
+        } else {
+            setError('Пользователь не аутентифицирован');
+            setLoading(false);
+            navigate('/login');
+        }
+    }, [assignment_id, currentUser, navigate, logout]);
+
+    const handleCreateTask = async (values) => {
+        try {
+            const response = await fetch('/api/v1/tasks/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${currentUser.token}`
+                },
+                body: JSON.stringify({
+                    ...values,
+                    assignment_id: parseInt(assignment_id),
+                    start_datetime: values.dateRange[0].toISOString(),
+                    end_datetime: values.dateRange[1].toISOString()
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error('Ошибка при создании задания');
+            }
+
+            const task = await response.json();
+            message.success('Задание успешно создано!');
+            setIsModalVisible(false);
+            form.resetFields();
+
+            // Обновляем список заданий
+            const updatedResponse = await fetch(`/api/v1/assignments/${assignment_id}/`, {
+                headers: {
+                    'Authorization': `Bearer ${currentUser.token}`
+                }
+            });
+            const updatedData = await updatedResponse.json();
+            setAssignment(updatedData);
+
+            // Переходим к созданному заданию
+            navigate(`/tasks/${task.id}`);
+        } catch (err) {
+            message.error(err.message);
+        }
+    };
 
     if (loading) return <div>Загрузка задания...</div>;
     if (error) return <div>Ошибка: {error}</div>;
@@ -40,11 +134,50 @@ const AssignmentDetails = () => {
         ? Math.round((assignment.user_completed_tasks_count / assignment.tasks_count) * 100)
         : 0;
 
+    const startDate = dayjs(assignment.start_datetime).format('DD.MM.YYYY HH:mm');
+    const endDate = dayjs(assignment.end_datetime).format('DD.MM.YYYY HH:mm');
+
     return (
         <div style={{ padding: '24px' }}>
-            <Card>
-                <Title level={2}>{assignment.title}</Title>
+            {userData && (
+                <div style={{ marginBottom: '16px', textAlign: 'right' }}>
+                    <Text strong>
+                        {userData.profile.surname} {userData.profile.name}
+                    </Text>
+                </div>
+            )}
+
+            <Card
+                title={
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <Title level={2} style={{ margin: 0 }}>{assignment.title}</Title>
+                        <Button
+                            type="primary"
+                            onClick={() => setIsModalVisible(true)}
+                        >
+                            Создать задание
+                        </Button>
+                    </div>
+                }
+            >
                 <Paragraph>{assignment.description}</Paragraph>
+
+                <div style={{ margin: '16px 0' }}>
+                    <Tag color={assignment.is_active ? 'green' : 'red'}>
+                        {assignment.is_active ? 'Активно' : 'Неактивно'}
+                    </Tag>
+                    <Tag color={assignment.is_contest ? 'orange' : 'blue'}>
+                        {assignment.is_contest ? 'Конкурс' : 'Обычное задание'}
+                    </Tag>
+                </div>
+
+                <Divider />
+
+                <Text strong>Сроки выполнения:</Text>
+                <Paragraph>
+                    Начало: {startDate}<br />
+                    Окончание: {endDate}
+                </Paragraph>
 
                 <Divider />
 
@@ -69,20 +202,95 @@ const AssignmentDetails = () => {
                                 title={task.title}
                                 style={{ width: '100%' }}
                                 extra={
-                                    task.is_correct ?
-                                        <Text type="success">Выполнено</Text> :
-                                        <Text type="warning">В процессе</Text>
+                                    <div>
+                                        {task.is_correct !== undefined && (
+                                            task.is_correct ?
+                                                <Tag color="success">Выполнено</Tag> :
+                                                <Tag color="warning">Не выполнено</Tag>
+                                        )}
+                                        <Tag color={task.is_active ? 'green' : 'red'}>
+                                            {task.is_active ? 'Активна' : 'Неактивна'}
+                                        </Tag>
+                                    </div>
                                 }
                             >
                                 <Paragraph>{task.description}</Paragraph>
-                                <Text type={task.is_active ? 'success' : 'danger'}>
-                                    {task.is_active ? 'Активна' : 'Неактивна'}
-                                </Text>
+                                <Button
+                                    type="primary"
+                                    onClick={() => navigate(`/tasks/${task.id}`)}
+                                >
+                                    Перейти к задаче
+                                </Button>
                             </Card>
                         </List.Item>
                     )}
                 />
             </Card>
+
+            <Modal
+                title="Создание нового задания"
+                visible={isModalVisible}
+                onCancel={() => {
+                    setIsModalVisible(false);
+                    form.resetFields();
+                }}
+                onOk={() => form.submit()}
+                okText="Создать"
+                cancelText="Отмена"
+            >
+                <Form
+                    form={form}
+                    layout="vertical"
+                    onFinish={handleCreateTask}
+                >
+                    <Form.Item
+                        name="title"
+                        label="Название задания"
+                        rules={[{ required: true, message: 'Введите название задания' }]}
+                    >
+                        <Input />
+                    </Form.Item>
+
+                    <Form.Item
+                        name="description"
+                        label="Описание задания"
+                        rules={[{ required: true, message: 'Введите описание задания' }]}
+                    >
+                        <TextArea rows={4} />
+                    </Form.Item>
+
+                    <Form.Item
+                        name="correct_answer"
+                        label="Правильный ответ"
+                        rules={[{ required: true, message: 'Введите правильный ответ' }]}
+                    >
+                        <Input />
+                    </Form.Item>
+
+                    <Form.Item
+                        name="max_attempts"
+                        label="Максимальное количество попыток"
+                        rules={[{ required: true, message: 'Укажите количество попыток' }]}
+                    >
+                        <InputNumber min={1} style={{ width: '100%' }} />
+                    </Form.Item>
+
+                    <Form.Item
+                        name="dateRange"
+                        label="Срок выполнения"
+                        rules={[{ required: true, message: 'Укажите срок выполнения' }]}
+                    >
+                        <DatePicker.RangePicker
+                            showTime
+                            style={{ width: '100%' }}
+                            disabledDate={(current) => {
+                                // Запрещаем выбирать даты раньше текущей
+                                return current && current < dayjs().startOf('day');
+                            }}
+                        />
+                    </Form.Item>
+                </Form>
+            </Modal>
         </div>
     );
 };
