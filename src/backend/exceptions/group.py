@@ -7,7 +7,7 @@ from sqlalchemy.orm import Mapped
 from core.models import Account, Group
 from core.models.group_invite import GroupInvite
 from core.schemas.account import AccountRole
-from utils.time_manager import get_current_utc_timestamp
+from utils.time_manager import get_current_utc
 
 
 async def get_group_if_exists(
@@ -128,7 +128,7 @@ async def check_invite_active(
 async def check_invite_not_expired(
     invite: GroupInvite,
 ) -> None:
-    if invite.expires_at < get_current_utc_timestamp() :
+    if invite.expires_at < get_current_utc() :
         raise HTTPException(
             status_code=status.HTTP_410_GONE,
             detail="Invite code has expired"
@@ -157,7 +157,7 @@ async def validate_invite_code(
             detail="Invite is no longer active"
         )
 
-    if invite.expires_at < get_current_utc_timestamp() :
+    if invite.expires_at < get_current_utc() :
         invite.is_active = False
         await session.commit()
         raise HTTPException(

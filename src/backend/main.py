@@ -3,12 +3,14 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+
 from core.events import lifespan
 from core.config import settings
 from core.redis import AutoCacheMiddleware
 from core.logging import LoggingMiddleware
 
 from api import router as api_router
+
 
 app = FastAPI(lifespan=lifespan)
 
@@ -32,9 +34,11 @@ app.include_router(
     api_router,
 )
 
+
 @app.get("/api/v1/ping")
 def ping():
     return {"message": "pong"}
+
 
 if __name__ == "__main__":
     uvicorn.run(

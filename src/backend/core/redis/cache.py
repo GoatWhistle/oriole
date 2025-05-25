@@ -13,7 +13,9 @@ class AutoCacheMiddleware(BaseHTTPMiddleware):
 
     def make_cache_key(self, request: Request) -> str:
         query = str(sorted(request.query_params.items()))
-        return "cache:" + hashlib.sha256((request.url.path + query).encode()).hexdigest()
+        return (
+            "cache:" + hashlib.sha256((request.url.path + query).encode()).hexdigest()
+        )
 
     def make_tag_key(self, path: str) -> str:
         path = path.replace("/api/v1", "")
@@ -36,9 +38,11 @@ class AutoCacheMiddleware(BaseHTTPMiddleware):
         except Exception as e:
             print(f"Redis get error: {e}")
 
-
     def is_excluded(self, path: str) -> bool:
-        return any(path.startswith(f"/api/v1/{ex}") or path.startswith(f"{ex}") for ex in self.exclude_paths)
+        return any(
+            path.startswith(f"/api/v1/{ex}") or path.startswith(f"{ex}")
+            for ex in self.exclude_paths
+        )
 
     async def dispatch(self, request: Request, call_next):
         method = request.method.upper()
@@ -68,8 +72,12 @@ class AutoCacheMiddleware(BaseHTTPMiddleware):
             full_body = b"".join(body)
 
             await self.cache_set(cache_key, tag_key, full_body.decode())
-            return Response(content=full_body, status_code=response.status_code,
-                            headers=dict(response.headers), media_type="application/json")
+            return Response(
+                content=full_body,
+                status_code=response.status_code,
+                headers=dict(response.headers),
+                media_type="application/json",
+            )
 
         elif method in {"POST", "PUT", "DELETE", "PATCH"}:
             await self.invalidate_tag(tag_key)

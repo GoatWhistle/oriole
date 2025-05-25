@@ -1,4 +1,3 @@
-from datetime import datetime, timedelta
 from typing import Sequence
 from fastapi import Request
 from sqlalchemy import select, func, delete
@@ -38,7 +37,7 @@ from core.models import (
     UserReply,
 )
 from utils.code_generator import generate_alphanum_code
-from utils.time_manager import get_current_utc_timestamp
+from utils.time_manager import get_current_utc
 
 
 async def create_group(
@@ -404,7 +403,7 @@ async def invite_user(
     invite = GroupInvite(
         code=code,
         group_id=group_id,
-        expires_at=get_current_utc_timestamp(offset_minutes=expires_minutes),
+        expires_at=get_current_utc(offset_minutes=expires_minutes),
         is_active=True,
     )
 

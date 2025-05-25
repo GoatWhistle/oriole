@@ -37,8 +37,9 @@ from core.models import (
     Account,
     UserReply,
     UserProfile,
+    db_helper,
 )
-from utils.time_manager import get_current_utc_timestamp
+from utils.time_manager import get_current_utc
 
 
 async def create_task(
@@ -99,9 +100,7 @@ async def create_task(
         correct_answer=task_in.correct_answer,
         assignment_id=task_in.assignment_id,
         max_attempts=task_in.max_attempts,
-        is_active=task_in.start_datetime
-        <= get_current_utc_timestamp()
-        <= task_in.end_datetime,
+        is_active=task_in.start_datetime <= get_current_utc() <= task_in.end_datetime,
         start_datetime=task_in.start_datetime,
         end_datetime=task_in.end_datetime,
     )
@@ -341,9 +340,7 @@ async def update_task(
         ),
         user_attempts=user_reply.user_attempts if user_reply else 0,
         max_attempts=task.max_attempts,
-        is_active=task.start_datetime
-        <= get_current_utc_timestamp()
-        <= task.end_datetime,
+        is_active=task.start_datetime <= get_current_utc() <= task.end_datetime,
         start_datetime=task.start_datetime,
         end_datetime=task.end_datetime,
     )
@@ -465,22 +462,31 @@ async def try_to_complete_task(
         user_answer=user_answer,
         user_attempts=user_reply.user_attempts,
         max_attempts=task.max_attempts,
-        is_active=task.start_datetime
-        <= get_current_utc_timestamp()
-        <= task.end_datetime,
+        is_active=task.start_datetime <= get_current_utc() <= task.end_datetime,
         start_datetime=task.start_datetime,
         end_datetime=task.end_datetime,
     )
 
 
-async def check_and_update_task_deadlines(session: AsyncSession):
-    result = await session.execute(select(Task))
-    tasks = result.scalars().all()
-    for task in tasks:
-        task.is_active = (
-            task.start_datetime <= get_current_utc_timestamp() <= task.end_datetime
+async def check_task_deadlines(session):
+    current_time = get_current_utc()
+    result = await session.execute(
+        select(Task).where(
+            (Task.start_datetime <= current_time) | (Task.end_datetime <= current_time)
         )
-    await session.commit()
+    )
+    tasks = result.scalars().all()
+
+    updated_count = 0
+    for task in tasks:
+        new_status = task.start_datetime <= current_time <= task.end_datetime
+        if task.is_active != new_status:
+            task.is_active = new_status
+            updated_count += 1
+
+    if updated_count > 0:
+        await session.commit()
+    return updated_count
 
 
 async def copy_task_to_assignment(

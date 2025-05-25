@@ -35,9 +35,10 @@ from core.models import (
     Account,
     UserReply,
     UserProfile,
+    db_helper,
 )
 
-from utils.time_manager import get_current_utc_timestamp
+from utils.time_manager import get_current_utc
 
 
 async def create_assignment(
@@ -73,7 +74,7 @@ async def create_assignment(
         group_id=assignment_in.group_id,
         admin_id=user_id,
         is_active=assignment_in.start_datetime
-        <= get_current_utc_timestamp()
+        <= get_current_utc()
         <= assignment_in.end_datetime,
         start_datetime=assignment_in.start_datetime,
         end_datetime=assignment_in.end_datetime,
@@ -322,7 +323,7 @@ async def update_assignment(
         user_completed_tasks_count=user_completed_tasks_count,
         admin_id=assignment.admin_id,
         is_active=assignment.start_datetime
-        <= get_current_utc_timestamp()
+        <= get_current_utc()
         <= assignment.end_datetime,
         start_datetime=assignment.start_datetime,
         end_datetime=assignment.end_datetime,
@@ -432,16 +433,28 @@ async def get_tasks_in_assignment(
     ]
 
 
-async def check_and_update_assignment_deadlines(session: AsyncSession):
-    result = await session.execute(select(Assignment))
-    assignments = result.scalars().all()
-    for assignment in assignments:
-        assignment.is_active = (
-            assignment.start_datetime
-            <= get_current_utc_timestamp()
-            <= assignment.end_datetime
+async def check_assignment_deadlines(session):
+    current_time = get_current_utc()
+    result = await session.execute(
+        select(Assignment).where(
+            (Assignment.start_datetime <= current_time)
+            | (Assignment.end_datetime <= current_time)
         )
-    await session.commit()
+    )
+    assignments = result.scalars().all()
+
+    updated_count = 0
+    for assignment in assignments:
+        new_status = (
+            assignment.start_datetime <= current_time <= assignment.end_datetime
+        )
+        if assignment.is_active != new_status:
+            assignment.is_active = new_status
+            updated_count += 1
+
+    if updated_count > 0:
+        await session.commit()
+    return updated_count
 
 
 async def copy_assignment_to_group(

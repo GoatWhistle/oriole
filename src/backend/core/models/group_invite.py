@@ -3,7 +3,7 @@ from datetime import datetime
 from pytz import utc
 from .base import Base
 from .mixins.id_int_pk import IdIntPkMixin
-from sqlalchemy import Integer, ForeignKey, String
+from sqlalchemy import Integer, ForeignKey, String, DateTime, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 if TYPE_CHECKING:
@@ -15,7 +15,7 @@ class GroupInvite(Base, IdIntPkMixin):
     group: Mapped["Group"] = relationship(back_populates="invites")
 
     code: Mapped[str] = mapped_column(String(6), unique=True, index=True)
-    expires_at: Mapped[int] = mapped_column(
-        Integer, nullable=False, default=lambda: int(datetime.now(utc).timestamp())
+    expires_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.timezone("UTC", func.now())
     )
     is_active: Mapped[bool] = mapped_column(default=True)
