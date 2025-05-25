@@ -80,10 +80,6 @@ class Redis(BaseModel):
     port: int
     url: str
 
-class Celery(BaseModel):
-    beat_enabled: bool = False
-    beat_schedule: dict = {}
-
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=env_files,
@@ -96,7 +92,6 @@ class Settings(BaseSettings):
     smtp_email: SMTPEmail
     db: DbConfig
     redis: Redis
-    celery: Celery = Celery()
     gunicorn_run: GunicornConfig = GunicornConfig()
     api: ApiPrefix = ApiPrefix()
     auth_jwt: AuthJWT = AuthJWT()

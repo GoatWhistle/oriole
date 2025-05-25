@@ -65,13 +65,6 @@ technical stack.
   <img src="https://img.shields.io/badge/Gunicorn-499848?logo=gunicorn&logoColor=white" alt="Gunicorn">
 </p>
 
-### Task Processing
-
-<p align="left">
-  <img src="https://img.shields.io/badge/Celery-37814A?logo=celery&logoColor=white" alt="Celery">
-  <img src="https://img.shields.io/badge/Flower-000000?logo=flower" alt="Flower">
-</p>
-
 ### Dependency Management
 
 <p align="left">
@@ -83,29 +76,33 @@ technical stack.
 ## 👥 <span id="team">Our Team</span>
 
 <div align="center">
-  
-| | |
-|:-:|:-:|
+
+|                                                                                                                                                         |                                                |
+|:-------------------------------------------------------------------------------------------------------------------------------------------------------:|:----------------------------------------------:|
 | <a href="https://github.com/timofeipupykin" target="_blank"><img src="https://github.com/timofeipupykin.png" width="80" style="border-radius: 50%"></a> | **Timofey Pupykin**<br>*Teamlead & DevOps*<br> |
+
 </div>
 
 <div align="center">
 
-| | |
-|:-:|:-:|
-| <a href="https://github.com/AI-AVENGER-S" target="_blank"><img src="https://github.com/AI-AVENGER-S.png" width="80" style="border-radius: 50%"></a> | **Artem Saveliev**<br>*Backend Developer*<br>|
+|                                                                                                                                                     |                                               |
+|:---------------------------------------------------------------------------------------------------------------------------------------------------:|:---------------------------------------------:|
+| <a href="https://github.com/AI-AVENGER-S" target="_blank"><img src="https://github.com/AI-AVENGER-S.png" width="80" style="border-radius: 50%"></a> | **Artem Saveliev**<br>*Backend Developer*<br> |
+
 </div>
-  
+
 <div align="center">
-  
-| | |
-|:-:|:-:|
-| <a href="https://github.com/mikhailkhorokhorin" target="_blank"><img src="https://github.com/mikhailkhorokhorin.png" width="80" style="border-radius: 50%"></a> | **Mikhail Khorokhorin**<br>*Backend Developer*<br>|
+
+|                                                                                                                                                                 |                                                    |
+|:---------------------------------------------------------------------------------------------------------------------------------------------------------------:|:--------------------------------------------------:|
+| <a href="https://github.com/mikhailkhorokhorin" target="_blank"><img src="https://github.com/mikhailkhorokhorin.png" width="80" style="border-radius: 50%"></a> | **Mikhail Khorokhorin**<br>*Backend Developer*<br> |
+
 </div>
-  
+
 <div align="center">
-  
-| | |
-|:-:|:-:|
-| <a href="https://github.com/amemeansrain" target="_blank"><img src="https://github.com/amemeansrain.png" width="80" style="border-radius: 50%"></a> | **Robert Savitskas**<br>*Frontend Developer*<br>|
+
+|                                                                                                                                                     |                                                  |
+|:---------------------------------------------------------------------------------------------------------------------------------------------------:|:------------------------------------------------:|
+| <a href="https://github.com/amemeansrain" target="_blank"><img src="https://github.com/amemeansrain.png" width="80" style="border-radius: 50%"></a> | **Robert Savitskas**<br>*Frontend Developer*<br> |
+
 </div>
