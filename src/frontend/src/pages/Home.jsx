@@ -16,10 +16,6 @@ export default function Home() {
         margin: '0 auto',
         padding: '20px'
       }}>
-        <Title level={2} style={{ textAlign: 'center', margin: '24px 0' }}>
-          Welcome to the Home Page
-        </Title>
-
         <div style={{
           display: 'flex',
           justifyContent: 'center',
