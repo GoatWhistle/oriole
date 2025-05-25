@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import {
   Card,
   Typography,
@@ -56,7 +57,6 @@ const GroupDetails = () => {
     const [inviteType, setInviteType] = useState('single_use');
     const [form] = Form.useForm();
     const [assignmentForm] = Form.useForm();
-    const [userTimezone, setUserTimezone] = useState('UTC');
 
     useEffect(() => {
         const detectTimezone = () => {
@@ -69,7 +69,6 @@ const GroupDetails = () => {
 
         const fetchData = async () => {
             try {
-                setUserTimezone(detectTimezone());
                 setLoading(true);
 
                 const [groupResponse, roleResponse] = await Promise.all([
@@ -289,48 +288,79 @@ const GroupDetails = () => {
         try {
             const values = await assignmentForm.validateFields();
 
+            // Format data exactly as the working curl example
             const assignmentData = {
                 title: values.title,
-                description: values.description || "",
-                is_contest: Boolean(values.is_contest),
+                description: values.description || "string", // Fallback to "string" if empty
+                is_contest: values.is_contest || false,
                 group_id: parseInt(group_id),
-                start_datetime: encodeURIComponent(values.dateRange[0].toISOString()),
-                end_datetime: encodeURIComponent(values.dateRange[1].toISOString())
+                start_datetime: values.dateRange[0].toISOString(),
+                end_datetime: values.dateRange[1].toISOString()
             };
 
-            const response = await fetch('/api/v1/assignments/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    assignment_in: assignmentData,
-                    user_timezone: userTimezone
-                })
-            });
+            console.log("Submitting assignment:", assignmentData);
 
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.detail || 'Не удалось создать задание');
-            }
+            const response = await axios.post('/api/v1/assignments/',
+                assignmentData,
+                {
+                    headers: {
+                        'accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    withCredentials: true
+                }
+            );
 
-            const newAssignment = await response.json();
+            console.log("Assignment created:", response.data);
 
+            // Update local state
             setGroup(prev => ({
                 ...prev,
                 assignments: [...prev.assignments, {
-                    ...newAssignment,
+                    ...response.data,
                     tasks_count: 0,
                     user_completed_tasks_count: 0
                 }]
             }));
 
+            // Reset form and close modal
             setIsCreateAssignmentModalVisible(false);
             assignmentForm.resetFields();
-            message.success('Задание успешно создано!');
-        } catch (err) {
-            console.error("Ошибка при создании задания:", err);
-            message.error(err.message);
+            message.success('Assignment created successfully!');
+
+        } catch (error) {
+            console.error("Full error details:", error);
+
+            let errorMessage = "Failed to create assignment";
+
+            if (error.response) {
+                // Server responded with error status
+                console.error("Server response:", error.response.data);
+                console.error("Status code:", error.response.status);
+
+                if (error.response.status === 500) {
+                    errorMessage = "Server error occurred. Please try again later.";
+                } else if (error.response.data) {
+                    // Try to extract meaningful error message
+                    if (typeof error.response.data === 'string') {
+                        errorMessage = error.response.data;
+                    } else if (error.response.data.detail) {
+                        errorMessage = typeof error.response.data.detail === 'string'
+                            ? error.response.data.detail
+                            : JSON.stringify(error.response.data.detail);
+                    }
+                }
+            } else if (error.request) {
+                // Request was made but no response received
+                console.error("No response received:", error.request);
+                errorMessage = "No response from server. Check your connection.";
+            } else {
+                // Other errors
+                console.error("Request setup error:", error.message);
+                errorMessage = error.message;
+            }
+
+            message.error(errorMessage);
         }
     };
 
@@ -641,11 +671,6 @@ const GroupDetails = () => {
                         valuePropName="checked"
                     >
                         <Switch />
-                    </Form.Item>
-                    <Form.Item
-                        label="Часовой пояс (автоматически определен)"
-                    >
-                        <Input value={userTimezone} readOnly />
                     </Form.Item>
                     <Form.Item
                         name="dateRange"
