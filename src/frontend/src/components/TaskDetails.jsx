@@ -13,14 +13,18 @@ import {
   Alert,
   Statistic,
   Row,
-  Col
+  Col,
+  Modal,
+  Popconfirm,
+  DatePicker
 } from 'antd';
 import {
   CheckOutlined,
   CloseOutlined,
   EditOutlined,
   ClockCircleOutlined,
-  ArrowLeftOutlined
+  ArrowLeftOutlined,
+  DeleteOutlined
 } from '@ant-design/icons';
 
 const { Title, Text, Paragraph } = Typography;
@@ -33,7 +37,10 @@ const TaskDetails = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [userRole, setUserRole] = useState(null);
+    const [isEditModalVisible, setIsEditModalVisible] = useState(false);
     const [form] = Form.useForm();
+    const [editForm] = Form.useForm();
 
     useEffect(() => {
         const fetchTask = async () => {
@@ -56,6 +63,27 @@ const TaskDetails = () => {
                 form.setFieldsValue({
                     answer: taskData.user_answer || ''
                 });
+
+                // Получаем роль пользователя в группе
+                const assignmentResponse = await fetch(`/api/v1/assignments/${taskData.assignment_id}/`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+                    }
+                });
+
+                if (assignmentResponse.ok) {
+                    const assignmentData = await assignmentResponse.json();
+                    const roleResponse = await fetch(`/api/v1/auth/get-role/group/${assignmentData.group_id}`, {
+                        headers: {
+                            'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+                        }
+                    });
+
+                    if (roleResponse.ok) {
+                        const role = await roleResponse.json();
+                        setUserRole(role);
+                    }
+                }
             } catch (err) {
                 setError(err.message);
                 message.error(err.message);
@@ -108,10 +136,61 @@ const TaskDetails = () => {
         }
     };
 
+    const handleUpdateTask = async () => {
+        try {
+            const values = await editForm.validateFields();
+            const response = await fetch(`/api/v1/tasks/${task_id}/`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+                },
+                body: JSON.stringify({
+                    ...values,
+                    start_datetime: values.dateRange[0].toISOString(),
+                    end_datetime: values.dateRange[1].toISOString()
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error('Не удалось обновить задание');
+            }
+
+            const updatedTask = await response.json();
+            setTask(updatedTask);
+            message.success('Задание успешно обновлено');
+            setIsEditModalVisible(false);
+        } catch (err) {
+            message.error(err.message);
+        }
+    };
+
+    const handleDeleteTask = async () => {
+        try {
+            const response = await fetch(`/api/v1/tasks/${task_id}/`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Не удалось удалить задание');
+            }
+
+            message.success('Задание успешно удалено');
+            navigate(`/assignments/${task.assignment_id}`);
+        } catch (err) {
+            message.error(err.message);
+        }
+    };
+
     const formatDate = (dateString) => {
         const date = new Date(dateString);
         return date.toLocaleString();
     };
+
+    const isAdmin = userRole === 0 || userRole === 1;
 
     if (loading) return <div>Загрузка информации о задании...</div>;
     if (error) return <div>Ошибка: {error}</div>;
@@ -128,9 +207,46 @@ const TaskDetails = () => {
                 Назад
             </Button>
 
-            <Card>
-                <Title level={2}>{task.title}</Title>
-
+            <Card
+                title={
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <Title level={2} style={{ margin: 0 }}>{task.title}</Title>
+                        {isAdmin && (
+                            <Space>
+                                <Button
+                                    type="default"
+                                    icon={<EditOutlined />}
+                                    onClick={() => {
+                                        setIsEditModalVisible(true);
+                                        editForm.setFieldsValue({
+                                            title: task.title,
+                                            description: task.description,
+                                            correct_answer: task.correct_answer,
+                                            max_attempts: task.max_attempts,
+                                            dateRange: [
+                                                dayjs(task.start_datetime),
+                                                dayjs(task.end_datetime)
+                                            ]
+                                        });
+                                    }}
+                                >
+                                    Редактировать
+                                </Button>
+                                <Popconfirm
+                                    title="Вы уверены, что хотите удалить это задание?"
+                                    onConfirm={handleDeleteTask}
+                                    okText="Да"
+                                    cancelText="Нет"
+                                >
+                                    <Button danger icon={<DeleteOutlined />}>
+                                        Удалить
+                                    </Button>
+                                </Popconfirm>
+                            </Space>
+                        )}
+                    </div>
+                }
+            >
                 <Row gutter={16} style={{ marginBottom: 24 }}>
                     <Col span={8}>
                         <Statistic
@@ -216,6 +332,68 @@ const TaskDetails = () => {
                     </>
                 )}
             </Card>
+
+            {/* Модальное окно редактирования задания */}
+            <Modal
+                title="Редактирование задания"
+                visible={isEditModalVisible}
+                onCancel={() => setIsEditModalVisible(false)}
+                onOk={handleUpdateTask}
+                okText="Сохранить"
+                cancelText="Отмена"
+                width={800}
+            >
+                <Form
+                    form={editForm}
+                    layout="vertical"
+                >
+                    <Form.Item
+                        name="title"
+                        label="Название задания"
+                        rules={[{ required: true, message: 'Введите название задания' }]}
+                    >
+                        <Input />
+                    </Form.Item>
+
+                    <Form.Item
+                        name="description"
+                        label="Описание задания"
+                        rules={[{ required: true, message: 'Введите описание задания' }]}
+                    >
+                        <TextArea rows={4} />
+                    </Form.Item>
+
+                    <Form.Item
+                        name="correct_answer"
+                        label="Правильный ответ"
+                        rules={[{ required: true, message: 'Введите правильный ответ' }]}
+                    >
+                        <Input />
+                    </Form.Item>
+
+                    <Form.Item
+                        name="max_attempts"
+                        label="Максимальное количество попыток"
+                        rules={[{ required: true, message: 'Укажите количество попыток' }]}
+                    >
+                        <InputNumber min={1} style={{ width: '100%' }} />
+                    </Form.Item>
+
+                    <Form.Item
+                        name="dateRange"
+                        label="Срок выполнения"
+                        rules={[{ required: true, message: 'Укажите срок выполнения' }]}
+                    >
+                        <DatePicker.RangePicker
+                            showTime
+                            style={{ width: '100%' }}
+                            disabledDate={(current) => {
+                                return current && current < dayjs().startOf('day');
+                            }}
+                        />
+                    </Form.Item>
+                </Form>
+            </Modal>
         </div>
     );
 };
