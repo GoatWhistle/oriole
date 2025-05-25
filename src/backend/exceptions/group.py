@@ -77,7 +77,7 @@ async def check_owner_permission_in_group(
         Account.user_id == user_id, Account.group_id == group_id
     )
     result = await session.execute(statement)
-    account = result.scalars().first()  #
+    account = result.scalars().first()
 
     if account.role != AccountRole.OWNER.value:
         raise HTTPException(

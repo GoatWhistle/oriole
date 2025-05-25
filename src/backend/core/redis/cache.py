@@ -57,7 +57,6 @@ class AutoCacheMiddleware(BaseHTTPMiddleware):
                 print(f"Redis get error: {e}")
                 cached = None
             if cached:
-                #print(f"cached - {cached}")
                 return Response(content=cached.encode(), media_type="application/json")
 
             response = await call_next(request)
@@ -67,7 +66,6 @@ class AutoCacheMiddleware(BaseHTTPMiddleware):
 
             body = [chunk async for chunk in response.body_iterator]
             full_body = b"".join(body)
-            #print(f"full body - {full_body}")
 
             await self.cache_set(cache_key, tag_key, full_body.decode())
             return Response(content=full_body, status_code=response.status_code,
