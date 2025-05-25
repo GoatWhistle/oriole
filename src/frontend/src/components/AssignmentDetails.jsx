@@ -31,6 +31,7 @@ const AssignmentDetails = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [userData, setUserData] = useState(null);
+    const [userRole, setUserRole] = useState(null);
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [isEditModalVisible, setIsEditModalVisible] = useState(false);
     const [form] = Form.useForm();
@@ -66,6 +67,21 @@ const AssignmentDetails = () => {
 
                 const assignmentData = await assignmentResponse.json();
                 setAssignment(assignmentData);
+
+                // Получаем роль пользователя в группе
+                const roleResponse = await fetch(`/api/v1/auth/get-role/group/${assignmentData.group_id}`, {
+                    headers: {
+                        'Authorization': `Bearer ${currentUser.token}`
+                    }
+                });
+
+                if (!roleResponse.ok) {
+                    throw new Error('Не удалось получить информацию о роли пользователя');
+                }
+
+                const role = await roleResponse.json();
+                setUserRole(role);
+
                 setLoading(false);
             } catch (err) {
                 setError(err.message);
@@ -143,7 +159,7 @@ const AssignmentDetails = () => {
             }
 
             message.success('Модуль успешно удален!');
-            navigate('/assignments'); // Перенаправляем на страницу со списком модулей
+            navigate('/assignments');
         } catch (err) {
             message.error(err.message);
         }
@@ -189,6 +205,9 @@ const AssignmentDetails = () => {
     const startDate = dayjs(assignment.start_datetime).format('DD.MM.YYYY HH:mm');
     const endDate = dayjs(assignment.end_datetime).format('DD.MM.YYYY HH:mm');
 
+    // Проверяем, имеет ли пользователь права администратора (роль 0 или 1)
+    const isAdmin = userRole === 0 || userRole === 1;
+
     return (
         <div style={{ padding: '24px' }}>
             {userData && (
@@ -210,33 +229,37 @@ const AssignmentDetails = () => {
                             >
                                 Создать задание
                             </Button>
-                            <Button
-                                type="default"
-                                onClick={() => {
-                                    setIsEditModalVisible(true);
-                                    editForm.setFieldsValue({
-                                        title: assignment.title,
-                                        description: assignment.description,
-                                        is_contest: assignment.is_contest,
-                                        dateRange: [
-                                            dayjs(assignment.start_datetime),
-                                            dayjs(assignment.end_datetime)
-                                        ]
-                                    });
-                                }}
-                            >
-                                Редактировать модуль
-                            </Button>
-                            <Popconfirm
-                                title="Вы уверены, что хотите удалить этот модуль?"
-                                onConfirm={handleDeleteAssignment}
-                                okText="Да"
-                                cancelText="Нет"
-                            >
-                                <Button danger>
-                                    Удалить модуль
-                                </Button>
-                            </Popconfirm>
+                            {isAdmin && (
+                                <>
+                                    <Button
+                                        type="default"
+                                        onClick={() => {
+                                            setIsEditModalVisible(true);
+                                            editForm.setFieldsValue({
+                                                title: assignment.title,
+                                                description: assignment.description,
+                                                is_contest: assignment.is_contest,
+                                                dateRange: [
+                                                    dayjs(assignment.start_datetime),
+                                                    dayjs(assignment.end_datetime)
+                                                ]
+                                            });
+                                        }}
+                                    >
+                                        Редактировать модуль
+                                    </Button>
+                                    <Popconfirm
+                                        title="Вы уверены, что хотите удалить этот модуль?"
+                                        onConfirm={handleDeleteAssignment}
+                                        okText="Да"
+                                        cancelText="Нет"
+                                    >
+                                        <Button danger>
+                                            Удалить модуль
+                                        </Button>
+                                    </Popconfirm>
+                                </>
+                            )}
                         </Space>
                     </div>
                 }
@@ -374,62 +397,64 @@ const AssignmentDetails = () => {
                 </Form>
             </Modal>
 
-            {/* Модальное окно редактирования модуля */}
-            <Modal
-                title="Редактирование модуля"
-                visible={isEditModalVisible}
-                onCancel={() => {
-                    setIsEditModalVisible(false);
-                    editForm.resetFields();
-                }}
-                onOk={() => editForm.submit()}
-                okText="Сохранить"
-                cancelText="Отмена"
-            >
-                <Form
-                    form={editForm}
-                    layout="vertical"
-                    onFinish={handleUpdateAssignment}
+            {/* Модальное окно редактирования модуля (только для админов) */}
+            {isAdmin && (
+                <Modal
+                    title="Редактирование модуля"
+                    visible={isEditModalVisible}
+                    onCancel={() => {
+                        setIsEditModalVisible(false);
+                        editForm.resetFields();
+                    }}
+                    onOk={() => editForm.submit()}
+                    okText="Сохранить"
+                    cancelText="Отмена"
                 >
-                    <Form.Item
-                        name="title"
-                        label="Название модуля"
-                        rules={[{ required: true, message: 'Введите название модуля' }]}
+                    <Form
+                        form={editForm}
+                        layout="vertical"
+                        onFinish={handleUpdateAssignment}
                     >
-                        <Input />
-                    </Form.Item>
+                        <Form.Item
+                            name="title"
+                            label="Название модуля"
+                            rules={[{ required: true, message: 'Введите название модуля' }]}
+                        >
+                            <Input />
+                        </Form.Item>
 
-                    <Form.Item
-                        name="description"
-                        label="Описание модуля"
-                        rules={[{ required: true, message: 'Введите описание модуля' }]}
-                    >
-                        <TextArea rows={4} />
-                    </Form.Item>
+                        <Form.Item
+                            name="description"
+                            label="Описание модуля"
+                            rules={[{ required: true, message: 'Введите описание модуля' }]}
+                        >
+                            <TextArea rows={4} />
+                        </Form.Item>
 
-                    <Form.Item
-                        name="is_contest"
-                        label="Тип модуля"
-                        valuePropName="checked"
-                    >
-                        <Input type="checkbox" /> Конкурс
-                    </Form.Item>
+                        <Form.Item
+                            name="is_contest"
+                            label="Тип модуля"
+                            valuePropName="checked"
+                        >
+                            <Input type="checkbox" /> Конкурс
+                        </Form.Item>
 
-                    <Form.Item
-                        name="dateRange"
-                        label="Срок выполнения"
-                        rules={[{ required: true, message: 'Укажите срок выполнения' }]}
-                    >
-                        <DatePicker.RangePicker
-                            showTime
-                            style={{ width: '100%' }}
-                            disabledDate={(current) => {
-                                return current && current < dayjs().startOf('day');
-                            }}
-                        />
-                    </Form.Item>
-                </Form>
-            </Modal>
+                        <Form.Item
+                            name="dateRange"
+                            label="Срок выполнения"
+                            rules={[{ required: true, message: 'Укажите срок выполнения' }]}
+                        >
+                            <DatePicker.RangePicker
+                                showTime
+                                style={{ width: '100%' }}
+                                disabledDate={(current) => {
+                                    return current && current < dayjs().startOf('day');
+                                }}
+                            />
+                        </Form.Item>
+                    </Form>
+                </Modal>
+            )}
         </div>
     );
 };
