@@ -12,6 +12,7 @@ import Group from './pages/Group';
 import JoinGroup from './pages/JoinGroup';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
+import Task from './pages/Task';
 
 export default function App() {
   return (
