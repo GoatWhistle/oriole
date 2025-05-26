@@ -48,7 +48,7 @@ const AssignmentMenu = () => {
 
     const onClick = (e) => {
         if (e.key !== 'no-assignments') {
-            navigate(`/assignment/${e.key}`);
+            navigate(`/assignments/${e.key}`);
         }
     };
 
