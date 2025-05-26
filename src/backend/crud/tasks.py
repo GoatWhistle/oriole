@@ -37,7 +37,6 @@ from core.models import (
     Account,
     UserReply,
     UserProfile,
-    db_helper,
 )
 from utils.time_manager import get_current_utc
 
@@ -124,6 +123,8 @@ async def create_task(
 
     return TaskRead(
         id=task.id,
+        assignment_id=task.assignment_id,
+        group_id=assignment.group_id,
         title=task.title,
         description=task.description,
         user_answer=user_reply.user_answer,
@@ -177,6 +178,8 @@ async def get_task_by_id(
 
     return TaskRead(
         id=task.id,
+        assignment_id=task.assignment_id,
+        group_id=assignment.group_id,
         title=task.title,
         description=task.description,
         user_answer=user_reply.user_answer if user_reply else "",
@@ -332,6 +335,8 @@ async def update_task(
 
     return TaskRead(
         id=task.id,
+        assignment_id=task.assignment_id,
+        group_id=assignment.group_id,
         title=task.title,
         description=task.description,
         user_answer=user_reply.user_answer if user_reply else "",
@@ -456,6 +461,8 @@ async def try_to_complete_task(
 
     return TaskRead(
         id=task.id,
+        assignment_id=task.assignment_id,
+        group_id=assignment.group_id,
         title=task.title,
         description=task.description,
         is_correct=(user_answer == task.correct_answer),
@@ -538,6 +545,8 @@ async def copy_task_to_assignment(
 
     return TaskRead(
         id=new_task.id,
+        assignment_id=new_task.assignment_id,
+        group_id=target_assignment.group_id,
         title=new_task.title,
         description=new_task.description,
         user_answer="",

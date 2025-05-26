@@ -35,7 +35,6 @@ from core.models import (
     Account,
     UserReply,
     UserProfile,
-    db_helper,
 )
 
 from utils.time_manager import get_current_utc
@@ -86,6 +85,7 @@ async def create_assignment(
 
     return AssignmentRead(
         id=assignment.id,
+        group_id=assignment_in.group_id,
         title=assignment_in.title,
         description=assignment_in.description,
         is_contest=assignment_in.is_contest,
@@ -153,6 +153,7 @@ async def get_assignment_by_id(
 
     return AssignmentRead(
         id=assignment.id,
+        group_id=assignment.group_id,
         title=assignment.title,
         description=assignment.description,
         is_contest=assignment.is_contest,
@@ -316,6 +317,7 @@ async def update_assignment(
 
     return AssignmentRead(
         id=assignment.id,
+        group_id=assignment.group_id,
         title=assignment.title,
         description=assignment.description,
         is_contest=assignment.is_contest,
@@ -526,6 +528,7 @@ async def copy_assignment_to_group(
 
     return AssignmentRead(
         id=new_assignment.id,
+        group_id=new_assignment.group_id,
         title=new_assignment.title,
         description=new_assignment.description,
         is_contest=new_assignment.is_contest,

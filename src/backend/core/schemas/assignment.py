@@ -27,6 +27,8 @@ class AssignmentReadPartial(AssignmentBase):
     )
 
 class AssignmentRead(AssignmentReadPartial):
+    group_id: int
+
     admin_id: int
     tasks: Sequence[TaskReadPartial]
 

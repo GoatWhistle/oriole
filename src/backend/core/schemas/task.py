@@ -24,6 +24,9 @@ class TaskReadPartial(TaskBase):
 
 
 class TaskRead(TaskReadPartial):
+    assignment_id: int
+    group_id: int
+
     user_answer: str
     user_attempts: int
 
