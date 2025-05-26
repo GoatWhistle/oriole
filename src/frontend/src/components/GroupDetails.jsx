@@ -148,7 +148,7 @@ const GroupDetails = () => {
     };
 
     const handleAssignmentClick = (assignmentId) => {
-        navigate(`/assignment/${assignmentId}`);
+        navigate(`/assignments/${assignmentId}`);
     };
 
     const handleRemoveUser = async (userId) => {
