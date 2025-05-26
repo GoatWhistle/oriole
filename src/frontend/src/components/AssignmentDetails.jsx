@@ -18,7 +18,6 @@ import {
   Popconfirm
 } from 'antd';
 import dayjs from 'dayjs';
-import { useAuth } from '../context/AuthContext';
 
 const { Title, Text, Paragraph } = Typography;
 const { TextArea } = Input;
@@ -26,7 +25,6 @@ const { TextArea } = Input;
 const AssignmentDetails = () => {
     const { assignment_id } = useParams();
     const navigate = useNavigate();
-    const { currentUser, logout } = useAuth();
     const [assignment, setAssignment] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -40,26 +38,9 @@ const AssignmentDetails = () => {
     useEffect(() => {
         const checkAuthentication = async () => {
             try {
-                // Проверяем аутентификацию
-                const authResponse = await fetch('/api/v1/auth/check-auth', {
-                    headers: {
-                        'Authorization': `Bearer ${currentUser.token}`
-                    }
-                });
-
-                if (!authResponse.ok) {
-                    throw new Error('Ошибка аутентификации');
-                }
-
-                const authData = await authResponse.json();
-                setUserData(authData);
-
+                setLoading(true);
                 // Загружаем данные задания
-                const assignmentResponse = await fetch(`/api/v1/assignments/${assignment_id}/`, {
-                    headers: {
-                        'Authorization': `Bearer ${currentUser.token}`
-                    }
-                });
+                const assignmentResponse = await fetch(`/api/v1/assignments/${assignment_id}/`);
 
                 if (!assignmentResponse.ok) {
                     throw new Error('Не удалось загрузить информацию о задании');
@@ -69,11 +50,7 @@ const AssignmentDetails = () => {
                 setAssignment(assignmentData);
 
                 // Получаем роль пользователя в группе
-                const roleResponse = await fetch(`/api/v1/auth/get-role/group/${assignmentData.group_id}`, {
-                    headers: {
-                        'Authorization': `Bearer ${currentUser.token}`
-                    }
-                });
+                const roleResponse = await fetch(`/api/v1/auth/get-role/group/${assignmentData.group_id}`);
 
                 if (!roleResponse.ok) {
                     throw new Error('Не удалось получить информацию о роли пользователя');
@@ -87,22 +64,11 @@ const AssignmentDetails = () => {
                 setError(err.message);
                 setLoading(false);
                 message.error(err.message);
-
-                if (err.message.includes('аутентификации')) {
-                    logout();
-                    navigate('/login');
-                }
             }
         };
 
-        if (currentUser?.token) {
-            checkAuthentication();
-        } else {
-            setError('Пользователь не аутентифицирован');
-            setLoading(false);
-            navigate('/login');
-        }
-    }, [assignment_id, currentUser, navigate, logout]);
+        checkAuthentication(); // Вызываем функцию
+    }, [assignment_id]); // Добавляем зависимость assignment_id
 
     const handleCreateTask = async (values) => {
         try {
@@ -110,7 +76,6 @@ const AssignmentDetails = () => {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${currentUser.token}`
                 },
                 body: JSON.stringify({
                     ...values,
@@ -130,11 +95,7 @@ const AssignmentDetails = () => {
             form.resetFields();
 
             // Обновляем список заданий
-            const updatedResponse = await fetch(`/api/v1/assignments/${assignment_id}/`, {
-                headers: {
-                    'Authorization': `Bearer ${currentUser.token}`
-                }
-            });
+            const updatedResponse = await fetch(`/api/v1/assignments/${assignment_id}/`);
             const updatedData = await updatedResponse.json();
             setAssignment(updatedData);
 
@@ -149,9 +110,6 @@ const AssignmentDetails = () => {
         try {
             const response = await fetch(`/api/v1/assignments/${assignment_id}/`, {
                 method: 'DELETE',
-                headers: {
-                    'Authorization': `Bearer ${currentUser.token}`
-                }
             });
 
             if (!response.ok) {
@@ -171,7 +129,6 @@ const AssignmentDetails = () => {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${currentUser.token}`
                 },
                 body: JSON.stringify({
                     ...values,
@@ -187,6 +144,7 @@ const AssignmentDetails = () => {
             const updatedAssignment = await response.json();
             setAssignment(updatedAssignment);
             message.success('Модуль успешно обновлен!');
+            setLoading(false);
             setIsEditModalVisible(false);
             editForm.resetFields();
         } catch (err) {
