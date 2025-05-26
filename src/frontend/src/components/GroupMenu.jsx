@@ -48,7 +48,7 @@ const GroupMenu = () => {
 
     const onClick = (e) => {
         if (e.key !== 'no-groups') {
-            navigate(`/group/${e.key}`);
+            navigate(`/groups/${e.key}`);
         }
     };
 
