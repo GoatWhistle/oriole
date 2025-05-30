@@ -1,15 +1,20 @@
 import hashlib
+
+import inspect
+
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import Response
+
 from .redis_connection import redis_connection
 
 
 class AutoCacheMiddleware(BaseHTTPMiddleware):
-    def __init__(self, app, ttl: int = 600, exclude_paths: list[str] = None):
+    def __init__(self, app, ttl: int = 600, exclude_paths: list[str] = None, invalidate_paths: list[str] = None):
         super().__init__(app)
         self.ttl = ttl
         self.exclude_paths = exclude_paths or []
+        self.invalidate_paths = invalidate_paths or []
 
     def make_cache_key(self, request: Request) -> str:
         query = str(sorted(request.query_params.items()))
@@ -27,7 +32,7 @@ class AutoCacheMiddleware(BaseHTTPMiddleware):
             await redis_connection.redis.setex(key, self.ttl, value)
             await redis_connection.redis.sadd(tag, key)
         except Exception as e:
-            print(f"Redis get error: {e}")
+            print(f"Redis get error in {inspect.currentframe().f_code.co_name}: {e}")
 
     async def invalidate_tag(self, tag_key: str):
         try:
@@ -36,13 +41,31 @@ class AutoCacheMiddleware(BaseHTTPMiddleware):
                 await redis_connection.redis.delete(*keys)
             await redis_connection.redis.delete(tag_key)
         except Exception as e:
-            print(f"Redis get error: {e}")
+            print(f"Redis get error in {inspect.currentframe().f_code.co_name}: {e}")
 
     def is_excluded(self, path: str) -> bool:
         return any(
             path.startswith(f"/api/v1/{ex}") or path.startswith(f"{ex}")
             for ex in self.exclude_paths
         )
+
+    def is_invalidated(self, path: str) -> bool:
+        return any(
+            path.startswith(f"/api/v1/{ex}") or path.startswith(f"{ex}")
+            for ex in self.invalidate_paths
+        )
+
+    async def invalidate_all_cache(self):
+        try:
+            cache_keys = await redis_connection.redis.keys("cache:*")
+            tag_keys = await redis_connection.redis.keys("tag:*")
+
+            if cache_keys:
+                await redis_connection.redis.delete(*cache_keys)
+            if tag_keys:
+                await redis_connection.redis.delete(*tag_keys)
+        except Exception as e:
+            print(f"Redis get error in {inspect.currentframe().f_code.co_name}: {e}")
 
     async def dispatch(self, request: Request, call_next):
         method = request.method.upper()
@@ -51,6 +74,9 @@ class AutoCacheMiddleware(BaseHTTPMiddleware):
         if self.is_excluded(path):
             return await call_next(request)
 
+        if self.is_invalidated(path):
+            await self.invalidate_all_cache()
+
         tag_key = self.make_tag_key(path)
 
         if method == "GET":
@@ -58,7 +84,7 @@ class AutoCacheMiddleware(BaseHTTPMiddleware):
             try:
                 cached = await redis_connection.redis.get(cache_key)
             except Exception as e:
-                print(f"Redis get error: {e}")
+                print(f"Redis get error in {inspect.currentframe().f_code.co_name}: {e}")
                 cached = None
             if cached:
                 return Response(content=cached.encode(), media_type="application/json")

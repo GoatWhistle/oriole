@@ -22,11 +22,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# app.add_middleware(
-#     AutoCacheMiddleware,
-#     ttl=60,
-#     exclude_paths=["auth", "verify", "docs", "openapi.json", "redoc", "static", "docs#"]
-# )
+app.add_middleware(
+    AutoCacheMiddleware,
+    ttl=600,
+    exclude_paths=["docs", "openapi.json", "redoc", "static", "docs#"],
+    invalidate_paths=["auth", "verify"]
+)
 app.add_middleware(LoggingMiddleware)
 
 
