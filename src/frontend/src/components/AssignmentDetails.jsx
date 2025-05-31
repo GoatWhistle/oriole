@@ -118,7 +118,7 @@ const AssignmentDetails = () => {
             }
 
             message.success('Модуль успешно удален!');
-            navigate('/assignments');
+            navigate('/');
         } catch (err) {
             message.error(err.message);
         }
