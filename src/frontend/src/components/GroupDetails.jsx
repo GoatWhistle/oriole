@@ -492,14 +492,14 @@ const GroupDetails = () => {
                 <Divider />
 
                 <Row justify="space-between" align="middle" style={{ marginBottom: 16 }}>
-                    <Title level={4} style={{ margin: 0 }}>Задания:</Title>
+                    <Title level={4} style={{ margin: 0 }}>Модули:</Title>
                     {(userRole === 0 || userRole === 1) && (
                         <Button
                             type="primary"
                             icon={<PlusOutlined />}
                             onClick={() => setIsCreateAssignmentModalVisible(true)}
                         >
-                            Создать задание
+                            Создать модуль
                         </Button>
                     )}
                 </Row>
@@ -635,10 +635,8 @@ const GroupDetails = () => {
                     </Form.Item>
                 </Form>
             </Modal>
-
-            {/* Модальное окно создания задания */}
             <Modal
-                title="Создание нового задания"
+                title="Создание нового модуля"
                 open={isCreateAssignmentModalVisible}
                 onOk={handleCreateAssignment}
                 onCancel={() => setIsCreateAssignmentModalVisible(false)}
@@ -649,14 +647,14 @@ const GroupDetails = () => {
                 <Form form={assignmentForm} layout="vertical">
                     <Form.Item
                         name="title"
-                        label="Название задания"
-                        rules={[{ required: true, message: 'Пожалуйста, введите название задания' }]}
+                        label="Название модуля"
+                        rules={[{ required: true, message: 'Пожалуйста, введите название модуля' }]}
                     >
                         <Input />
                     </Form.Item>
                     <Form.Item
                         name="description"
-                        label="Описание задания"
+                        label="Описание модуля"
                     >
                         <TextArea rows={4} />
                     </Form.Item>
