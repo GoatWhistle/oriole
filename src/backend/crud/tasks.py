@@ -442,6 +442,8 @@ async def try_to_complete_task(
         user_reply.user_answer = user_answer
         user_reply.is_correct = user_answer == task.correct_answer
 
+    user_reply.user_attempts += 1
+
     await session.commit()
     await session.refresh(task)
 
