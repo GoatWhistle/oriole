@@ -146,6 +146,19 @@ services:
     networks:
       - app-net
 
+  flower:
+    image: mher/flower
+    container_name: flower
+    command: celery --broker=amqp://guest:guest@rabbitmq:5672// flower --port=5555
+    ports:
+      - "5555:5555"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - app-net
+
+
 volumes:
   pgdata:
   rabbitmq-data:
