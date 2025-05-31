@@ -191,3 +191,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+celerybeat-schedule-shm
+celerybeat-schedule-wal
