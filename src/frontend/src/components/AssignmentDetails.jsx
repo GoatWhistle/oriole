@@ -224,8 +224,8 @@ const AssignmentDetails = () => {
                     <Tag color={assignment.is_active ? 'green' : 'red'}>
                         {assignment.is_active ? 'Активно' : 'Неактивно'}
                     </Tag>
-                    <Tag color={assignment.is_contest ? 'orange' : 'blue'}>
-                        {assignment.is_contest ? 'Конкурс' : 'Обычное задание'}
+                    <Tag color={assignment.is_contest ? 'orange' : 'transparent'}>
+                        {assignment.is_contest ? 'Контест' : ''}
                     </Tag>
                 </div>
 
@@ -389,7 +389,7 @@ const AssignmentDetails = () => {
                             label="Тип модуля"
                             valuePropName="checked"
                         >
-                            <Input type="checkbox" /> Конкурс
+                            <Input type="checkbox" /> Контест
                         </Form.Item>
 
                         <Form.Item
