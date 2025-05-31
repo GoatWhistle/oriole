@@ -48,9 +48,10 @@ const AssignmentDetails = () => {
 
                 const assignmentData = await assignmentResponse.json();
                 setAssignment(assignmentData);
+                console.log(assignmentData);
 
                 // Получаем роль пользователя в группе
-                const roleResponse = await fetch(`/api/v1/auth/get-role/group/${assignmentData.group_id}`);
+                const roleResponse = await fetch(`/api/v1/users/get-role/group/${assignmentData.group_id}`);
 
                 if (!roleResponse.ok) {
                     throw new Error('Не удалось получить информацию о роли пользователя');
@@ -117,7 +118,7 @@ const AssignmentDetails = () => {
             }
 
             message.success('Модуль успешно удален!');
-            navigate('/assignments');
+            navigate('/');
         } catch (err) {
             message.error(err.message);
         }
@@ -181,14 +182,14 @@ const AssignmentDetails = () => {
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <Title level={2} style={{ margin: 0 }}>{assignment.title}</Title>
                         <Space>
-                            <Button
-                                type="primary"
-                                onClick={() => setIsModalVisible(true)}
-                            >
-                                Создать задание
-                            </Button>
                             {isAdmin && (
                                 <>
+                                    <Button
+                                        type="primary"
+                                        onClick={() => setIsModalVisible(true)}
+                                    >
+                                        Создать задание
+                                    </Button>
                                     <Button
                                         type="default"
                                         onClick={() => {

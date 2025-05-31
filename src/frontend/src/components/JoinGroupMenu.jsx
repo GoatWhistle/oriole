@@ -36,7 +36,7 @@ const JoinGroupMenu = () => {
 
     const handleNavigateToGroup = () => {
         if (result?.group_id) {
-            navigate(`/group/${result.group_id}`);
+            navigate(`/groups/${result.group_id}`);
         } else {
             navigate('/');
         }

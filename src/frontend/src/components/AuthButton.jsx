@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
+import { Avatar } from 'antd';
+import { UserOutlined } from '@ant-design/icons';
 
 const AuthButton = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -9,7 +11,6 @@ const AuthButton = () => {
   useEffect(() => {
     const checkAuthStatus = async () => {
       try {
-        // Отправляем запрос с куками (withCredentials: true)
         const response = await axios.get('/api/v1/auth/check-auth', {
           withCredentials: true
         });
@@ -33,15 +34,12 @@ const AuthButton = () => {
   return (
     <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '20px' }}>
       {isAuthenticated ? (
-        <Link
-          to="/profile"
-          style={{
-            fontSize: '20px',
-            color: 'black',
-            textDecoration: 'none'
-          }}
-        >
-          Личный кабинет
+        <Link to="/profile">
+          <Avatar
+            size="large"
+            icon={<UserOutlined />}
+            style={{ backgroundColor: '#7a3ccb' }}
+          />
         </Link>
       ) : (
         <Link
