@@ -65,6 +65,14 @@ technical stack.
   <img src="https://img.shields.io/badge/Gunicorn-499848?logo=gunicorn&logoColor=white" alt="Gunicorn">
 </p>
 
+### Task Processing
+
+<p align="left">
+  <img src="https://img.shields.io/badge/RabbitMQ-FF6600?logo=rabbitmq&logoColor=white" alt="RabbitMQ">
+  <img src="https://img.shields.io/badge/Celery-37814A?logo=celery&logoColor=white" alt="Celery">
+  <img src="https://img.shields.io/badge/Flower-000000?logo=flower" alt="Flower">
+</p>
+
 ### Dependency Management
 
 <p align="left">
