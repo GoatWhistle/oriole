@@ -15,6 +15,7 @@ from exceptions.task import (
     check_end_time_is_after_start_time,
     check_task_start_deadline_before_assignment_start,
     check_task_end_deadline_after_assignment_end,
+    check_deadline_not_passed,
 )
 from exceptions.assignment import get_assignment_if_exists
 
@@ -450,6 +451,7 @@ async def try_to_complete_task(
         user_reply_id=user_reply.id,
         task=task,
     )
+    await check_deadline_not_passed(task=task)
     await check_counter_limit(
         session=session,
         user_id=user_id,
