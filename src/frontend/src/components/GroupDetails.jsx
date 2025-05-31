@@ -513,8 +513,8 @@ const GroupDetails = () => {
                                 title={assignment.title}
                                 style={{ width: '100%' }}
                                 extra={
-                                    <Tag color={assignment.is_contest ? 'purple' : 'green'}>
-                                        {assignment.is_contest ? 'Контест' : 'Задание'}
+                                    <Tag color={assignment.is_contest ? 'purple': 'transparent'}>
+                                        {assignment.is_contest ? 'Контест': ''}
                                     </Tag>
                                 }
                                 hoverable
@@ -523,11 +523,6 @@ const GroupDetails = () => {
                                 <Text>
                                     Выполнено: {assignment.user_completed_tasks_count} из {assignment.tasks_count} задач
                                 </Text>
-                                <div style={{ marginTop: 8 }}>
-                                    <Text type="secondary">
-                                        {new Date(assignment.start_datetime).toLocaleString()} - {new Date(assignment.end_datetime).toLocaleString()}
-                                    </Text>
-                                </div>
                             </Card>
                         </List.Item>
                     )}
