@@ -45,22 +45,14 @@ const TaskDetails = () => {
     const [form] = Form.useForm();
     const [editForm] = Form.useForm();
 
-    // Функция для загрузки данных задания
     const fetchTaskData = async () => {
         try {
             setLoading(true);
-            const [taskResponse, assignmentResponse] = await Promise.all([
-                fetch(`/api/v1/tasks/${task_id}/`, {
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('access_token')}`
-                    }
-                }),
-                fetch(`/api/v1/assignments/${task?.assignment_id || ''}/`, {
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('access_token')}`
-                    }
-                }).catch(() => null)
-            ]);
+            const taskResponse = await fetch(`/api/v1/tasks/${task_id}/`, {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+                }
+            });
 
             if (!taskResponse.ok) {
                 throw new Error('Не удалось загрузить информацию о задании');
@@ -70,17 +62,29 @@ const TaskDetails = () => {
             setTask(taskData);
             form.setFieldsValue({ answer: taskData.user_answer || '' });
 
-            // Загружаем роль пользователя, если есть информация о задании
-            if (assignmentResponse?.ok) {
-                const assignmentData = await assignmentResponse.json();
-                const roleResponse = await fetch(`/api/v1/auth/get-role/group/${assignmentData.group_id}`, {
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('access_token')}`
-                    }
-                });
+            // Загружаем роль пользователя в группе
+            if (taskData.assignment_id) {
+                try {
+                    const assignmentResponse = await fetch(`/api/v1/assignments/${taskData.assignment_id}/`, {
+                        headers: {
+                            'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+                        }
+                    });
 
-                if (roleResponse.ok) {
-                    setUserRole(await roleResponse.json());
+                    if (assignmentResponse.ok) {
+                        const assignmentData = await assignmentResponse.json();
+                        const roleResponse = await fetch(`/api/v1/users/get-role/group/${assignmentData.group_id}`, {
+                            headers: {
+                                'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+                            }
+                        });
+
+                        if (roleResponse.ok) {
+                            setUserRole(await roleResponse.json());
+                        }
+                    }
+                } catch (err) {
+                    console.error("Ошибка при загрузке роли пользователя:", err);
                 }
             }
         } catch (err) {
@@ -91,12 +95,10 @@ const TaskDetails = () => {
         }
     };
 
-    // Первоначальная загрузка данных
     useEffect(() => {
         fetchTaskData();
     }, [task_id]);
 
-    // Отправка ответа на задание
     const handleSubmitAnswer = async () => {
         try {
             setIsSubmitting(true);
@@ -115,21 +117,19 @@ const TaskDetails = () => {
                 }
             );
 
-            // Обновляем данные задания после успешного ответа
             await fetchTaskData();
-
             message.success(response.data.is_correct ?
                 'Правильный ответ!' :
                 'Неправильный ответ! Попробуйте еще раз.');
 
         } catch (err) {
             await fetchTaskData();
+            message.error(err.response?.data?.detail || 'Ошибка при отправке ответа');
         } finally {
             setIsSubmitting(false);
         }
     };
 
-    // Редактирование задания
     const handleUpdateTask = async () => {
         try {
             const values = await editForm.validateFields();
@@ -156,7 +156,6 @@ const TaskDetails = () => {
         }
     };
 
-    // Удаление задания
     const handleDeleteTask = async () => {
         try {
             await axios.delete(`/api/v1/tasks/${task_id}/`, {
@@ -168,7 +167,7 @@ const TaskDetails = () => {
             message.success('Задание успешно удалено');
             navigate(`/assignments/${task.assignment_id}`);
         } catch (err) {
-            message.error(err.response?.data?.detail || err.message);
+            message.error(err.response?.data?.detail || 'Не удалось удалить задание');
         }
     };
 
@@ -176,7 +175,7 @@ const TaskDetails = () => {
         return dayjs(dateString).format('DD.MM.YYYY HH:mm');
     };
 
-    const isAdmin = userRole === 0 || userRole === 1;
+    const isAdminOrTeacher = userRole === 0 || userRole === 1;
     const isTaskCompleted = task?.is_correct;
     const attemptsExhausted = task?.user_attempts >= task?.max_attempts;
 
@@ -204,7 +203,7 @@ const TaskDetails = () => {
                 title={
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <Title level={2} style={{ margin: 0 }}>{task.title}</Title>
-                        {isAdmin && (
+                        {isAdminOrTeacher && (
                             <Space>
                                 <Button
                                     type="default"
@@ -227,9 +226,11 @@ const TaskDetails = () => {
                                 </Button>
                                 <Popconfirm
                                     title="Вы уверены, что хотите удалить это задание?"
+                                    description="Это действие нельзя отменить. Все ответы пользователей на это задание также будут удалены."
                                     onConfirm={handleDeleteTask}
-                                    okText="Да"
-                                    cancelText="Нет"
+                                    okText="Да, удалить"
+                                    cancelText="Отмена"
+                                    okButtonProps={{ danger: true }}
                                 >
                                     <Button danger icon={<DeleteOutlined />}>
                                         Удалить
@@ -323,7 +324,6 @@ const TaskDetails = () => {
                 </Form>
             </Card>
 
-            {/* Модальное окно для редактирования задания */}
             <Modal
                 title="Редактирование задания"
                 open={isEditModalVisible}
