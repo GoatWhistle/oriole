@@ -48,9 +48,10 @@ const AssignmentDetails = () => {
 
                 const assignmentData = await assignmentResponse.json();
                 setAssignment(assignmentData);
+                console.log(assignmentData);
 
                 // Получаем роль пользователя в группе
-                const roleResponse = await fetch(`/api/v1/auth/get-role/group/${assignmentData.group_id}`);
+                const roleResponse = await fetch(`/api/v1/users/get-role/group/${assignmentData.group_id}`);
 
                 if (!roleResponse.ok) {
                     throw new Error('Не удалось получить информацию о роли пользователя');
