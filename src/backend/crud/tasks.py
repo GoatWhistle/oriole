@@ -3,6 +3,8 @@ from sqlalchemy import select
 from sqlalchemy.engine import Result
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from core.config import settings
+from core.models.db_helper import DbHelper
 from exceptions.user import check_user_exists
 from exceptions.task import (
     get_task_if_exists,
@@ -475,25 +477,34 @@ async def try_to_complete_task(
     )
 
 
-async def check_task_deadlines(session):
-    current_time = get_current_utc()
-    result = await session.execute(
-        select(Task).where(
-            (Task.start_datetime <= current_time) | (Task.end_datetime <= current_time)
-        )
+async def check_task_deadlines():
+    local_db_helper = DbHelper(
+        db_url=str(settings.db.db_url),
     )
-    tasks = result.scalars().all()
 
-    updated_count = 0
-    for task in tasks:
-        new_status = task.start_datetime <= current_time <= task.end_datetime
-        if task.is_active != new_status:
-            task.is_active = new_status
-            updated_count += 1
+    async with local_db_helper.session_factory() as session:
+        current_time = get_current_utc()
+        result = await session.execute(
+            select(Task).where(
+                (Task.start_datetime <= current_time)
+                | (Task.end_datetime <= current_time)
+            )
+        )
+        tasks = result.scalars().all()
 
-    if updated_count > 0:
-        await session.commit()
-    return updated_count
+        updated_count = 0
+        for task in tasks:
+            new_status = task.start_datetime <= current_time <= task.end_datetime
+            if task.is_active != new_status:
+                task.is_active = new_status
+                updated_count += 1
+
+        if updated_count > 0:
+            await session.commit()
+
+        await local_db_helper.dispose()
+
+        return updated_count
 
 
 async def copy_task_to_assignment(

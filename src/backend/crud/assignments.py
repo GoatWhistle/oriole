@@ -4,6 +4,8 @@ from sqlalchemy import select, func
 from sqlalchemy.engine import Result
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from core.config import settings
+from core.models.db_helper import DbHelper
 from exceptions.task import (
     check_start_time_not_in_past,
     check_end_time_not_in_past,
@@ -435,28 +437,36 @@ async def get_tasks_in_assignment(
     ]
 
 
-async def check_assignment_deadlines(session):
-    current_time = get_current_utc()
-    result = await session.execute(
-        select(Assignment).where(
-            (Assignment.start_datetime <= current_time)
-            | (Assignment.end_datetime <= current_time)
-        )
+async def check_assignment_deadlines():
+    local_db_helper = DbHelper(
+        db_url=str(settings.db.db_url),
     )
-    assignments = result.scalars().all()
 
-    updated_count = 0
-    for assignment in assignments:
-        new_status = (
-            assignment.start_datetime <= current_time <= assignment.end_datetime
+    async with local_db_helper.session_factory() as session:
+        current_time = get_current_utc()
+        result = await session.execute(
+            select(Assignment).where(
+                (Assignment.start_datetime <= current_time)
+                | (Assignment.end_datetime <= current_time)
+            )
         )
-        if assignment.is_active != new_status:
-            assignment.is_active = new_status
-            updated_count += 1
+        assignments = result.scalars().all()
 
-    if updated_count > 0:
-        await session.commit()
-    return updated_count
+        updated_count = 0
+        for assignment in assignments:
+            new_status = (
+                assignment.start_datetime <= current_time <= assignment.end_datetime
+            )
+            if assignment.is_active != new_status:
+                assignment.is_active = new_status
+                updated_count += 1
+
+        if updated_count > 0:
+            await session.commit()
+
+        await local_db_helper.dispose()
+
+        return updated_count
 
 
 async def copy_assignment_to_group(
