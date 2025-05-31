@@ -1,9 +1,16 @@
 import { Card } from "antd";
 import orioleIcon from './oriole-icon.png';
 import { Link } from 'react-router-dom';
+import { useEffect } from 'react';
+
 import AuthButton from './AuthButton.jsx'
 
 function Header() {
+
+  useEffect(() => {
+        document.title = 'Oriole';
+      });
+
   return (
     <Card
       style={{ width: '100%' }}
