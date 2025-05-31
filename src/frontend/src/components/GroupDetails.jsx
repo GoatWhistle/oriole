@@ -380,23 +380,25 @@ const GroupDetails = () => {
                         </>
                     )}
                     {userRole === 0 && (
-                        <Button
-                            icon={<EditOutlined />}
-                            onClick={showEditModal}
-                        >
-                            Редактировать группу
-                        </Button>
-                        <Popconfirm
-                            title={`Вы уверены, что хотите удалить группу "${group.title}"? Это действие нельзя отменить!`}
-                            onConfirm={handleDeleteGroup}
-                            okText="Да, удалить"
-                            cancelText="Отмена"
-                            okButtonProps={{ danger: true }}
-                        >
-                            <Button danger icon={<CloseOutlined />}>
-                                Удалить группу
+                        <>
+                            <Button
+                                icon={<EditOutlined />}
+                                onClick={showEditModal}
+                            >
+                                Редактировать группу
                             </Button>
-                        </Popconfirm>
+                            <Popconfirm
+                                title={`Вы уверены, что хотите удалить группу "${group.title}"? Это действие нельзя отменить!`}
+                                onConfirm={handleDeleteGroup}
+                                okText="Да, удалить"
+                                cancelText="Отмена"
+                                okButtonProps={{ danger: true }}
+                            >
+                                <Button danger icon={<CloseOutlined />}>
+                                    Удалить группу
+                                </Button>
+                            </Popconfirm>
+                        </>
                     )}
                     <Popconfirm
                         title={`Вы уверены, что хотите покинуть группу "${group.title}"?`}
