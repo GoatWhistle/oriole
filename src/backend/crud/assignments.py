@@ -1,6 +1,6 @@
 from typing import Sequence
 
-from sqlalchemy import select, func
+from sqlalchemy import select, func, delete
 from sqlalchemy.engine import Result
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -350,19 +350,34 @@ async def delete_assignment(
     assignment_id: int,
 ) -> None:
     await check_user_exists(session=session, user_id=user_id)
+
     assignment = await get_assignment_if_exists(
         session=session, assignment_id=assignment_id
     )
 
-    _ = await get_group_if_exists(session=session, group_id=assignment.group_id)
+    await get_group_if_exists(session=session, group_id=assignment.group_id)
+
     await check_user_in_group(
         session=session,
         user_id=user_id,
         group_id=assignment.group_id,
     )
+
     await check_admin_permission_in_group(
         session=session, user_id=user_id, group_id=assignment.group_id
     )
+
+    tasks_query = await session.execute(
+        select(Task).where(Task.assignment_id == assignment_id)
+    )
+    tasks = tasks_query.scalars().all()
+
+    task_ids = [task.id for task in tasks]
+    if task_ids:
+        await session.execute(delete(UserReply).where(UserReply.task_id.in_(task_ids)))
+
+    for task in tasks:
+        await session.delete(task)
 
     await session.delete(assignment)
     await session.commit()
