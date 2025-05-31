@@ -24,8 +24,8 @@ function Header() {
                 display: 'flex',
                 alignItems: 'center',
                 gap: '10px',
-                color: 'black', // Черный цвет для ссылки
-                textDecoration: 'none' // Убираем подчеркивание
+                color: 'black',
+                textDecoration: 'none'
               }}
             >
                 <img src={orioleIcon} alt="Oriole Icon" width="80" height="80" />

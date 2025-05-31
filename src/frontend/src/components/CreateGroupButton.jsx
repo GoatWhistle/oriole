@@ -40,7 +40,6 @@ const CreateGroupButton = () => {
   const onFinish = async (values) => {
     setConfirmLoading(true);
     try {
-      // Явно устанавливаем пустую строку, если description отсутствует или undefined
       const groupData = {
         title: values.title,
         description: values.description || '',
@@ -102,7 +101,7 @@ const CreateGroupButton = () => {
           <Form.Item
             label="Описание (необязательно)"
             name="description"
-            initialValue="" // Явно устанавливаем начальное значение как пустую строку
+            initialValue=""
           >
             <Input.TextArea rows={4} placeholder="Введите описание группы" />
           </Form.Item>

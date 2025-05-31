@@ -39,7 +39,6 @@ const AssignmentDetails = () => {
         const checkAuthentication = async () => {
             try {
                 setLoading(true);
-                // Загружаем данные задания
                 const assignmentResponse = await fetch(`/api/v1/assignments/${assignment_id}/`);
 
                 if (!assignmentResponse.ok) {
@@ -50,7 +49,6 @@ const AssignmentDetails = () => {
                 setAssignment(assignmentData);
                 console.log(assignmentData);
 
-                // Получаем роль пользователя в группе
                 const roleResponse = await fetch(`/api/v1/users/get-role/group/${assignmentData.group_id}`);
 
                 if (!roleResponse.ok) {
@@ -68,8 +66,8 @@ const AssignmentDetails = () => {
             }
         };
 
-        checkAuthentication(); // Вызываем функцию
-    }, [assignment_id]); // Добавляем зависимость assignment_id
+        checkAuthentication();
+    }, [assignment_id]);
 
     const handleCreateTask = async (values) => {
         try {
@@ -95,12 +93,10 @@ const AssignmentDetails = () => {
             setIsModalVisible(false);
             form.resetFields();
 
-            // Обновляем список заданий
             const updatedResponse = await fetch(`/api/v1/assignments/${assignment_id}/`);
             const updatedData = await updatedResponse.json();
             setAssignment(updatedData);
 
-            // Переходим к созданному заданию
             navigate(`/tasks/${task.id}`);
         } catch (err) {
             message.error(err.message);
@@ -164,7 +160,6 @@ const AssignmentDetails = () => {
     const startDate = dayjs(assignment.start_datetime).format('DD.MM.YYYY HH:mm');
     const endDate = dayjs(assignment.end_datetime).format('DD.MM.YYYY HH:mm');
 
-    // Проверяем, имеет ли пользователь права администратора (роль 0 или 1)
     const isAdmin = userRole === 0 || userRole === 1;
 
     return (
@@ -348,7 +343,6 @@ const AssignmentDetails = () => {
                             showTime
                             style={{ width: '100%' }}
                             disabledDate={(current) => {
-                                // Запрещаем выбирать даты раньше текущей
                                 return current && current < dayjs().startOf('day');
                             }}
                         />

@@ -29,7 +29,7 @@ const GroupMenu = () => {
                     const menuItems = data.map(group => ({
                         key: group.id,
                         label: group.title,
-                        title: group.description // Добавляем описание в tooltip
+                        title: group.description
                     }));
                     setUserGroups(menuItems);
                 }

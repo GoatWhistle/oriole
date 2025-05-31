@@ -62,7 +62,6 @@ const TaskDetails = () => {
             setTask(taskData);
             form.setFieldsValue({ answer: taskData.user_answer || '' });
 
-            // Загружаем роль пользователя в группе
             if (taskData.assignment_id) {
                 try {
                     const assignmentResponse = await fetch(`/api/v1/assignments/${taskData.assignment_id}/`, {

@@ -59,10 +59,9 @@ const LoginForm = () => {
 
       setForgotPasswordLoading(true);
 
-      // Отправляем email как параметр запроса в URL
       const response = await axios.post(
         `/api/v1/auth/forgot_password?email=${encodeURIComponent(email)}`,
-        null, // Тело запроса пустое
+        null,
         {
           withCredentials: true,
           headers: {

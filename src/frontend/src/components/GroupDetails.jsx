@@ -288,10 +288,9 @@ const GroupDetails = () => {
         try {
             const values = await assignmentForm.validateFields();
 
-            // Format data exactly as the working curl example
             const assignmentData = {
                 title: values.title,
-                description: values.description || "string", // Fallback to "string" if empty
+                description: values.description || "string",
                 is_contest: values.is_contest || false,
                 group_id: parseInt(group_id),
                 start_datetime: values.dateRange[0].toISOString(),
@@ -313,7 +312,6 @@ const GroupDetails = () => {
 
             console.log("Assignment created:", response.data);
 
-            // Update local state
             setGroup(prev => ({
                 ...prev,
                 assignments: [...prev.assignments, {
@@ -323,7 +321,6 @@ const GroupDetails = () => {
                 }]
             }));
 
-            // Reset form and close modal
             setIsCreateAssignmentModalVisible(false);
             assignmentForm.resetFields();
             message.success('Assignment created successfully!');
@@ -334,14 +331,12 @@ const GroupDetails = () => {
             let errorMessage = "Failed to create assignment";
 
             if (error.response) {
-                // Server responded with error status
                 console.error("Server response:", error.response.data);
                 console.error("Status code:", error.response.status);
 
                 if (error.response.status === 500) {
                     errorMessage = "Server error occurred. Please try again later.";
                 } else if (error.response.data) {
-                    // Try to extract meaningful error message
                     if (typeof error.response.data === 'string') {
                         errorMessage = error.response.data;
                     } else if (error.response.data.detail) {
@@ -351,11 +346,9 @@ const GroupDetails = () => {
                     }
                 }
             } else if (error.request) {
-                // Request was made but no response received
                 console.error("No response received:", error.request);
                 errorMessage = "No response from server. Check your connection.";
             } else {
-                // Other errors
                 console.error("Request setup error:", error.message);
                 errorMessage = error.message;
             }
@@ -384,15 +377,15 @@ const GroupDetails = () => {
                             >
                                 Пригласить участников
                             </Button>
-                            <Button
-                                icon={<EditOutlined />}
-                                onClick={showEditModal}
-                            >
-                                Редактировать группу
-                            </Button>
                         </>
                     )}
                     {userRole === 0 && (
+                        <Button
+                            icon={<EditOutlined />}
+                            onClick={showEditModal}
+                        >
+                            Редактировать группу
+                        </Button>
                         <Popconfirm
                             title={`Вы уверены, что хотите удалить группу "${group.title}"? Это действие нельзя отменить!`}
                             onConfirm={handleDeleteGroup}

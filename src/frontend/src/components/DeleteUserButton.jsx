@@ -27,7 +27,6 @@ const DeleteUserButton = () => {
   const handleDelete = async () => {
     setLoading(true);
     try {
-      // Добавляем credentials для отправки cookies и headers
       const response = await axios.delete('/api/v1/users/', {
         withCredentials: true,
         headers: {
@@ -35,11 +34,9 @@ const DeleteUserButton = () => {
         },
       });
 
-      // Проверяем статус ответа (204 - No Content)
       if (response.status === 204) {
         message.success('Ваш аккаунт успешно удален');
 
-        // Добавляем небольшую задержку перед перенаправлением
         setTimeout(() => {
           window.location.href = '/login';
         }, 1000);
