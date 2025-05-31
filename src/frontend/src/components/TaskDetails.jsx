@@ -6,17 +6,18 @@ import {
   Divider,
   Button,
   Space,
-  Tag,
   message,
   Form,
   Input,
+  InputNumber,
   Alert,
   Statistic,
   Row,
   Col,
   Modal,
   Popconfirm,
-  DatePicker
+  DatePicker,
+  Spin
 } from 'antd';
 import {
   CheckOutlined,
@@ -27,6 +28,7 @@ import {
   DeleteOutlined
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
+import axios from 'axios';
 
 const { Title, Text, Paragraph } = Typography;
 const { TextArea } = Input;
@@ -40,175 +42,155 @@ const TaskDetails = () => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [userRole, setUserRole] = useState(null);
     const [isEditModalVisible, setIsEditModalVisible] = useState(false);
-    const [showResult, setShowResult] = useState(false);
-    const [resultCorrect, setResultCorrect] = useState(null);
     const [form] = Form.useForm();
     const [editForm] = Form.useForm();
 
-    useEffect(() => {
-        const fetchTask = async () => {
-            try {
-                setLoading(true);
-                const response = await fetch(`/api/v1/tasks/${task_id}/`, {
+    // Функция для загрузки данных задания
+    const fetchTaskData = async () => {
+        try {
+            setLoading(true);
+            const [taskResponse, assignmentResponse] = await Promise.all([
+                fetch(`/api/v1/tasks/${task_id}/`, {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('access_token')}`
                     }
-                });
-
-                if (!response.ok) {
-                    throw new Error('Не удалось загрузить информацию о задании');
-                }
-
-                const taskData = await response.json();
-                setTask(taskData);
-
-                form.setFieldsValue({
-                    answer: taskData.user_answer || ''
-                });
-
-                const assignmentResponse = await fetch(`/api/v1/assignments/${taskData.assignment_id}/`, {
+                }),
+                fetch(`/api/v1/assignments/${task?.assignment_id || ''}/`, {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('access_token')}`
                     }
-                });
+                }).catch(() => null)
+            ]);
 
-                if (assignmentResponse.ok) {
-                    const assignmentData = await assignmentResponse.json();
-                    const roleResponse = await fetch(`/api/v1/auth/get-role/group/${assignmentData.group_id}`, {
-                        headers: {
-                            'Authorization': `Bearer ${localStorage.getItem('access_token')}`
-                        }
-                    });
-
-                    if (roleResponse.ok) {
-                        const role = await roleResponse.json();
-                        setUserRole(role);
-                    }
-                }
-            } catch (err) {
-                setError(err.message);
-                message.error(err.message);
-            } finally {
-                setLoading(false);
+            if (!taskResponse.ok) {
+                throw new Error('Не удалось загрузить информацию о задании');
             }
-        };
 
-        fetchTask();
-    }, [task_id, form]);
+            const taskData = await taskResponse.json();
+            setTask(taskData);
+            form.setFieldsValue({ answer: taskData.user_answer || '' });
 
+            // Загружаем роль пользователя, если есть информация о задании
+            if (assignmentResponse?.ok) {
+                const assignmentData = await assignmentResponse.json();
+                const roleResponse = await fetch(`/api/v1/auth/get-role/group/${assignmentData.group_id}`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+                    }
+                });
+
+                if (roleResponse.ok) {
+                    setUserRole(await roleResponse.json());
+                }
+            }
+        } catch (err) {
+            setError(err.message);
+            message.error(err.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Первоначальная загрузка данных
+    useEffect(() => {
+        fetchTaskData();
+    }, [task_id]);
+
+    // Отправка ответа на задание
     const handleSubmitAnswer = async () => {
         try {
             setIsSubmitting(true);
             const values = await form.validateFields();
-            const userAnswer = values.answer;
+            const user_answer = values.answer;
 
-            const response = await fetch(`/api/v1/tasks/${task_id}/complete/`, {
-                method: 'PATCH',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('access_token')}`
-                },
-                body: JSON.stringify({
-                    user_answer: userAnswer
-                })
-            });
-
-            if (!response.ok) {
-                throw new Error('Не удалось отправить ответ на проверку');
-            }
-
-            const result = await response.json();
-
-            // Показываем результат проверки
-            setResultCorrect(result.is_correct);
-            setShowResult(true);
-
-            if (result.is_correct) {
-                message.success('Правильный ответ!');
-            } else {
-                message.error('Неправильный ответ! Попробуйте еще раз.');
-            }
-
-            // Обновляем данные задания
-            const updatedResponse = await fetch(`/api/v1/tasks/${task_id}/`, {
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+            const response = await axios.patch(
+                `/api/v1/tasks/${task_id}/complete/?user_answer=${encodeURIComponent(user_answer)}`,
+                {},
+                {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+                        'Accept': 'application/json'
+                    },
+                    withCredentials: true
                 }
-            });
+            );
 
-            if (updatedResponse.ok) {
-                const updatedTask = await updatedResponse.json();
-                setTask(updatedTask);
-            }
+            // Обновляем данные задания после успешного ответа
+            await fetchTaskData();
+
+            message.success(response.data.is_correct ?
+                'Правильный ответ!' :
+                'Неправильный ответ! Попробуйте еще раз.');
+
         } catch (err) {
-            message.error(err.message);
+            await fetchTaskData();
         } finally {
             setIsSubmitting(false);
         }
     };
 
+    // Редактирование задания
     const handleUpdateTask = async () => {
         try {
             const values = await editForm.validateFields();
-            const response = await fetch(`/api/v1/tasks/${task_id}/`, {
-                method: 'PATCH',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('access_token')}`
-                },
-                body: JSON.stringify({
+            const response = await axios.patch(
+                `/api/v1/tasks/${task_id}/`,
+                {
                     ...values,
                     start_datetime: values.dateRange[0].toISOString(),
                     end_datetime: values.dateRange[1].toISOString()
-                })
-            });
+                },
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+                    }
+                }
+            );
 
-            if (!response.ok) {
-                throw new Error('Не удалось обновить задание');
-            }
-
-            const updatedTask = await response.json();
-            setTask(updatedTask);
+            setTask(response.data);
             message.success('Задание успешно обновлено');
             setIsEditModalVisible(false);
         } catch (err) {
-            message.error(err.message);
+            message.error(err.response?.data?.detail || err.message);
         }
     };
 
+    // Удаление задания
     const handleDeleteTask = async () => {
         try {
-            const response = await fetch(`/api/v1/tasks/${task_id}/`, {
-                method: 'DELETE',
+            await axios.delete(`/api/v1/tasks/${task_id}/`, {
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('access_token')}`
                 }
             });
 
-            if (!response.ok) {
-                throw new Error('Не удалось удалить задание');
-            }
-
             message.success('Задание успешно удалено');
             navigate(`/assignments/${task.assignment_id}`);
         } catch (err) {
-            message.error(err.message);
+            message.error(err.response?.data?.detail || err.message);
         }
     };
 
     const formatDate = (dateString) => {
-        const date = new Date(dateString);
-        return date.toLocaleString();
+        return dayjs(dateString).format('DD.MM.YYYY HH:mm');
     };
 
     const isAdmin = userRole === 0 || userRole === 1;
+    const isTaskCompleted = task?.is_correct;
+    const attemptsExhausted = task?.user_attempts >= task?.max_attempts;
 
-    if (loading) return <div>Загрузка информации о задании...</div>;
-    if (error) return <div>Ошибка: {error}</div>;
-    if (!task) return <div>Задание не найдено</div>;
+    if (loading) return (
+        <div style={{ display: 'flex', justifyContent: 'center', padding: '24px' }}>
+            <Spin size="large" />
+        </div>
+    );
+
+    if (error) return <Alert type="error" message={error} />;
+    if (!task) return <Alert type="warning" message="Задание не найдено" />;
 
     return (
-        <div style={{ padding: '24px' }}>
+        <div style={{ padding: '24px', maxWidth: '1200px', margin: '0 auto' }}>
             <Button
                 type="text"
                 icon={<ArrowLeftOutlined />}
@@ -257,22 +239,27 @@ const TaskDetails = () => {
                         )}
                     </div>
                 }
+                loading={loading}
             >
                 <Row gutter={16} style={{ marginBottom: 24 }}>
-                    <Col span={8}>
+                    <Col xs={24} sm={12} md={8}>
                         <Statistic
                             title="Статус"
-                            value={task.is_correct ? 'Правильно' : 'Не проверено'}
-                            prefix={task.is_correct ? <CheckOutlined style={{ color: '#52c41a' }} /> : <ClockCircleOutlined />}
+                            value={isTaskCompleted ? 'Правильно' : attemptsExhausted ? 'Неверно' : 'Не проверено'}
+                            prefix={isTaskCompleted ?
+                                <CheckOutlined style={{ color: '#52c41a' }} /> :
+                                attemptsExhausted ?
+                                <CloseOutlined style={{ color: '#ff4d4f' }} /> :
+                                <ClockCircleOutlined />}
                         />
                     </Col>
-                    <Col span={8}>
+                    <Col xs={24} sm={12} md={8}>
                         <Statistic
                             title="Попытки"
                             value={`${task.user_attempts} / ${task.max_attempts}`}
                         />
                     </Col>
-                    <Col span={8}>
+                    <Col xs={24} sm={12} md={8}>
                         <Statistic
                             title="Срок сдачи"
                             value={formatDate(task.end_datetime)}
@@ -296,31 +283,35 @@ const TaskDetails = () => {
                         <TextArea
                             rows={6}
                             placeholder="Введите ваш ответ здесь..."
-                            disabled={task.user_attempts >= task.max_attempts}
+                            disabled={attemptsExhausted || isTaskCompleted}
                         />
                     </Form.Item>
 
-                    {showResult && (
+                    {isTaskCompleted && (
                         <Alert
-                            message={resultCorrect ? 'Правильный ответ!' : 'Неправильный ответ!'}
-                            type={resultCorrect ? 'success' : 'error'}
+                            message="Вы успешно выполнили это задание!"
+                            type="success"
                             showIcon
                             style={{ marginBottom: 16 }}
                         />
                     )}
 
-                    {task.user_attempts >= task.max_attempts ? (
+                    {attemptsExhausted && !isTaskCompleted && (
                         <Alert
                             message="Вы исчерпали все попытки для этого задания"
                             type="warning"
                             showIcon
+                            style={{ marginBottom: 16 }}
                         />
-                    ) : (
+                    )}
+
+                    {!attemptsExhausted && !isTaskCompleted && (
                         <Space>
                             <Button
                                 type="primary"
                                 onClick={handleSubmitAnswer}
                                 loading={isSubmitting}
+                                disabled={loading}
                             >
                                 Отправить ответ
                             </Button>
@@ -330,58 +321,33 @@ const TaskDetails = () => {
                         </Space>
                     )}
                 </Form>
-
-                {task.user_answer && (
-                    <>
-                        <Divider />
-                        <Title level={4}>Предыдущие ответы:</Title>
-                        <Card>
-                            <Paragraph strong>Ваш ответ:</Paragraph>
-                            <Paragraph style={{ whiteSpace: 'pre-line' }}>{task.user_answer}</Paragraph>
-                            {task.is_correct !== null && (
-                                <Paragraph>
-                                    <Tag
-                                        color={task.is_correct ? 'success' : 'error'}
-                                        icon={task.is_correct ? <CheckOutlined /> : <CloseOutlined />}
-                                    >
-                                        {task.is_correct ? 'Правильно' : 'Неправильно'}
-                                    </Tag>
-                                </Paragraph>
-                            )}
-                        </Card>
-                    </>
-                )}
             </Card>
 
+            {/* Модальное окно для редактирования задания */}
             <Modal
                 title="Редактирование задания"
-                visible={isEditModalVisible}
+                open={isEditModalVisible}
                 onCancel={() => setIsEditModalVisible(false)}
                 onOk={handleUpdateTask}
                 okText="Сохранить"
                 cancelText="Отмена"
-                width={800}
+                confirmLoading={isSubmitting}
             >
-                <Form
-                    form={editForm}
-                    layout="vertical"
-                >
+                <Form form={editForm} layout="vertical">
                     <Form.Item
                         name="title"
-                        label="Название задания"
+                        label="Название"
                         rules={[{ required: true, message: 'Введите название задания' }]}
                     >
                         <Input />
                     </Form.Item>
-
                     <Form.Item
                         name="description"
-                        label="Описание задания"
+                        label="Описание"
                         rules={[{ required: true, message: 'Введите описание задания' }]}
                     >
                         <TextArea rows={4} />
                     </Form.Item>
-
                     <Form.Item
                         name="correct_answer"
                         label="Правильный ответ"
@@ -389,26 +355,22 @@ const TaskDetails = () => {
                     >
                         <Input />
                     </Form.Item>
-
                     <Form.Item
                         name="max_attempts"
-                        label="Максимальное количество попыток"
-                        rules={[{ required: true, message: 'Укажите количество попыток' }]}
+                        label="Макс. попыток"
+                        rules={[{ required: true, message: 'Введите количество попыток' }]}
                     >
-                        <InputNumber min={1} style={{ width: '100%' }} />
+                        <InputNumber min={1} max={10} style={{ width: '100%' }} />
                     </Form.Item>
-
                     <Form.Item
                         name="dateRange"
-                        label="Срок выполнения"
-                        rules={[{ required: true, message: 'Укажите срок выполнения' }]}
+                        label="Период времени"
+                        rules={[{ required: true, message: 'Выберите период времени' }]}
                     >
                         <DatePicker.RangePicker
                             showTime
                             style={{ width: '100%' }}
-                            disabledDate={(current) => {
-                                return current && current < dayjs().startOf('day');
-                            }}
+                            disabledDate={(current) => current && current < dayjs().startOf('day')}
                         />
                     </Form.Item>
                 </Form>
