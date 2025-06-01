@@ -15,7 +15,8 @@ import {
   InputNumber,
   DatePicker,
   Space,
-  Popconfirm
+  Popconfirm,
+  Checkbox
 } from 'antd';
 import dayjs from 'dayjs';
 
@@ -161,6 +162,16 @@ const AssignmentDetails = () => {
     const endDate = dayjs(assignment.end_datetime).format('DD.MM.YYYY HH:mm');
 
     const isAdmin = userRole === 0 || userRole === 1;
+
+    // Функция для ограничения выбора даты в рамках модуля
+    const disabledDateForTask = (current) => {
+        const moduleStart = dayjs(assignment.start_datetime);
+        const moduleEnd = dayjs(assignment.end_datetime);
+        return current && (
+            current < moduleStart.startOf('day') ||
+            current > moduleEnd.endOf('day')
+        );
+    };
 
     return (
         <div style={{ padding: '24px' }}>
@@ -342,9 +353,7 @@ const AssignmentDetails = () => {
                         <DatePicker.RangePicker
                             showTime
                             style={{ width: '100%' }}
-                            disabledDate={(current) => {
-                                return current && current < dayjs().startOf('day');
-                            }}
+                            disabledDate={disabledDateForTask}
                         />
                     </Form.Item>
                 </Form>
@@ -389,7 +398,7 @@ const AssignmentDetails = () => {
                             label="Тип модуля"
                             valuePropName="checked"
                         >
-                            <Input type="checkbox" /> Контест
+                            <Checkbox>Контест</Checkbox>
                         </Form.Item>
 
                         <Form.Item
@@ -400,9 +409,6 @@ const AssignmentDetails = () => {
                             <DatePicker.RangePicker
                                 showTime
                                 style={{ width: '100%' }}
-                                disabledDate={(current) => {
-                                    return current && current < dayjs().startOf('day');
-                                }}
                             />
                         </Form.Item>
                     </Form>
