@@ -34,6 +34,7 @@ import {
   ClockCircleOutlined,
   InfoCircleOutlined
 } from '@ant-design/icons';
+import dayjs from 'dayjs';
 
 const { Title, Text, Paragraph } = Typography;
 const { TextArea } = Input;
@@ -668,7 +669,9 @@ const GroupDetails = () => {
                         <RangePicker
                             showTime
                             format="YYYY-MM-DD HH:mm:ss"
-                            style={{ width: '100%' }}
+                            disabledDate={(current) => {
+                                    return current && current < dayjs().startOf('day');
+                                }}
                         />
                     </Form.Item>
                 </Form>
