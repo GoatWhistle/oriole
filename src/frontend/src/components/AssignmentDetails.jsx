@@ -163,7 +163,6 @@ const AssignmentDetails = () => {
 
     const isAdmin = userRole === 0 || userRole === 1;
 
-    // Функция для ограничения выбора даты в рамках модуля
     const disabledDateForTask = (current) => {
         const moduleStart = dayjs(assignment.start_datetime);
         const moduleEnd = dayjs(assignment.end_datetime);
