@@ -1,10 +1,12 @@
 [project]
 name = "oriole"
-version = "0.1.0"
-description = ""
+version = "0.1.2"
+description = "Oriole is a mentor-learner platform that simplifies education beyond formal systems"
 authors = [
-    # add pupyk misha and ame:)
-    { name = "artems", email = "whard8y@gmail.com" }
+    { name = "Timofey Pupykin", email = "pupykint@gmail.com" },
+    { name = "Artem Saveliev", email = "whard8y@gmail.com" },
+    { name = "Mikhail Khorokhorin", email = "mikhailkhorokhorin@gmail.com" },
+    { name = "Robert Savitskas", email = "savrobartrobsav@gmail.com" }
 ]
 readme = "README.md"
 requires-python = ">=3.13,<4.0"
