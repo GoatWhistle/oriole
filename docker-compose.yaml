@@ -1,8 +1,12 @@
 services:
-  backend:
+  backend_base:
     build:
       dockerfile: docker_build/backend/Dockerfile
       context: ./
+    image: backend_base:base
+
+  backend:
+    image: backend_base:base
     depends_on:
       pg:
         condition: service_healthy
@@ -105,9 +109,7 @@ services:
       - app-net
 
   celery_worker:
-    build:
-      context: ./
-      dockerfile: docker_build/backend/Dockerfile
+    image: backend_base:base
     command: celery -A core.celery.app worker --loglevel=info
     depends_on:
       pg:
@@ -126,9 +128,7 @@ services:
       - app-net
 
   celery_beat:
-    build:
-      context: ./
-      dockerfile: docker_build/backend/Dockerfile
+    image: backend_base:base
     command: celery -A core.celery.app beat --loglevel=info
     depends_on:
       pg:
