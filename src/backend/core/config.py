@@ -1,11 +1,9 @@
-from pydantic import BaseModel, EmailStr
-from pydantic_settings import BaseSettings, SettingsConfigDict
-
-from pydantic import PostgresDsn
 from pathlib import Path
 
 from dotenv import load_dotenv
-
+from pydantic import BaseModel, EmailStr
+from pydantic import PostgresDsn
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 env_files = (".env.app_config", ".env.smtp_email", ".env.redis")
 
@@ -41,22 +39,17 @@ class DbConfig(BaseModel):
     }
 
 
-class ApiV1Prefix(BaseModel):
-    prefix: str = "/v1"
+class ApiPrefix(BaseModel):
+    prefix: str = "/api"
     users: str = "/users"
     groups: str = "/groups"
-    assignments: str = "/assignments"
+    modules: str = "/modules"
     tasks: str = "/tasks"
     auth: str = "/auth"
     learn: str = "/learn"
     email_verify: str = "/verify"
     reset_password: str = "/reset_password_redirect"
     forgot_password: str = "/forgot_password_redirect"
-
-
-class ApiPrefix(BaseModel):
-    prefix: str = "/api"
-    v1: ApiV1Prefix = ApiV1Prefix()
 
 
 class AuthJWT(BaseModel):
@@ -79,6 +72,7 @@ class SMTPEmail(BaseModel):
 class Redis(BaseModel):
     port: int
     url: str
+
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(

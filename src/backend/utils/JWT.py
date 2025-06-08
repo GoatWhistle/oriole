@@ -1,7 +1,7 @@
+from datetime import datetime, timedelta
+
 import bcrypt
 import jwt
-
-from datetime import datetime, timedelta
 from pytz import utc
 
 from core.config import settings
@@ -88,7 +88,7 @@ def decode_jwt(
     token: str,
     public_key: str = settings.auth_jwt.public_key_path.read_text(),
     algorithm: str = settings.auth_jwt.algorithm,
-):
+) -> str:
     decoded = jwt.decode(
         token,
         public_key,

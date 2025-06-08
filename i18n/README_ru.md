@@ -84,9 +84,17 @@
 
 <div align="center">
 
-|                                                                                                                                                         |                                              |
-|:-------------------------------------------------------------------------------------------------------------------------------------------------------:|:--------------------------------------------:|
-| <a href="https://github.com/timofeipupykin" target="_blank"><img src="https://github.com/timofeipupykin.png" width="80" style="border-radius: 50%"></a> | **Тимофей Пупыкин**<br>*Тимлид & DevOps*<br> |
+|                                                                                                                                                                 |                                                |
+|:---------------------------------------------------------------------------------------------------------------------------------------------------------------:|:----------------------------------------------:|
+| <a href="https://github.com/mikhailkhorokhorin" target="_blank"><img src="https://github.com/mikhailkhorokhorin.png" width="80" style="border-radius: 50%"></a> | **Михаил Хорохорин**<br>*Тимлид & Backend*<br> |
+
+</div>
+
+<div align="center">
+
+|                                                                                                                                                         |                                     |
+|:-------------------------------------------------------------------------------------------------------------------------------------------------------:|:-----------------------------------:|
+| <a href="https://github.com/timofeipupykin" target="_blank"><img src="https://github.com/timofeipupykin.png" width="80" style="border-radius: 50%"></a> | **Тимофей Пупыкин**<br>*DevOps*<br> |
 
 </div>
 
@@ -98,13 +106,6 @@
 
 </div>
 
-<div align="center">
-
-|                                                                                                                                                                 |                                                   |
-|:---------------------------------------------------------------------------------------------------------------------------------------------------------------:|:-------------------------------------------------:|
-| <a href="https://github.com/mikhailkhorokhorin" target="_blank"><img src="https://github.com/mikhailkhorokhorin.png" width="80" style="border-radius: 50%"></a> | **Михаил Хорохорин**<br>*Backend-разработчик*<br> |
-
-</div>
 
 <div align="center">
 

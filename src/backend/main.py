@@ -1,16 +1,11 @@
 import uvicorn
-
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-
-from core.events import lifespan
-from core.config import settings
-from core.redis import AutoCacheMiddleware
-from core.logging import LoggingMiddleware
-
 from api import router as api_router
-
+from core.config import settings
+from core.events import lifespan
+from middlewares import LoggingMiddleware, AutoCacheMiddleware
 
 app = FastAPI(lifespan=lifespan)
 
@@ -26,7 +21,7 @@ app.add_middleware(
     AutoCacheMiddleware,
     ttl=600,
     exclude_paths=["docs", "openapi.json", "redoc", "static", "docs#"],
-    invalidate_paths=["auth", "verify"]
+    invalidate_paths=["auth", "verify"],
 )
 app.add_middleware(LoggingMiddleware)
 
@@ -36,7 +31,7 @@ app.include_router(
 )
 
 
-@app.get("/api/v1/ping")
+@app.get("/api/ping")
 def ping():
     return {"message": "pong"}
 

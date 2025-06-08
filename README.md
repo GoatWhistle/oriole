@@ -85,9 +85,17 @@ technical stack.
 
 <div align="center">
 
-|                                                                                                                                                         |                                                |
-|:-------------------------------------------------------------------------------------------------------------------------------------------------------:|:----------------------------------------------:|
-| <a href="https://github.com/timofeipupykin" target="_blank"><img src="https://github.com/timofeipupykin.png" width="80" style="border-radius: 50%"></a> | **Timofey Pupykin**<br>*Teamlead & DevOps*<br> |
+|                                                                                                                                                                 |                                                     |
+|:---------------------------------------------------------------------------------------------------------------------------------------------------------------:|:---------------------------------------------------:|
+| <a href="https://github.com/mikhailkhorokhorin" target="_blank"><img src="https://github.com/mikhailkhorokhorin.png" width="80" style="border-radius: 50%"></a> | **Mikhail Khorokhorin**<br>*Teamlead & Backend*<br> |
+
+</div>
+
+<div align="center">
+
+|                                                                                                                                                         |                                     |
+|:-------------------------------------------------------------------------------------------------------------------------------------------------------:|:-----------------------------------:|
+| <a href="https://github.com/timofeipupykin" target="_blank"><img src="https://github.com/timofeipupykin.png" width="80" style="border-radius: 50%"></a> | **Timofey Pupykin**<br>*DevOps*<br> |
 
 </div>
 
@@ -96,14 +104,6 @@ technical stack.
 |                                                                                                                                                     |                                               |
 |:---------------------------------------------------------------------------------------------------------------------------------------------------:|:---------------------------------------------:|
 | <a href="https://github.com/AI-AVENGER-S" target="_blank"><img src="https://github.com/AI-AVENGER-S.png" width="80" style="border-radius: 50%"></a> | **Artem Saveliev**<br>*Backend Developer*<br> |
-
-</div>
-
-<div align="center">
-
-|                                                                                                                                                                 |                                                    |
-|:---------------------------------------------------------------------------------------------------------------------------------------------------------------:|:--------------------------------------------------:|
-| <a href="https://github.com/mikhailkhorokhorin" target="_blank"><img src="https://github.com/mikhailkhorokhorin.png" width="80" style="border-radius: 50%"></a> | **Mikhail Khorokhorin**<br>*Backend Developer*<br> |
 
 </div>
 

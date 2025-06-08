@@ -1,7 +1,7 @@
-from main import app
-from core.gunicorn_app import Application
-from core.gunicorn_app import get_options
 from core.config import settings
+from core.gunicorn import Application
+from core.gunicorn import get_options
+from main import app
 
 
 def main():

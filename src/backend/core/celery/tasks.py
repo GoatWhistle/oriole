@@ -1,7 +1,9 @@
-from celery import shared_task
-from crud.tasks import check_task_deadlines
-from crud.assignments import check_assignment_deadlines
 import asyncio
+
+from celery import shared_task
+from modules.crud.modules import check_assignment_deadlines
+
+from tasks.services.deadline import check_tasks_deadlines
 
 
 @shared_task
@@ -10,5 +12,5 @@ def run_deadline_checks():
 
 
 async def _run_all_deadline_checks():
-    await check_task_deadlines()
+    await check_tasks_deadlines()
     await check_assignment_deadlines()

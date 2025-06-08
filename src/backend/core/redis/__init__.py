@@ -1,7 +1,4 @@
-__all__ = (
-    "redis_connection",
-    "AutoCacheMiddleware",
-)
+__all__ = ("redis_connection",)
 
-from .redis_connection import redis_connection
-from .cache import AutoCacheMiddleware
+
+from .connection import redis_connection
