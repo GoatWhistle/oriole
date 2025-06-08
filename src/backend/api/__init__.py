@@ -1,16 +1,14 @@
 from fastapi import APIRouter
 
 from core.config import settings
-from groups.api import router as groups_router
-from modules.api import router as moduls_router
-from tasks.api import router as tasks_router
-from users.api.auth import router as auth_router
-from users.api.email_access import router as email_access_router
-from users.api.users import router as users_router
+from features.groups.api import router as groups_router
+from features.modules.api import router as moduls_router
+from features.tasks.api import router as tasks_router
+from features.users.api.auth import router as auth_router
+from features.users.api.email_access import router as email_access_router
+from features.users.api.users import router as users_router
 
-router = APIRouter(
-    prefix=settings.api.prefix,
-)
+router = APIRouter(prefix=settings.api.prefix)
 
 router.include_router(
     router=groups_router,

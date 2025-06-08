@@ -2,8 +2,8 @@ import asyncio
 
 from celery import shared_task
 
-from modules.services.deadline import check_modules_deadlines
-from tasks.services.deadline import check_tasks_deadlines
+from features.modules.services.deadline import check_modules_deadlines
+from features.tasks.services.deadline import check_tasks_deadlines
 
 
 @shared_task
