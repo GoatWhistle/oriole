@@ -14,4 +14,4 @@ class Base(DeclarativeBase):
 
     @declared_attr
     def __tablename__(self):
-        return f"{pluralize_snake_case(self.__name__)}s"
+        return f"{pluralize_snake_case(self.__name__)}"

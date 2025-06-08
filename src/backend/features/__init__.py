@@ -9,7 +9,7 @@ __all__ = (
     "GroupInvite",
 )
 
-from .groups.models import Account, Group, GroupInvite
-from .modules.models import Module
-from .tasks.models import Task, UserReply
-from .users.models import User, UserProfile
+from .groups import Account, Group, GroupInvite
+from .modules import Module
+from .tasks import Task, UserReply
+from .users import User, UserProfile

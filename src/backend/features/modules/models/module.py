@@ -21,12 +21,12 @@ class Module(Base, IdIntPkMixin):
     is_contest: Mapped[bool] = mapped_column()
 
     admin_id: Mapped[int] = mapped_column(ForeignKey("user_profiles.user_id"))
-    admin: Mapped["UserProfile"] = relationship(back_populates="admin_assignments")
+    admin: Mapped["UserProfile"] = relationship(back_populates="admin_modules")
 
     group_id: Mapped[int] = mapped_column(ForeignKey("groups.id"))
-    group: Mapped["Group"] = relationship(back_populates="assignments")
+    group: Mapped["Group"] = relationship(back_populates="modules")
 
-    tasks: Mapped[list["Task"]] = relationship(back_populates="assignment")
+    tasks: Mapped[list["Task"]] = relationship(back_populates="module")
     tasks_count: Mapped[int] = mapped_column(Integer, default=0)
 
     start_datetime: Mapped[datetime] = mapped_column(

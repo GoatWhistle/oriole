@@ -18,7 +18,7 @@ class Task(Base, IdIntPkMixin):
     description: Mapped[str] = mapped_column(String(get_num_opt(200)))
     correct_answer: Mapped[str] = mapped_column()
 
-    module_id: Mapped[int] = mapped_column(ForeignKey("module.id"))
+    module_id: Mapped[int] = mapped_column(ForeignKey("modules.id"))
     module: Mapped["Module"] = relationship(back_populates="tasks")
 
     user_replies: Mapped[list["UserReply"]] = relationship(back_populates="task")
