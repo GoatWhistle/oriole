@@ -12,7 +12,7 @@ from tasks.schemas.task import (
     TaskReadPartial,
 )
 from tasks.services import task as service
-from users.crud.auth import get_current_active_auth_user_id
+from users.services.auth import get_current_active_auth_user_id
 
 router = APIRouter()
 

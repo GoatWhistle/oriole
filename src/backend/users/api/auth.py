@@ -14,13 +14,13 @@ from slowapi.util import get_remote_address
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from database import db_helper
-from users.crud import auth as crud
 from users.schemas.token import TokenResponseForOAuth2
 from users.schemas.user import (
     RegisterUserInput,
     UserAuthRead,
     UserRead,
 )
+from users.services import auth as crud
 
 router = APIRouter()
 limiter = Limiter(key_func=get_remote_address)

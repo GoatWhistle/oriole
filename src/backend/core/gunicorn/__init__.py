@@ -3,5 +3,5 @@ __all__ = (
     "get_options",
 )
 
-from .application import Application
+from .app import Application
 from .options import get_options

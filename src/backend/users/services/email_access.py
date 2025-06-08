@@ -6,9 +6,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.config import settings
 from users.models import User
-from users.validators.timing import check_expiration_after_redirect
-from utils.JWT import decode_jwt, validate_password
-from utils.JWT import hash_password
+from users.validators import check_expiration_after_redirect
+from utils.JWT import decode_jwt, validate_password, hash_password
 
 templates = Jinja2Templates(directory="templates/email")
 

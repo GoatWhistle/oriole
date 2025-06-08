@@ -22,9 +22,7 @@ from sqlalchemy.orm import Mapped
 from core.config import settings
 from database import db_helper
 from users.models import User, UserProfile
-from users.crud.email_access import send_confirmation_email
-from users.schemas.token import TokenResponseForOAuth2
-from users.schemas.user import (
+from users.schemas import (
     UserAuth,
     RegisterUserInput,
     RegisterUserInternal,
@@ -32,8 +30,10 @@ from users.schemas.user import (
     UserLogin,
     UserRead,
     UserProfileRead,
+    TokenResponseForOAuth2,
 )
-from users.validators.rules import validate_activity_and_verification
+from users.services.email_access import send_confirmation_email
+from users.validators import validate_activity_and_verification
 from utils.JWT import (
     validate_password,
     create_access_token,

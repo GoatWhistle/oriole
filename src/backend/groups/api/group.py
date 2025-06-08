@@ -12,8 +12,8 @@ from groups.schemas.group import (
     GroupUpdatePartial,
 )
 from groups.services import group as service
-from users.crud.auth import get_current_active_auth_user_id
 from users.schemas import UserProfileRead
+from users.services.auth import get_current_active_auth_user_id
 
 router = APIRouter()
 

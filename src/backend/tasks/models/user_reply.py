@@ -3,8 +3,8 @@ from typing import TYPE_CHECKING
 from sqlalchemy import String, ForeignKey, Integer
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from database import IdIntPkMixin
 from database.base import Base
-from database.mixins import IdIntPkMixin
 from utils import get_number_one_bit_less as num_opt
 
 if TYPE_CHECKING:
@@ -17,7 +17,7 @@ class UserReply(Base, IdIntPkMixin):
     account: Mapped["Account"] = relationship(back_populates="done_tasks")
 
     task_id: Mapped[int] = mapped_column(ForeignKey("tasks.id"))
-    task: Mapped["Task"] = relationship(back_populates="user_replys")
+    task: Mapped["Task"] = relationship(back_populates="user_replies")
 
     user_answer: Mapped[str] = mapped_column(String(num_opt(200)))
     is_correct: Mapped[bool] = mapped_column()

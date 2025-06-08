@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from database import db_helper
 from modules.services import task as service
 from tasks.schemas import TaskReadPartial
-from users.crud.auth import get_current_active_auth_user_id
+from users.services.auth import get_current_active_auth_user_id
 
 router = APIRouter()
 

@@ -3,8 +3,8 @@ from typing import TYPE_CHECKING
 from sqlalchemy import String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from database import Base
-from database.mixins import IdIntPkMixin
+from database import IdIntPkMixin
+from database.base import Base
 from utils import get_number_one_bit_less as get_num_opt
 
 if TYPE_CHECKING:

@@ -12,7 +12,7 @@ from modules.schemas import (
     ModuleUpdatePartial,
 )
 from modules.services import module as service
-from users.crud.auth import get_current_active_auth_user_id
+from users.services.auth import get_current_active_auth_user_id
 
 router = APIRouter()
 

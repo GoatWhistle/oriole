@@ -1,6 +1,5 @@
 from core.config import settings
-from core.gunicorn import Application
-from core.gunicorn import get_options
+from core.gunicorn import Application, get_options
 from main import app
 
 

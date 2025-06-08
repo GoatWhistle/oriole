@@ -6,9 +6,9 @@ from fastapi import (
 )
 from sqlalchemy.ext.asyncio import AsyncSession
 
-import users.crud.email_access as crud
+import users.services.email_access as crud
 from database import db_helper
-from users.crud.email_access import verify as crud_verify
+from users.services.email_access import verify as crud_verify
 
 router = APIRouter()
 

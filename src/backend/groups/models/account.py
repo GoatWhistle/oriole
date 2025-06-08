@@ -3,8 +3,8 @@ from typing import TYPE_CHECKING
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from database import Base
-from database.mixins import IdIntPkMixin
+from database import IdIntPkMixin
+from database.base import Base
 
 if TYPE_CHECKING:
     from users.models import UserProfile

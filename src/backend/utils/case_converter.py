@@ -1,11 +1,16 @@
-def camel_case_to_snake_case(camel: str) -> str:
-    snake = []
-    for index, char in enumerate(camel):
-        if index and char.isupper():
-            next_index = index + 1
-            flag = next_index >= len(camel) or camel[next_index].isupper()
-            prev_char = camel[index - 1]
-            if not (prev_char.isupper() and flag):
-                snake.append("_")
-        snake.append(char.lower())
-    return "".join(snake)
+import re
+
+import inflect
+
+inflector = inflect.engine()
+
+
+def camel_case_to_snake_case(name: str) -> str:
+    s1 = re.sub(r"(.)([A-Z][a-z]+)", r"\1_\2", name)
+    snake = re.sub(r"([a-z0-9])([A-Z])", r"\1_\2", s1).lower()
+    return snake
+
+
+def pluralize_snake_case(name: str) -> str:
+    singular = camel_case_to_snake_case(name)
+    return inflector.plural(singular)

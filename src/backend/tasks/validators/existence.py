@@ -10,7 +10,7 @@ from tasks.models import Task
 async def get_task_if_exists(
     session: AsyncSession,
     task_id: int | Mapped[int],
-) -> Task | Task[Type]:
+) -> Task | Type[Task]:
     task = await session.get(Task, task_id)
     if not task:
         raise HTTPException(

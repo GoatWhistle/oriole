@@ -1,10 +1,14 @@
+from secrets import choice
+from string import ascii_uppercase, digits
 from urllib.parse import urljoin
 
 from fastapi import Request
-from sqlalchemy import select, delete
+from sqlalchemy import delete
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from groups.models import Account, GroupInvite
+from groups.models import Account
+from groups.models import GroupInvite
 from groups.schemas import AccountRole
 from groups.validators import (
     get_group_if_exists,
@@ -13,8 +17,21 @@ from groups.validators import (
     validate_invite_code,
 )
 from users.validators import check_user_exists
-from utils import generate_unique_group_invite_code
 from utils import get_current_utc
+
+
+async def generate_unique_group_invite_code(
+    session: AsyncSession,
+    length: int = 7,
+) -> str:
+    alphabet = ascii_uppercase + digits
+    while True:
+        code = "".join(choice(alphabet) for _ in range(length))
+        result = await session.execute(
+            select(GroupInvite).where(GroupInvite.code == code)
+        )
+        if not result.scalar_one_or_none():
+            return code
 
 
 async def invite_user(

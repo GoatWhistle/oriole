@@ -2,8 +2,6 @@ from fastapi import APIRouter, Depends, status, Response, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from database import db_helper
-from users.crud import users as crud
-from users.crud.auth import get_current_active_auth_user_id
 from users.schemas.user import (
     UserProfileRead,
     UserProfileUpdate,
@@ -11,6 +9,8 @@ from users.schemas.user import (
     EmailUpdateRead,
     EmailUpdate,
 )
+from users.services import user as crud
+from users.services.auth import get_current_active_auth_user_id
 
 router = APIRouter()
 
