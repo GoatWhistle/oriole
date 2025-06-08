@@ -4,10 +4,11 @@ from sqlalchemy.engine import Result
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
-from database import User, Account
-from groups.crud.groups import get_user_groups
+from groups.models import Account
+from users.models import User
+from groups.services.group import get_user_groups
 from groups.schemas.account import AccountRole
-from groups.validators.existence import get_group_if_exists, check_user_in_group
+from groups.validators import get_group_if_exists, check_user_in_group
 from users.crud.email_access import send_confirmation_email
 from users.schemas.user import (
     EmailUpdate,
@@ -16,7 +17,7 @@ from users.schemas.user import (
     UserProfileRead,
     UserProfileUpdatePartial,
 )
-from users.validators.rules import check_user_exists
+from users.validators import check_user_exists
 from utils.JWT import create_email_confirmation_token
 
 

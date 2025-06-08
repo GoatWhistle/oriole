@@ -20,7 +20,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped
 
 from core.config import settings
-from database import User, UserProfile, db_helper
+from database import db_helper
+from users.models import User, UserProfile
 from users.crud.email_access import send_confirmation_email
 from users.schemas.token import TokenResponseForOAuth2
 from users.schemas.user import (

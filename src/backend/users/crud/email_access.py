@@ -5,7 +5,7 @@ from pydantic import EmailStr
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.config import settings
-from database import User
+from users.models import User
 from users.validators.timing import check_expiration_after_redirect
 from utils.JWT import decode_jwt, validate_password
 from utils.JWT import hash_password
