@@ -59,7 +59,7 @@ class OAuth2PasswordBearerWithCookie(OAuth2PasswordBearer):
 
 
 OAuth2_scheme = OAuth2PasswordBearerWithCookie(
-    tokenUrl="/api/v1/auth/token",
+    tokenUrl="/api/auth/token",
     auto_error=False,
 )
 

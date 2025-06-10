@@ -28,7 +28,7 @@ class AutoCacheMiddleware(BaseHTTPMiddleware):
         )
 
     def make_tag_key(self, path: str) -> str:
-        path = path.replace("/api/v1", "")
+        path = path.replace("/api/", "")
         segments = [segment for segment in path.split("/") if segment]
         return f"tag:{segments[0]}" if segments else "tag:root"
 
@@ -50,13 +50,13 @@ class AutoCacheMiddleware(BaseHTTPMiddleware):
 
     def is_excluded(self, path: str) -> bool:
         return any(
-            path.startswith(f"/api/v1/{ex}") or path.startswith(f"{ex}")
+            path.startswith(f"/api/{ex}") or path.startswith(f"{ex}")
             for ex in self.exclude_paths
         )
 
     def is_invalidated(self, path: str) -> bool:
         return any(
-            path.startswith(f"/api/v1/{ex}") or path.startswith(f"{ex}")
+            path.startswith(f"/api/{ex}") or path.startswith(f"{ex}")
             for ex in self.invalidate_paths
         )
 
