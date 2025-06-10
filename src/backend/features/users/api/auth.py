@@ -106,11 +106,14 @@ async def check_auth(
 
 
 @router.post("/reset_password")
+@limiter.limit("5/minute")
 async def reset_password(
+    request: Request,
     user_from_db: UserAuthRead = Depends(crud.get_current_auth_user),
 ):
     return await crud.reset_password(
         user_from_db=user_from_db,
+        request=request,
     )
 
 
@@ -121,15 +124,20 @@ async def forgot_password(
     request: Request,
     session: AsyncSession = Depends(db_helper.dependency_session_getter),
 ):
-    _ = request
     return await crud.forgot_password(
+        request=request,
         email=email,
         session=session,
     )
 
 
 @router.post("/send_email_again")
+@limiter.limit("5/minute")
 async def send_confirmation_email_again(
+    request: Request,
     user_data: UserAuthRead = Depends(crud.get_current_auth_user),
 ):
-    return await crud.send_confirmation_email_again(user_data=user_data)
+    return await crud.send_confirmation_email_again(
+        request=request,
+        user_data=user_data,
+    )

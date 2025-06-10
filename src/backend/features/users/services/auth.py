@@ -258,6 +258,7 @@ async def register_user(
         )
 
         await send_confirmation_email(
+            request=request,
             email=user_data.email,
             token=token,
             html_file="verified_email.html",
@@ -410,6 +411,7 @@ async def check_auth(
 
 
 async def reset_password(
+    request: Request,
     user_from_db: UserAuthRead,
 ):
     token = create_password_confirmation_token(
@@ -418,6 +420,7 @@ async def reset_password(
     )
 
     await send_confirmation_email(
+        request=request,
         email=user_from_db.email,
         token=token,
         html_file="password_reset_warning.html",
@@ -428,6 +431,7 @@ async def reset_password(
 
 
 async def forgot_password(
+    request: Request,
     email: EmailStr,
     session: AsyncSession,
 ):
@@ -453,6 +457,7 @@ async def forgot_password(
     )
 
     await send_confirmation_email(
+        request=request,
         email=user_from_db.email,
         token=token,
         html_file="forgot_password_warning.html",
@@ -463,6 +468,7 @@ async def forgot_password(
 
 
 async def send_confirmation_email_again(
+    request: Request,
     user_data: UserAuthRead,
 ):
 
@@ -472,6 +478,7 @@ async def send_confirmation_email_again(
     )
 
     await send_confirmation_email(
+        request=request,
         email=user_data.email,
         token=token,
         html_file="verified_email.html",

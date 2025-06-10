@@ -1,4 +1,4 @@
-from fastapi import HTTPException, status
+from fastapi import HTTPException, status, Request
 from fastapi.templating import Jinja2Templates
 from fastapi_mail import FastMail, MessageSchema, ConnectionConfig
 from pydantic import EmailStr
@@ -8,11 +8,14 @@ from core.config import settings
 from features.users.models import User
 from features.users.validators import check_expiration_after_redirect
 from utils.JWT import decode_jwt, validate_password, hash_password
+from urllib.parse import urljoin
+
 
 templates = Jinja2Templates(directory="templates/email")
 
 
 async def send_confirmation_email(
+    request: Request,
     email: EmailStr,
     token: str,
     html_file: str,
@@ -30,8 +33,11 @@ async def send_confirmation_email(
         MAIL_STARTTLS=True,
     )
 
-    address = getattr(settings.api.v1, address_type, "/default-path")
-    link = f"http://127.0.0.1:{80}{address}/{token}"
+    base_url = str(request.base_url)
+    base_url = base_url[:-1] if base_url.endswith("/") else base_url
+
+    address = getattr(settings.api.prefix, address_type, "/default-path")
+    link = urljoin(base_url, f"{address}/{token}")
 
     html_body = templates.get_template(html_file).render(link=link)
 

@@ -126,6 +126,7 @@ async def update_user_email(
     )
 
     await send_confirmation_email(
+        request=request,
         email=user_data.email,
         token=token,
         html_file="verified_email",
