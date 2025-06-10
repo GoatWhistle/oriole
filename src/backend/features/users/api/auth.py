@@ -20,7 +20,7 @@ from features.users.schemas.user import (
     UserAuthRead,
     UserRead,
 )
-from features.users.services import auth as crud
+from features.users.services import auth as service
 
 router = APIRouter()
 limiter = Limiter(key_func=get_remote_address)
@@ -36,7 +36,7 @@ async def register_user(
     user_data: RegisterUserInput,
     session: AsyncSession = Depends(db_helper.dependency_session_getter),
 ):
-    return await crud.register_user(
+    return await service.register_user(
         request=request,
         session=session,
         user_data=user_data,
@@ -56,7 +56,7 @@ async def login_for_token(
     session: AsyncSession = Depends(db_helper.dependency_session_getter),
 ):
     _ = request
-    return await crud.login_for_token(
+    return await service.login_for_token(
         session=session,
         form_data=form_data,
         response=response,
@@ -71,7 +71,7 @@ async def logout(
     request: Request,
     response: Response,
 ):
-    return await crud.logout(
+    return await service.logout(
         request=request,
         response=response,
     )
@@ -83,7 +83,7 @@ async def refresh_tokens(
     response: Response,
     session: AsyncSession = Depends(db_helper.dependency_session_getter),
 ):
-    return await crud.refresh_tokens(
+    return await service.refresh_tokens(
         request=request,
         response=response,
         session=session,
@@ -96,10 +96,10 @@ async def refresh_tokens(
     status_code=status.HTTP_200_OK,
 )
 async def check_auth(
-    payload: dict = Depends(crud.get_non_expire_payload_token),
+    payload: dict = Depends(service.get_non_expire_payload_token),
     session: AsyncSession = Depends(db_helper.dependency_session_getter),
 ):
-    return await crud.check_auth(
+    return await service.check_auth(
         session=session,
         payload=payload,
     )
@@ -109,9 +109,9 @@ async def check_auth(
 @limiter.limit("5/minute")
 async def reset_password(
     request: Request,
-    user_from_db: UserAuthRead = Depends(crud.get_current_auth_user),
+    user_from_db: UserAuthRead = Depends(service.get_current_auth_user),
 ):
-    return await crud.reset_password(
+    return await service.reset_password(
         user_from_db=user_from_db,
         request=request,
     )
@@ -124,7 +124,7 @@ async def forgot_password(
     request: Request,
     session: AsyncSession = Depends(db_helper.dependency_session_getter),
 ):
-    return await crud.forgot_password(
+    return await service.forgot_password(
         request=request,
         email=email,
         session=session,
@@ -135,9 +135,9 @@ async def forgot_password(
 @limiter.limit("5/minute")
 async def send_confirmation_email_again(
     request: Request,
-    user_data: UserAuthRead = Depends(crud.get_current_auth_user),
+    user_data: UserAuthRead = Depends(service.get_current_auth_user),
 ):
-    return await crud.send_confirmation_email_again(
+    return await service.send_confirmation_email_again(
         request=request,
         user_data=user_data,
     )

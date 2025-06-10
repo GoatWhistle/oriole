@@ -19,7 +19,7 @@ async def send_confirmation_email(
     email: EmailStr,
     token: str,
     html_file: str,
-    address_type: str = "email_verify",
+    address_type: str = "",
 ):
 
     conf = ConnectionConfig(
@@ -33,12 +33,11 @@ async def send_confirmation_email(
         MAIL_STARTTLS=True,
     )
 
-    base_url = str(request.base_url)
-    base_url = base_url[:-1] if base_url.endswith("/") else base_url
+    base_url = str(request.base_url).rstrip("/")
+    address = getattr(settings.api, address_type, "")
+    full_path = f"{settings.api.prefix}{settings.api.email_verify}{address}/{token}"
 
-    address = getattr(settings.api.prefix, address_type, "/default-path")
-    link = urljoin(base_url, f"{address}/{token}")
-
+    link = urljoin(base_url, full_path)
     html_body = templates.get_template(html_file).render(link=link)
 
     message = MessageSchema(

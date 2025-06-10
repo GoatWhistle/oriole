@@ -130,7 +130,6 @@ async def update_user_email(
         email=user_data.email,
         token=token,
         html_file="verified_email",
-        address_type="email_verify",
     )
 
     response.delete_cookie("access_token")

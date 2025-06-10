@@ -262,7 +262,6 @@ async def register_user(
             email=user_data.email,
             token=token,
             html_file="verified_email.html",
-            address_type="email_verify",
         )
 
         return UserAuthRead.model_validate(user)
@@ -482,5 +481,4 @@ async def send_confirmation_email_again(
         email=user_data.email,
         token=token,
         html_file="verified_email.html",
-        address_type="email_verify",
     )
