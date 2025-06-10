@@ -22,15 +22,17 @@ from features.tasks.schemas import (
 )
 from features.tasks.validators import (
     get_task_if_exists,
-    check_start_time_not_in_past,
-    check_end_time_not_in_past,
-    check_end_time_is_after_start_time,
     check_task_start_deadline_before_module_start,
     check_task_end_deadline_after_module_end,
 )
 from features.users.models import UserProfile
 from features.users.validators import check_user_exists
 from utils import get_current_utc
+from validators import (
+    check_start_time_not_in_past,
+    check_end_time_not_in_past,
+    check_end_time_is_after_start_time,
+)
 
 
 async def create_task(
@@ -79,11 +81,11 @@ async def create_task(
         start_datetime=task_in.start_datetime,
         end_datetime=task_in.end_datetime,
     )
-    await check_start_time_not_in_past(task=task, start_datetime=task_in.start_datetime)
-    await check_end_time_not_in_past(task=task, end_datetime=task_in.end_datetime)
+    await check_start_time_not_in_past(obj=task, start_datetime=task_in.start_datetime)
+    await check_end_time_not_in_past(obj=task, end_datetime=task_in.end_datetime)
 
     await check_end_time_is_after_start_time(
-        task=task,
+        obj=task,
         start_datetime=task_in.start_datetime,
         end_datetime=task_in.end_datetime,
     )
@@ -286,15 +288,15 @@ async def update_task(
     )
 
     if "start_datetime" in task_update.model_dump(exclude_unset=is_partial):
-        await check_start_time_not_in_past(task=task, start_datetime=task_update.start_datetime)
+        await check_start_time_not_in_past(obj=task, start_datetime=task_update.start_datetime)
         task.start_datetime = task_update.start_datetime
 
     if "end_datetime" in task_update.model_dump(exclude_unset=is_partial):
-        await check_end_time_not_in_past(task=task, end_datetime=task_update.end_datetime)
+        await check_end_time_not_in_past(obj=task, end_datetime=task_update.end_datetime)
         task.end_datetime = task_update.end_datetime
 
     await check_end_time_is_after_start_time(
-        task=task,
+        obj=task,
         start_datetime=task.start_datetime,
         end_datetime=task.end_datetime,
     )

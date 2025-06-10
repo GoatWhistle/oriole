@@ -21,13 +21,13 @@ from features.modules.schemas import (
 from features.modules.validators import get_module_if_exists
 from features.tasks.models import Task, UserReply
 from features.tasks.schemas import TaskReadPartial
-from features.tasks.validators import (
+from features.users.validators import check_user_exists
+from utils import get_current_utc
+from validators import (
     check_start_time_not_in_past,
     check_end_time_not_in_past,
     check_end_time_is_after_start_time,
 )
-from features.users.validators import check_user_exists
-from utils import get_current_utc
 
 
 async def create_module(
@@ -49,12 +49,6 @@ async def create_module(
         group_id=module_in.group_id,
     )
 
-    await check_start_time_not_in_past(start_datetime=module_in.start_datetime)
-    await check_end_time_not_in_past(end_datetime=module_in.end_datetime)
-    await check_end_time_is_after_start_time(
-        start_datetime=module_in.start_datetime,
-        end_datetime=module_in.end_datetime,
-    )
 
     module = Module(
         title=module_in.title,
@@ -65,6 +59,14 @@ async def create_module(
         is_active=module_in.start_datetime
         <= get_current_utc()
         <= module_in.end_datetime,
+        start_datetime=module_in.start_datetime,
+        end_datetime=module_in.end_datetime,
+    )
+
+    await check_start_time_not_in_past(obj=module, start_datetime=module_in.start_datetime)
+    await check_end_time_not_in_past(obj=module, end_datetime=module_in.end_datetime)
+    await check_end_time_is_after_start_time(
+        obj=module,
         start_datetime=module_in.start_datetime,
         end_datetime=module_in.end_datetime,
     )
@@ -257,14 +259,15 @@ async def update_module(
     )
 
     if "start_datetime" in module_update.model_dump(exclude_unset=is_partial):
-        await check_start_time_not_in_past(start_datetime=module_update.start_datetime)
+        await check_start_time_not_in_past(obj=module, start_datetime=module_update.start_datetime)
         module.start_datetime = module_update.start_datetime
 
     if "end_datetime" in module_update.model_dump(exclude_unset=is_partial):
-        await check_end_time_not_in_past(end_datetime=module_update.end_datetime)
+        await check_end_time_not_in_past(obj=module, end_datetime=module_update.end_datetime)
         module.end_datetime = module_update.end_datetime
 
     await check_end_time_is_after_start_time(
+        obj=module,
         start_datetime=module.start_datetime,
         end_datetime=module.end_datetime,
     )

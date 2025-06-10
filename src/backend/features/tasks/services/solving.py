@@ -10,11 +10,11 @@ from features.tasks.validators import (
     get_task_if_exists,
     check_counter_limit,
     check_task_is_already_correct,
-    check_deadline_not_passed,
 )
 from features.users.models import UserProfile
 from features.users.validators import check_user_exists
 from utils import get_current_utc
+from validators import check_deadline_not_passed
 
 
 async def try_to_complete_task(
@@ -80,7 +80,7 @@ async def try_to_complete_task(
         user_reply_id=user_reply.id,
         task=task,
     )
-    await check_deadline_not_passed(task=task)
+    await check_deadline_not_passed(obj=task)
     await check_counter_limit(
         session=session,
         user_id=user_id,
