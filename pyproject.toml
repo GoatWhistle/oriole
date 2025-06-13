@@ -21,7 +21,6 @@ dependencies = [
     "gunicorn (>=23.0.0,<24.0.0)",
     "taskiq (>=0.11.13,<0.12.0)",
     "taskiq-aio-pika (>=0.4.1,<0.5.0)",
-    "black (>=25.1.0,<26.0.0)",
     "pyjwt[crypto] (>=2.0.0,<3.0.0)",
     "bcrypt (>=4.0.0,<5.0.0)",
     "pytz (>=2025.2,<2026.0)",
@@ -37,6 +36,12 @@ dependencies = [
 
 [tool.poetry]
 package-mode = false
+
+[tool.poetry.group.dev.dependencies]
+black = "^25.1.0"
+isort = "^6.0.1"
+flake8 = "^7.2.0"
+pre-commit = "^4.2.0"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]

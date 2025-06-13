@@ -6,13 +6,13 @@ ENV PATH="/root/.local/bin:${PATH}"
 
 WORKDIR /backend
 
-RUN pip install --upgrade pip wheel "poetry==2.1.1"
+RUN pip install --upgrade pip wheel "poetry==2.1.2"
 
 RUN poetry config virtualenvs.create false
 
 COPY pyproject.toml poetry.lock ./
 
-RUN poetry install
+RUN poetry install --without dev
 
 COPY src/backend ./
 
