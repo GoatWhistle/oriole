@@ -1,8 +1,8 @@
 import React from 'react';
-import Header from "/src/components/Header.jsx";
-import GroupMenu from "/src/components/GroupMenu.jsx";
-import ModuleMenu from "/src/components/ModuleMenu.jsx";
-import CreateGroupButton from "/src/components/CreateGroupButton.jsx";
+import Header from "/src/features/components/Header.jsx";
+import GroupMenu from "/src/features/components/GroupMenu.jsx";
+import ModuleMenu from "/src/features/components/ModuleMenu.jsx";
+import CreateGroupButton from "/src/features/components/CreateGroupButton.jsx";
 
 import { Card, Typography } from 'antd';
 const { Title } = Typography;

@@ -1,6 +1,6 @@
 import React from 'react';
-import Header from "/src/components/Header.jsx";
-import ModuleDetails from "/src/components/ModuleDetails.jsx";
+import Header from "/src/features/components/Header.jsx";
+import ModuleDetails from "/src/features/components/ModuleDetails.jsx";
 
 export default function Module() {
   return <div>
