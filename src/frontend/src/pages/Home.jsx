@@ -1,7 +1,7 @@
 import React from 'react';
 import Header from "/src/components/Header.jsx";
 import GroupMenu from "/src/components/GroupMenu.jsx";
-import AssignmentMenu from "/src/components/AssignmentMenu.jsx";
+import ModuleMenu from "/src/components/ModuleMenu.jsx";
 import CreateGroupButton from "/src/components/CreateGroupButton.jsx";
 
 import { Card, Typography } from 'antd';
@@ -38,7 +38,7 @@ export default function Home() {
               bordered={false}
               style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}
             >
-              <AssignmentMenu />
+              <ModuleMenu />
             </Card>
           </div>
           <CreateGroupButton />

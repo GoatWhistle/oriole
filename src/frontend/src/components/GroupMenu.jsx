@@ -11,7 +11,7 @@ const GroupMenu = () => {
     useEffect(() => {
         const fetchUserGroups = async () => {
             try {
-                const response = await fetch('/api/v1/groups/');
+                const response = await fetch('/api/groups/');
 
                 if (!response.ok) {
                     throw new Error('Для отображения групп войдите в аккаунт');

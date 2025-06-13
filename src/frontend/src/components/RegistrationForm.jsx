@@ -24,7 +24,7 @@ const RegistrationForm = () => {
         is_verified: false
       };
 
-      const response = await axios.post('http://localhost:8000/api/v1/auth/register', userData, {
+      const response = await axios.post('/api/auth/register', userData, {
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',

@@ -18,7 +18,7 @@ const LoginForm = () => {
       formData.append('username', values.email);
       formData.append('password', values.password);
 
-      const response = await axios.post('/api/v1/auth/token', formData, {
+      const response = await axios.post('/api/auth/token', formData, {
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
         },
@@ -60,7 +60,7 @@ const LoginForm = () => {
       setForgotPasswordLoading(true);
 
       const response = await axios.post(
-        `/api/v1/auth/forgot_password?email=${encodeURIComponent(email)}`,
+        `/api/auth/forgot_password?email=${encodeURIComponent(email)}`,
         null,
         {
           withCredentials: true,
