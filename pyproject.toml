@@ -39,14 +39,8 @@ package-mode = false
 
 [tool.poetry.group.dev.dependencies]
 black = "^25.1.0"
-isort = "^6.0.1"
-flake8 = "^7.2.0"
 pre-commit = "^4.2.0"
-
-[tool.isort]
-profile = "black"
-line_length = 120
-skip = [".venv"]
+ruff = "^0.11.13"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
