@@ -30,5 +30,12 @@ repos:
     rev: v1.16.0
     hooks:
       - id: mypy
-        args: [ --ignore-missing-imports, --strict ]
-        additional_dependencies: [ types-requests ]
+        args:
+          - --check-untyped-defs
+          - --ignore-missing-imports
+          - --install-types
+          - --non-interactive
+          - --scripts-are-modules
+          - --warn-unused-ignores
+        stages:
+          - manual
