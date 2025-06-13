@@ -1,6 +1,6 @@
 import React from 'react';
-import Header from "/src/components/Header.jsx";
-import RegistrationForm from "/src/components/RegistrationForm.jsx";
+import Header from "/src/features/components/Header.jsx";
+import RegistrationForm from "/src/features/components/RegistrationForm.jsx";
 
 export default function Registration() {
   return <div>
