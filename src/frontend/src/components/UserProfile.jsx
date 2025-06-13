@@ -29,7 +29,7 @@ const UserProfile = () => {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const response = await axios.get('/api/v1/auth/check-auth', {
+        const response = await axios.get('/api/auth/check-auth', {
           withCredentials: true
         });
         setUser(response.data);
@@ -48,7 +48,7 @@ const UserProfile = () => {
     try {
       setResetLoading(true);
       const response = await axios.post(
-        '/api/v1/auth/reset_password',
+        '/api/auth/reset_password',
         {},
         { withCredentials: true }
       );
@@ -81,7 +81,7 @@ const UserProfile = () => {
       };
 
       const response = await axios.patch(
-        `/api/v1/users/profile`,
+        `/api/users/profile`,
         updatedData,
         { withCredentials: true }
       );
@@ -102,7 +102,7 @@ const UserProfile = () => {
 
   const handleLogout = async () => {
     try {
-      await axios.delete('/api/v1/auth/logout', { withCredentials: true });
+      await axios.delete('/api/auth/logout', { withCredentials: true });
       message.success('Вы успешно вышли из системы');
       navigate('/');
     } catch (error) {
@@ -113,7 +113,7 @@ const UserProfile = () => {
 
   const handleDeleteAccount = async () => {
     try {
-      await axios.delete('/api/v1/users', {
+      await axios.delete('/api/users', {
         withCredentials: true
       });
       message.success('Аккаунт успешно удален');
