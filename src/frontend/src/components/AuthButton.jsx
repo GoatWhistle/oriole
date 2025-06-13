@@ -11,7 +11,7 @@ const AuthButton = () => {
   useEffect(() => {
     const checkAuthStatus = async () => {
       try {
-        const response = await axios.get('/api/v1/auth/check-auth', {
+        const response = await axios.get('/api/auth/check-auth', {
           withCredentials: true
         });
 

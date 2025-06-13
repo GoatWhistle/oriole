@@ -23,10 +23,10 @@ import dayjs from 'dayjs';
 const { Title, Text, Paragraph } = Typography;
 const { TextArea } = Input;
 
-const AssignmentDetails = () => {
-    const { assignment_id } = useParams();
+const ModuleDetails = () => {
+    const { module_id } = useParams();
     const navigate = useNavigate();
-    const [assignment, setAssignment] = useState(null);
+    const [module, setModule] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [userData, setUserData] = useState(null);
@@ -40,17 +40,17 @@ const AssignmentDetails = () => {
         const checkAuthentication = async () => {
             try {
                 setLoading(true);
-                const assignmentResponse = await fetch(`/api/v1/assignments/${assignment_id}/`);
+                const moduleResponse = await fetch(`/api/modules/${module_id}/`);
 
-                if (!assignmentResponse.ok) {
+                if (!moduleResponse.ok) {
                     throw new Error('Не удалось загрузить информацию о задании');
                 }
 
-                const assignmentData = await assignmentResponse.json();
-                setAssignment(assignmentData);
-                console.log(assignmentData);
+                const moduleData = await moduleResponse.json();
+                setModule(moduleData);
+                console.log(moduleData);
 
-                const roleResponse = await fetch(`/api/v1/users/get-role/group/${assignmentData.group_id}`);
+                const roleResponse = await fetch(`/api/users/get-role/group/${moduleData.group_id}`);
 
                 if (!roleResponse.ok) {
                     throw new Error('Не удалось получить информацию о роли пользователя');
@@ -68,18 +68,18 @@ const AssignmentDetails = () => {
         };
 
         checkAuthentication();
-    }, [assignment_id]);
+    }, [module_id]);
 
     const handleCreateTask = async (values) => {
         try {
-            const response = await fetch('/api/v1/tasks/', {
+            const response = await fetch('/api/tasks/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
                     ...values,
-                    assignment_id: parseInt(assignment_id),
+                    module_id: parseInt(module_id),
                     start_datetime: values.dateRange[0].toISOString(),
                     end_datetime: values.dateRange[1].toISOString()
                 })
@@ -94,9 +94,9 @@ const AssignmentDetails = () => {
             setIsModalVisible(false);
             form.resetFields();
 
-            const updatedResponse = await fetch(`/api/v1/assignments/${assignment_id}/`);
+            const updatedResponse = await fetch(`/api/modules/${module_id}/`);
             const updatedData = await updatedResponse.json();
-            setAssignment(updatedData);
+            setModule(updatedData);
 
             navigate(`/tasks/${task.id}`);
         } catch (err) {
@@ -104,9 +104,9 @@ const AssignmentDetails = () => {
         }
     };
 
-    const handleDeleteAssignment = async () => {
+    const handleDeleteModule = async () => {
         try {
-            const response = await fetch(`/api/v1/assignments/${assignment_id}/`, {
+            const response = await fetch(`/api/modules/${module_id}/`, {
                 method: 'DELETE',
             });
 
@@ -121,9 +121,9 @@ const AssignmentDetails = () => {
         }
     };
 
-    const handleUpdateAssignment = async (values) => {
+    const handleUpdateModule = async (values) => {
         try {
-            const response = await fetch(`/api/v1/assignments/${assignment_id}/`, {
+            const response = await fetch(`/api/modules/${module_id}/`, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
@@ -139,8 +139,8 @@ const AssignmentDetails = () => {
                 throw new Error('Ошибка при обновлении модуля');
             }
 
-            const updatedAssignment = await response.json();
-            setAssignment(updatedAssignment);
+            const updatedModule = await response.json();
+            setModule(updatedModule);
             message.success('Модуль успешно обновлен!');
             setLoading(false);
             setIsEditModalVisible(false);
@@ -152,20 +152,20 @@ const AssignmentDetails = () => {
 
     if (loading) return <div>Загрузка задания...</div>;
     if (error) return <div>Ошибка: {error}</div>;
-    if (!assignment) return <div>Задание не найдено</div>;
+    if (!module) return <div>Задание не найдено</div>;
 
-    const completionPercentage = assignment.tasks_count > 0
-        ? Math.round((assignment.user_completed_tasks_count / assignment.tasks_count) * 100)
+    const completionPercentage = module.tasks_count > 0
+        ? Math.round((module.user_completed_tasks_count / module.tasks_count) * 100)
         : 0;
 
-    const startDate = dayjs(assignment.start_datetime).format('DD.MM.YYYY HH:mm');
-    const endDate = dayjs(assignment.end_datetime).format('DD.MM.YYYY HH:mm');
+    const startDate = dayjs(module.start_datetime).format('DD.MM.YYYY HH:mm');
+    const endDate = dayjs(module.end_datetime).format('DD.MM.YYYY HH:mm');
 
     const isAdmin = userRole === 0 || userRole === 1;
 
     const disabledDateForTask = (current) => {
-        const moduleStart = dayjs(assignment.start_datetime);
-        const moduleEnd = dayjs(assignment.end_datetime);
+        const moduleStart = dayjs(module.start_datetime);
+        const moduleEnd = dayjs(module.end_datetime);
         return current && (
             current < moduleStart.startOf('day') ||
             current > moduleEnd.endOf('day')
@@ -185,7 +185,7 @@ const AssignmentDetails = () => {
             <Card
                 title={
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <Title level={2} style={{ margin: 0 }}>{assignment.title}</Title>
+                        <Title level={2} style={{ margin: 0 }}>{module.title}</Title>
                         <Space>
                             {isAdmin && (
                                 <>
@@ -200,12 +200,12 @@ const AssignmentDetails = () => {
                                         onClick={() => {
                                             setIsEditModalVisible(true);
                                             editForm.setFieldsValue({
-                                                title: assignment.title,
-                                                description: assignment.description,
-                                                is_contest: assignment.is_contest,
+                                                title: module.title,
+                                                description: module.description,
+                                                is_contest: module.is_contest,
                                                 dateRange: [
-                                                    dayjs(assignment.start_datetime),
-                                                    dayjs(assignment.end_datetime)
+                                                    dayjs(module.start_datetime),
+                                                    dayjs(module.end_datetime)
                                                 ]
                                             });
                                         }}
@@ -214,7 +214,7 @@ const AssignmentDetails = () => {
                                     </Button>
                                     <Popconfirm
                                         title="Вы уверены, что хотите удалить этот модуль?"
-                                        onConfirm={handleDeleteAssignment}
+                                        onConfirm={handleDeleteModule}
                                         okText="Да"
                                         cancelText="Нет"
                                     >
@@ -228,14 +228,14 @@ const AssignmentDetails = () => {
                     </div>
                 }
             >
-                <Paragraph>{assignment.description}</Paragraph>
+                <Paragraph>{module.description}</Paragraph>
 
                 <div style={{ margin: '16px 0' }}>
-                    <Tag color={assignment.is_active ? 'green' : 'red'}>
-                        {assignment.is_active ? 'Активно' : 'Неактивно'}
+                    <Tag color={module.is_active ? 'green' : 'red'}>
+                        {module.is_active ? 'Активно' : 'Неактивно'}
                     </Tag>
-                    <Tag color={assignment.is_contest ? 'orange' : 'transparent'}>
-                        {assignment.is_contest ? 'Контест' : ''}
+                    <Tag color={module.is_contest ? 'orange' : 'transparent'}>
+                        {module.is_contest ? 'Контест' : ''}
                     </Tag>
                 </div>
 
@@ -255,14 +255,14 @@ const AssignmentDetails = () => {
                     status={completionPercentage === 100 ? 'success' : 'active'}
                 />
                 <Text>
-                    {assignment.user_completed_tasks_count} из {assignment.tasks_count} заданий выполнено
+                    {module.user_completed_tasks_count} из {module.tasks_count} заданий выполнено
                 </Text>
 
                 <Divider />
 
                 <Title level={4}>Задачи:</Title>
                 <List
-                    dataSource={assignment.tasks}
+                    dataSource={module.tasks}
                     renderItem={task => (
                         <List.Item>
                             <Card
@@ -374,7 +374,7 @@ const AssignmentDetails = () => {
                     <Form
                         form={editForm}
                         layout="vertical"
-                        onFinish={handleUpdateAssignment}
+                        onFinish={handleUpdateModule}
                     >
                         <Form.Item
                             name="title"
@@ -417,4 +417,4 @@ const AssignmentDetails = () => {
     );
 };
 
-export default AssignmentDetails;
+export default ModuleDetails;

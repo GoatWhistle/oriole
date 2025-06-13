@@ -51,13 +51,13 @@ const GroupDetails = () => {
     const [inviteLink, setInviteLink] = useState(null);
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [isEditModalVisible, setIsEditModalVisible] = useState(false);
-    const [isCreateAssignmentModalVisible, setIsCreateAssignmentModalVisible] = useState(false);
+    const [isCreateModuleModalVisible, setIsCreateModuleModalVisible] = useState(false);
     const [isInviteSettingsModalVisible, setIsInviteSettingsModalVisible] = useState(false);
     const [expiryTime, setExpiryTime] = useState(null);
     const [expiresMinutes, setExpiresMinutes] = useState(30);
     const [inviteType, setInviteType] = useState('single_use');
     const [form] = Form.useForm();
-    const [assignmentForm] = Form.useForm();
+    const [moduleForm] = Form.useForm();
 
     useEffect(() => {
         const detectTimezone = () => {
@@ -73,8 +73,8 @@ const GroupDetails = () => {
                 setLoading(true);
 
                 const [groupResponse, roleResponse] = await Promise.all([
-                    fetch(`/api/v1/groups/${group_id}/`),
-                    fetch(`/api/v1/users/get-role/group/${group_id}/`)
+                    fetch(`/api/groups/${group_id}/`),
+                    fetch(`/api/users/get-role/group/${group_id}/`)
                 ]);
 
                 if (!groupResponse.ok) {
@@ -102,7 +102,7 @@ const GroupDetails = () => {
 
     const handleGenerateInviteLink = async () => {
         try {
-            const response = await fetch(`/api/v1/groups/${group_id}/invite/`, {
+            const response = await fetch(`/api/groups/${group_id}/invite/`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -148,13 +148,13 @@ const GroupDetails = () => {
         return roles[role] || 'Неизвестная роль';
     };
 
-    const handleAssignmentClick = (assignmentId) => {
-        navigate(`/assignments/${assignmentId}`);
+    const handleModuleClick = (moduleId) => {
+        navigate(`/modules/${moduleId}`);
     };
 
     const handleRemoveUser = async (userId) => {
         try {
-            const response = await fetch(`/api/v1/groups/${group_id}/kick/${userId}/`, {
+            const response = await fetch(`/api/groups/${group_id}/kick/${userId}/`, {
                 method: 'DELETE'
             });
 
@@ -175,7 +175,7 @@ const GroupDetails = () => {
 
     const handleLeaveGroup = async () => {
         try {
-            const response = await fetch(`/api/v1/groups/${group_id}/leave/`, {
+            const response = await fetch(`/api/groups/${group_id}/leave/`, {
                 method: 'DELETE'
             });
 
@@ -192,7 +192,7 @@ const GroupDetails = () => {
 
     const handlePromoteToTeacher = async (userId) => {
         try {
-            const response = await fetch(`/api/v1/groups/${group_id}/promote/${userId}/`, {
+            const response = await fetch(`/api/groups/${group_id}/promote/${userId}/`, {
                 method: 'PATCH'
             });
 
@@ -215,7 +215,7 @@ const GroupDetails = () => {
 
     const handleDemoteToStudent = async (userId) => {
         try {
-            const response = await fetch(`/api/v1/groups/${group_id}/demote/${userId}/`, {
+            const response = await fetch(`/api/groups/${group_id}/demote/${userId}/`, {
                 method: 'PATCH'
             });
 
@@ -238,7 +238,7 @@ const GroupDetails = () => {
 
     const handleDeleteGroup = async () => {
         try {
-            const response = await fetch(`/api/v1/groups/${group_id}/`, {
+            const response = await fetch(`/api/groups/${group_id}/`, {
                 method: 'DELETE'
             });
 
@@ -264,7 +264,7 @@ const GroupDetails = () => {
     const handleEditSubmit = async () => {
         try {
             const values = await form.validateFields();
-            const response = await fetch(`/api/v1/groups/${group_id}/`, {
+            const response = await fetch(`/api/groups/${group_id}/`, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
@@ -285,11 +285,11 @@ const GroupDetails = () => {
         }
     };
 
-    const handleCreateAssignment = async () => {
+    const handleCreateModule = async () => {
         try {
-            const values = await assignmentForm.validateFields();
+            const values = await moduleForm.validateFields();
 
-            const assignmentData = {
+            const moduleData = {
                 title: values.title,
                 description: values.description || "string",
                 is_contest: values.is_contest || false,
@@ -298,10 +298,10 @@ const GroupDetails = () => {
                 end_datetime: values.dateRange[1].toISOString()
             };
 
-            console.log("Submitting assignment:", assignmentData);
+            console.log("Submitting module:", moduleData);
 
-            const response = await axios.post('/api/v1/assignments/',
-                assignmentData,
+            const response = await axios.post('/api/modules/',
+                moduleData,
                 {
                     headers: {
                         'accept': 'application/json',
@@ -311,25 +311,25 @@ const GroupDetails = () => {
                 }
             );
 
-            console.log("Assignment created:", response.data);
+            console.log("Module created:", response.data);
 
             setGroup(prev => ({
                 ...prev,
-                assignments: [...prev.assignments, {
+                modules: [...prev.modules, {
                     ...response.data,
                     tasks_count: 0,
                     user_completed_tasks_count: 0
                 }]
             }));
 
-            setIsCreateAssignmentModalVisible(false);
-            assignmentForm.resetFields();
-            message.success('Assignment created successfully!');
+            setIsCreateModuleModalVisible(false);
+            moduleForm.resetFields();
+            message.success('Module created successfully!');
 
         } catch (error) {
             console.error("Full error details:", error);
 
-            let errorMessage = "Failed to create assignment";
+            let errorMessage = "Failed to create module";
 
             if (error.response) {
                 console.error("Server response:", error.response.data);
@@ -493,7 +493,7 @@ const GroupDetails = () => {
                         <Button
                             type="primary"
                             icon={<PlusOutlined />}
-                            onClick={() => setIsCreateAssignmentModalVisible(true)}
+                            onClick={() => setIsCreateModuleModalVisible(true)}
                         >
                             Создать модуль
                         </Button>
@@ -501,23 +501,23 @@ const GroupDetails = () => {
                 </Row>
 
                 <List
-                    dataSource={group.assignments}
-                    renderItem={assignment => (
+                    dataSource={group.modules}
+                    renderItem={module => (
                         <List.Item>
                             <Card
                                 size="small"
-                                title={assignment.title}
+                                title={module.title}
                                 style={{ width: '100%' }}
                                 extra={
-                                    <Tag color={assignment.is_contest ? 'purple': 'transparent'}>
-                                        {assignment.is_contest ? 'Контест': ''}
+                                    <Tag color={module.is_contest ? 'purple': 'transparent'}>
+                                        {module.is_contest ? 'Контест': ''}
                                     </Tag>
                                 }
                                 hoverable
-                                onClick={() => handleAssignmentClick(assignment.id)}
+                                onClick={() => handleModuleClick(module.id)}
                             >
                                 <Text>
-                                    Выполнено: {assignment.user_completed_tasks_count} из {assignment.tasks_count} задач
+                                    Выполнено: {module.user_completed_tasks_count} из {module.tasks_count} задач
                                 </Text>
                             </Card>
                         </List.Item>
@@ -633,14 +633,14 @@ const GroupDetails = () => {
             </Modal>
             <Modal
                 title="Создание нового модуля"
-                open={isCreateAssignmentModalVisible}
-                onOk={handleCreateAssignment}
-                onCancel={() => setIsCreateAssignmentModalVisible(false)}
+                open={isCreateModuleModalVisible}
+                onOk={handleCreateModule}
+                onCancel={() => setIsCreateModuleModalVisible(false)}
                 okText="Создать"
                 cancelText="Отмена"
                 width={700}
             >
-                <Form form={assignmentForm} layout="vertical">
+                <Form form={moduleForm} layout="vertical">
                     <Form.Item
                         name="title"
                         label="Название модуля"

@@ -2,16 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { Menu, message } from 'antd';
 import { useNavigate } from 'react-router-dom';
 
-const AssignmentMenu = () => {
+const ModuleMenu = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [assignments, setAssignments] = useState([]);
+    const [modules, setModules] = useState([]);
     const navigate = useNavigate();
 
     useEffect(() => {
-        const fetchUserAssignments = async () => {
+        const fetchUserModules = async () => {
             try {
-                const response = await fetch('/api/v1/assignments/');
+                const response = await fetch('/api/modules/');
 
                 if (!response.ok) {
                     throw new Error('Для отображения работ войдите в аккаунт');
@@ -20,18 +20,18 @@ const AssignmentMenu = () => {
                 const data = await response.json();
 
                 if (data.length === 0) {
-                    setAssignments([{
-                        key: 'no-assignments',
+                    setModules([{
+                        key: 'no-modules',
                         label: 'У вас пока нет заданий',
                         disabled: true
                     }]);
                 } else {
-                    const menuItems = data.map(assignment => ({
-                        key: assignment.id,
-                        label: assignment.title,
-                        title: assignment.description
+                    const menuItems = data.map(module => ({
+                        key: module.id,
+                        label: module.title,
+                        title: module.description
                     }));
-                    setAssignments(menuItems);
+                    setModules(menuItems);
                 }
 
                 setLoading(false);
@@ -43,12 +43,12 @@ const AssignmentMenu = () => {
             }
         };
 
-        fetchUserAssignments();
+        fetchUserModules();
     }, []);
 
     const onClick = (e) => {
-        if (e.key !== 'no-assignments') {
-            navigate(`/assignments/${e.key}`);
+        if (e.key !== 'no-modules') {
+            navigate(`/modules/${e.key}`);
         }
     };
 
@@ -60,9 +60,9 @@ const AssignmentMenu = () => {
             onClick={onClick}
             style={{ width: 250 }}
             mode="inline"
-            items={assignments}
+            items={modules}
         />
     );
 };
 
-export default AssignmentMenu;
+export default ModuleMenu;

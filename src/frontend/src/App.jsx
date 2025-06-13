@@ -7,7 +7,7 @@ import Login from './pages/Login';
 import Registration from './pages/Registration';
 import Profile from './pages/Profile';
 import Verify from './pages/Verify';
-import Assignment from './pages/Assignment';
+import Module from './pages/Module';
 import Group from './pages/Group';
 import JoinGroup from './pages/JoinGroup';
 import ForgotPassword from './pages/ForgotPassword';
@@ -24,7 +24,7 @@ export default function App() {
           <Route path="/registration" element={<Registration />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/verify/:token" element={<Verify />} />
-          <Route path="/assignments/:assignment_id" element={<Assignment />} />
+          <Route path="/module/:module_id" element={<Module />} />
           <Route path="/groups/:group_id" element={<Group />} />
           <Route path="/groups/join/:invite_code" element={<JoinGroup />} />
           <Route path="/forgot_password_redirect/:token" element={<ForgotPassword />} />

@@ -16,7 +16,7 @@ const JoinGroupMenu = () => {
         const joinGroup = async () => {
             try {
                 setLoading(true);
-                const response = await axios.post(`/api/v1/groups/join/${invite_code}`, {}, {
+                const response = await axios.post(`/api/groups/join/${invite_code}`, {}, {
                     withCredentials: true
                 });
 

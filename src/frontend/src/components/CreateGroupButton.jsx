@@ -14,7 +14,7 @@ const CreateGroupButton = () => {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        await axios.get('api/v1/auth/check-auth', {
+        await axios.get('api/auth/check-auth', {
           withCredentials: true,
         });
         setIsAuthenticated(true);
@@ -45,7 +45,7 @@ const CreateGroupButton = () => {
         description: values.description || '',
       };
 
-      const response = await axios.post('api/v1/groups/', groupData, {
+      const response = await axios.post('api/groups/', groupData, {
         withCredentials: true,
       });
 

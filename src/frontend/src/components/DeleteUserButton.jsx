@@ -27,7 +27,7 @@ const DeleteUserButton = () => {
   const handleDelete = async () => {
     setLoading(true);
     try {
-      const response = await axios.delete('/api/v1/users/', {
+      const response = await axios.delete('/api/users/', {
         withCredentials: true,
         headers: {
           'Content-Type': 'application/json',

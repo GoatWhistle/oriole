@@ -48,7 +48,7 @@ const TaskDetails = () => {
     const fetchTaskData = async () => {
         try {
             setLoading(true);
-            const taskResponse = await fetch(`/api/v1/tasks/${task_id}/`, {
+            const taskResponse = await fetch(`/api/tasks/${task_id}/`, {
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('access_token')}`
                 }
@@ -62,17 +62,17 @@ const TaskDetails = () => {
             setTask(taskData);
             form.setFieldsValue({ answer: taskData.user_answer || '' });
 
-            if (taskData.assignment_id) {
+            if (taskData.module_id) {
                 try {
-                    const assignmentResponse = await fetch(`/api/v1/assignments/${taskData.assignment_id}/`, {
+                    const moduleResponse = await fetch(`/api/modules/${taskData.module_id}/`, {
                         headers: {
                             'Authorization': `Bearer ${localStorage.getItem('access_token')}`
                         }
                     });
 
-                    if (assignmentResponse.ok) {
-                        const assignmentData = await assignmentResponse.json();
-                        const roleResponse = await fetch(`/api/v1/users/get-role/group/${assignmentData.group_id}`, {
+                    if (moduleResponse.ok) {
+                        const moduleData = await moduleResponse.json();
+                        const roleResponse = await fetch(`/api/users/get-role/group/${moduleData.group_id}`, {
                             headers: {
                                 'Authorization': `Bearer ${localStorage.getItem('access_token')}`
                             }
@@ -105,7 +105,7 @@ const TaskDetails = () => {
             const user_answer = values.answer;
 
             const response = await axios.patch(
-                `/api/v1/tasks/${task_id}/complete/?user_answer=${encodeURIComponent(user_answer)}`,
+                `/api/tasks/${task_id}/complete/?user_answer=${encodeURIComponent(user_answer)}`,
                 {},
                 {
                     headers: {
@@ -133,7 +133,7 @@ const TaskDetails = () => {
         try {
             const values = await editForm.validateFields();
             const response = await axios.patch(
-                `/api/v1/tasks/${task_id}/`,
+                `/api/tasks/${task_id}/`,
                 {
                     ...values,
                     start_datetime: values.dateRange[0].toISOString(),
@@ -157,14 +157,14 @@ const TaskDetails = () => {
 
     const handleDeleteTask = async () => {
         try {
-            await axios.delete(`/api/v1/tasks/${task_id}/`, {
+            await axios.delete(`/api/tasks/${task_id}/`, {
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('access_token')}`
                 }
             });
 
             message.success('Задание успешно удалено');
-            navigate(`/assignments/${task.assignment_id}`);
+            navigate(`/modules/${task.module_id}`);
         } catch (err) {
             message.error(err.response?.data?.detail || 'Не удалось удалить задание');
         }
