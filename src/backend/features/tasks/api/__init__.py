@@ -6,7 +6,7 @@ from .deadline import router as deadline_router
 from .solving import router as solving_router
 from .task import router as task_router
 
-router = APIRouter(prefix=settings.api.tasks)
+router = APIRouter()
 
 router.include_router(router=task_router)
 router.include_router(router=solving_router)
