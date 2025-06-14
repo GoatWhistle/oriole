@@ -48,7 +48,7 @@ async def invite_user(
         group_id=group_id,
     )
 
-    code = generate_unique_group_invite_code(session=session)
+    code = await generate_unique_group_invite_code(session=session)
     code += "1" if single_use else "0"
 
     invite = GroupInvite(
