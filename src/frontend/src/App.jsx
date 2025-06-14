@@ -24,7 +24,7 @@ export default function App() {
           <Route path="/registration" element={<Registration />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/verify/:token" element={<Verify />} />
-          <Route path="/module/:module_id" element={<Module />} />
+          <Route path="/modules/:module_id" element={<Module />} />
           <Route path="/groups/:group_id" element={<Group />} />
           <Route path="/groups/join/:invite_code" element={<JoinGroup />} />
           <Route path="/forgot_password_redirect/:token" element={<ForgotPassword />} />
