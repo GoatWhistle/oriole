@@ -60,7 +60,7 @@ export const CreateModuleModal = ({ visible, onCancel, onCreate }) => {
           rules={[{ required: true, message: 'Пожалуйста, выберите период активности' }]}
         >
           <RangePicker
-            showTime
+            showTime={false}
             format="YYYY-MM-DD HH:mm:ss"
             disabledDate={disabledDate}
             style={{ width: '100%' }}
