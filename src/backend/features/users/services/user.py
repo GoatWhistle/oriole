@@ -16,7 +16,7 @@ from features.users.schemas import (
     UserProfileRead,
     UserProfileUpdatePartial,
 )
-from features.users.services.email_access import send_confirmation_email
+from core.celery.email_tasks import send_confirmation_email
 from features.users.validators import check_user_exists
 from utils.JWT import create_email_confirmation_token
 

@@ -6,6 +6,7 @@ app = Celery(
     broker="amqp://guest:guest@rabbitmq:5672//",
     backend="rpc://",
     broker_connection_retry_on_startup=True,
+    include=["core.celery.tasks", "core.celery.email_tasks"],
 )
 
 

@@ -1,7 +1,6 @@
-from fastapi import HTTPException, status, Request
+from fastapi import HTTPException, status
 from fastapi.templating import Jinja2Templates
 from fastapi_mail import FastMail, MessageSchema, ConnectionConfig
-from pydantic import EmailStr
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.config import settings
@@ -14,9 +13,9 @@ from urllib.parse import urljoin
 templates = Jinja2Templates(directory="templates/email")
 
 
-async def send_confirmation_email(
-    request: Request,
-    email: EmailStr,
+async def send_confirmation_email_base(
+    base_url: str,
+    email: str,
     token: str,
     html_file: str,
     address_type: str = "",
@@ -33,7 +32,7 @@ async def send_confirmation_email(
         MAIL_STARTTLS=True,
     )
 
-    base_url = str(request.base_url).rstrip("/")
+    base_url = base_url.rstrip("/")
     address = getattr(settings.api, address_type, "")
     full_path = f"{settings.api.prefix}{settings.api.email_verify}{address}/{token}"
 

@@ -32,7 +32,7 @@ from features.users.schemas import (
     UserProfileRead,
     TokenResponseForOAuth2,
 )
-from features.users.services.email_access import send_confirmation_email
+from core.celery.email_tasks import send_confirmation_email
 from features.users.validators import validate_activity_and_verification
 from utils.JWT import (
     validate_password,
@@ -437,7 +437,7 @@ async def forgot_password(
     if not email:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Please enter an email",
+            detail="Please enter an email",
         )
 
     statement = select(User).filter_by(email=email)
@@ -447,7 +447,7 @@ async def forgot_password(
     if not user_from_db:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"User not found",
+            detail="User not found",
         )
 
     token = create_password_confirmation_token(
