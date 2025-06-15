@@ -31,6 +31,7 @@ limiter = Limiter(key_func=get_remote_address)
     response_model=UserAuthRead,
     status_code=status.HTTP_201_CREATED,
 )
+@limiter.limit("3/hour")
 async def register_user(
     request: Request,
     user_data: RegisterUserInput,
@@ -106,7 +107,7 @@ async def check_auth(
 
 
 @router.post("/reset_password")
-@limiter.limit("5/minute")
+@limiter.limit("2/minute")
 async def reset_password(
     request: Request,
     user_from_db: UserAuthRead = Depends(service.get_current_auth_user),
@@ -118,7 +119,7 @@ async def reset_password(
 
 
 @router.post("/forgot_password")
-@limiter.limit("5/minute")
+@limiter.limit("2/minute")
 async def forgot_password(
     email: Annotated[EmailStr, Field(max_length=63)],
     request: Request,
@@ -132,7 +133,7 @@ async def forgot_password(
 
 
 @router.post("/send_email_again")
-@limiter.limit("5/minute")
+@limiter.limit("2/minute")
 async def send_confirmation_email_again(
     request: Request,
     user_data: UserAuthRead = Depends(service.get_current_auth_user),
