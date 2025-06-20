@@ -1,6 +1,5 @@
 from fastapi import APIRouter
 
-from core.config import settings
 from .copy import router as copy_router
 from .deadline import router as deadline_router
 from .solving import router as solving_router

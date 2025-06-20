@@ -7,7 +7,7 @@ from sqlalchemy.orm import joinedload
 from features.groups.models import Account
 from features.groups.schemas import AccountRole
 from features.groups.services.group import get_user_groups
-from features.groups.validators import get_group_if_exists, check_user_in_group
+from features.groups.validators import get_group_if_exists, get_account_if_exists
 from features.users.models import User
 from features.users.schemas import (
     EmailUpdate,
@@ -151,7 +151,7 @@ async def get_int_role_in_group(
 ) -> int:
     await check_user_exists(session=session, user_id=user_id)
     _ = await get_group_if_exists(session=session, group_id=group_id)
-    await check_user_in_group(session=session, user_id=user_id, group_id=group_id)
+    await get_account_if_exists(session=session, user_id=user_id, group_id=group_id)
 
     statement_account = select(Account).where(Account.user_id == user_id)
     result_account: Result = await session.execute(statement_account)

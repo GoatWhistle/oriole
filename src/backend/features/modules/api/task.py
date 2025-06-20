@@ -4,8 +4,8 @@ from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from database import db_helper
-from features.modules.services import task as service
 from features.tasks.schemas import TaskReadPartial
+from features.tasks.services import task as service
 from features.users.services.auth import get_current_active_auth_user_id
 
 router = APIRouter()
@@ -26,11 +26,11 @@ async def get_tasks_in_module(
         Depends(get_current_active_auth_user_id),
     ],
     module_id: int,
-    is_correct: Optional[bool] = None,
+    is_active: Optional[bool] = None,
 ) -> Sequence[TaskReadPartial]:
     return await service.get_tasks_in_module(
         session=session,
         user_id=user_id,
         module_id=module_id,
-        is_correct=is_correct,
+        is_active=is_active,
     )

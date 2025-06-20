@@ -1,6 +1,5 @@
 from fastapi import APIRouter
 
-from core.config import settings
 from .account import router as account_router
 from .group import router as group_router
 from .invite import router as invite_router

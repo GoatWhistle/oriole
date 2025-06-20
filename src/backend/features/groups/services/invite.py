@@ -3,21 +3,20 @@ from string import ascii_uppercase, digits
 from urllib.parse import urljoin
 
 from fastapi import Request
-from sqlalchemy import delete
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from features.groups.models import Account
+import features.groups.crud.account as account_crud
+import features.groups.crud.invite as group_invite_crud
 from features.groups.models import GroupInvite
 from features.groups.schemas import AccountRole
 from features.groups.validators import (
     get_group_if_exists,
-    check_admin_permission_in_group,
-    check_user_in_group,
-    validate_invite_code,
+    get_account_if_exists,
+    get_group_invite_if_valid,
+    check_user_is_admin_or_owner,
 )
 from features.users.validators import check_user_exists
-from utils import get_current_utc
 
 
 async def generate_unique_group_invite_code(
@@ -41,29 +40,22 @@ async def invite_user(
     group_id: int,
     expires_minutes: int,
     single_use: bool,
-) -> dict:
-    await check_admin_permission_in_group(
-        session=session,
-        user_id=user_id,
-        group_id=group_id,
-    )
+):
+    await check_user_exists(session, user_id)
 
-    code = await generate_unique_group_invite_code(session=session)
+    _ = await get_group_if_exists(session, group_id)
+    account = await get_account_if_exists(session, user_id, group_id)
+
+    check_user_is_admin_or_owner(account.role, user_id)
+
+    code = await generate_unique_group_invite_code(session)
     code += "1" if single_use else "0"
 
-    invite = GroupInvite(
-        code=code,
-        group_id=group_id,
-        expires_at=get_current_utc(offset_minutes=expires_minutes),
-        is_active=True,
+    await group_invite_crud.create_group_invite(
+        session, group_id, code, expires_minutes
     )
 
-    session.add(invite)
-    await session.commit()
-
-    base_url = str(request.base_url)
-    base_url = base_url[:-1] if base_url.endswith("/") else base_url
-
+    base_url = str(request.base_url).rstrip("/")
     return {"link": urljoin(base_url, f"/groups/join/{code}")}
 
 
@@ -73,26 +65,21 @@ async def join_by_link(
     invite_code: str,
 ) -> dict:
 
-    await check_user_exists(session=session, user_id=user_id)
+    await check_user_exists(session, user_id)
+
     single_use = invite_code[-1] == "1"
-    invite = await validate_invite_code(session, invite_code)
+    invite = await get_group_invite_if_valid(session, invite_code)
     group_id = invite.group_id
 
-    await check_user_in_group(session, user_id, group_id, is_correct=False)
+    await get_account_if_exists(session, user_id, group_id, is_correct=False)
 
-    existing_accounts = await session.execute(
-        select(Account).where(Account.group_id == group_id)
-    )
-    role = (
-        AccountRole.OWNER
-        if not existing_accounts.scalars().all()
-        else AccountRole.MEMBER
-    )
+    accounts = await account_crud.get_accounts_in_group(session, group_id)
+    role = AccountRole.OWNER if not accounts else AccountRole.MEMBER
 
-    account = Account(user_id=user_id, group_id=group_id, role=role.value)
-    invite.is_active = not single_use
-    session.add(account)
-    await session.commit()
+    await account_crud.create_account(session, user_id, group_id, role.value)
+
+    if single_use:
+        await group_invite_crud.set_invite_inactive(session, invite)
 
     return {"group_id": group_id}
 
@@ -102,12 +89,11 @@ async def delete_group_invites(
     user_id: int,
     group_id: int,
 ) -> None:
-    await check_user_exists(session=session, user_id=user_id)
-    _ = await get_group_if_exists(session=session, group_id=group_id)
-    await check_user_in_group(session=session, group_id=group_id, user_id=user_id)
-    await check_admin_permission_in_group(
-        session=session, user_id=user_id, group_id=group_id
-    )
+    await check_user_exists(session, user_id)
 
-    await session.execute(delete(GroupInvite).where(GroupInvite.group_id == group_id))
-    await session.commit()
+    _ = await get_group_if_exists(session, group_id)
+    account = await get_account_if_exists(session, group_id, user_id)
+
+    check_user_is_admin_or_owner(account.role, user_id)
+
+    await group_invite_crud.delete_group_invites_by_group_id(session, group_id)

@@ -1,42 +1,40 @@
+from datetime import datetime
+
 from fastapi import HTTPException, status
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from features.groups.models import GroupInvite
+from features.groups.validators import get_group_invite_if_exists
 from utils import get_current_utc
 
 
-async def check_invite_active(
-    invite: GroupInvite,
+def check_group_invite_active(
+    group_invite_is_active: bool,
 ) -> None:
-    if not invite.is_active:
+    if not group_invite_is_active:
         raise HTTPException(
-            status_code=status.HTTP_410_GONE, detail="Invite code is no longer active"
+            status_code=status.HTTP_410_GONE,
+            detail="Invite code is no longer active",
         )
 
 
-async def check_invite_not_expired(
-    invite: GroupInvite,
+def check_group_invite_not_expired(
+    group_invite_expires_at: datetime,
 ) -> None:
-    if invite.expires_at < get_current_utc():
+    if group_invite_expires_at < get_current_utc():
         raise HTTPException(
-            status_code=status.HTTP_410_GONE, detail="Invite code has expired"
+            status_code=status.HTTP_410_GONE,
+            detail="Invite code has expired",
         )
 
 
-async def validate_invite_code(
+async def get_group_invite_if_valid(
     session: AsyncSession,
     code: str,
 ) -> GroupInvite:
-    invite = await session.execute(select(GroupInvite).where(GroupInvite.code == code))
-    invite = invite.scalars().first()
+    group_invite = await get_group_invite_if_exists(session, code)
 
-    if not invite:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Invalid invite code"
-        )
+    check_group_invite_active(group_invite.is_active)
+    check_group_invite_not_expired(group_invite.expires_at)
 
-    await check_invite_active(invite=invite)
-    await check_invite_not_expired(invite=invite)
-
-    return invite
+    return group_invite

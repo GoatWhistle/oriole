@@ -13,19 +13,19 @@ from core.config import settings
 class DbHelper:
     def __init__(
         self,
-        db_url: str,
-        db_echo: bool = settings.db.db_echo,
-        db_echo_pool: bool = settings.db.db_echo_pool,
-        db_max_overflow: int = settings.db.db_max_overflow,
-        db_pool_size: int = settings.db.db_pool_size,
+        url: str,
+        echo: bool = settings.db.echo,
+        echo_pool: bool = settings.db.echo_pool,
+        max_overflow: int = settings.db.max_overflow,
+        pool_size: int = settings.db.pool_size,
     ):
 
         self.engine: AsyncEngine = create_async_engine(
-            url=db_url,
-            echo=db_echo,
-            echo_pool=db_echo_pool,
-            max_overflow=db_max_overflow,
-            pool_size=db_pool_size,
+            url=url,
+            echo=echo,
+            echo_pool=echo_pool,
+            max_overflow=max_overflow,
+            pool_size=pool_size,
         )
 
         self.session_factory: async_sessionmaker[AsyncSession] = async_sessionmaker(
@@ -44,5 +44,5 @@ class DbHelper:
 
 
 db_helper = DbHelper(
-    db_url=str(settings.db.db_url),
+    url=str(settings.db.url),
 )

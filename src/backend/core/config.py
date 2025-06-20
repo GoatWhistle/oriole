@@ -24,11 +24,11 @@ class GunicornConfig(BaseModel):
 
 
 class DbConfig(BaseModel):
-    db_url: PostgresDsn
-    db_echo: bool = False
-    db_echo_pool: bool = False
-    db_max_overflow: int = 10
-    db_pool_size: int = 50
+    url: PostgresDsn
+    echo: bool = False
+    echo_pool: bool = False
+    max_overflow: int = 10
+    pool_size: int = 50
 
     naming_convention: dict[str, str] = {
         "ix": "ix_%(column_0_label)s",

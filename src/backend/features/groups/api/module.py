@@ -1,11 +1,11 @@
-from typing import Annotated, Sequence
+from typing import Annotated, Sequence, Optional
 
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from database import db_helper
-from features.groups.services import module as service
 from features.modules.schemas import ModuleReadPartial
+from features.modules.services import module as service
 from features.users.services.auth import get_current_active_auth_user_id
 
 router = APIRouter()
@@ -26,9 +26,11 @@ async def get_modules_in_group(
         Depends(get_current_active_auth_user_id),
     ],
     group_id: int,
+    is_active: Optional[bool] = None,
 ):
     return await service.get_modules_in_group(
         session=session,
         user_id=user_id,
         group_id=group_id,
+        is_active=is_active,
     )

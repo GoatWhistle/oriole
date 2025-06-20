@@ -1,4 +1,4 @@
-from typing import Annotated, Sequence
+from typing import Annotated, Sequence, Optional
 
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -77,10 +77,12 @@ async def get_user_modules(
         int,
         Depends(get_current_active_auth_user_id),
     ],
+    is_active: Optional[bool] = None,
 ):
     return await service.get_user_modules(
         session=session,
         user_id=user_id,
+        is_active=is_active,
     )
 
 
@@ -156,7 +158,3 @@ async def delete_module(
         user_id=user_id,
         module_id=module_id,
     )
-
-
-
-

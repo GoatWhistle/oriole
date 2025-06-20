@@ -1,8 +1,14 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from features.groups.validators import check_admin_permission_in_group
+import features.tasks.crud.task as task_crud
+import features.tasks.mappers as mapper
+from features.groups.validators import (
+    get_group_if_exists,
+    check_user_is_admin_or_owner,
+    get_account_if_exists,
+)
 from features.modules.validators import get_module_if_exists
-from features.tasks.models import Task
+from features.tasks.schemas import TaskCreate
 from features.tasks.schemas import TaskRead
 from features.tasks.validators import get_task_if_exists
 from features.users.validators import check_user_exists
@@ -14,58 +20,40 @@ async def copy_task_to_module(
     source_task_id: int,
     target_module_id: int,
 ) -> TaskRead:
+    await check_user_exists(session, user_id)
 
-    await check_user_exists(session=session, user_id=user_id)
+    task = await get_task_if_exists(session, source_task_id)
 
-    source_task = await get_task_if_exists(
-        session=session,
-        task_id=source_task_id,
-    )
-    source_module = await get_module_if_exists(
-        session=session, module_id=source_task.module_id
-    )
-
-    await check_admin_permission_in_group(
-        session=session,
-        user_id=user_id,
-        group_id=source_module.group_id,
+    source_module = await get_module_if_exists(session, task.module_id)
+    source_group = await get_group_if_exists(session, source_module.group_id)
+    source_account = await get_account_if_exists(
+        session, user_id, source_module.group_id
     )
 
-    target_module = await get_module_if_exists(
-        session=session, module_id=target_module_id
-    )
-    await check_admin_permission_in_group(
-        session=session,
-        user_id=user_id,
-        group_id=target_module.group_id,
+    check_user_is_admin_or_owner(source_account.role, user_id)
+
+    target_module = (
+        await get_module_if_exists(session, target_module_id)
+        if source_module.id != target_module_id
+        else source_module
     )
 
-    new_task = Task(
-        title=source_task.title,
-        description=source_task.description,
-        correct_answer=source_task.correct_answer,
-        is_active=source_task.is_active,
+    if source_module.group_id != target_module.group_id:
+        target_group = await get_group_if_exists(session, target_module.group_id)
+        target_account = await get_account_if_exists(session, user_id, target_group.id)
+        check_user_is_admin_or_owner(target_account.role, user_id)
+    else:
+        target_group = source_group
+
+    task_create = TaskCreate(
+        title=task.title,
+        description=task.description,
+        correct_answer=task.correct_answer,
         module_id=target_module_id,
-        max_attempts=source_task.max_attempts,
-        start_datetime=source_task.start_datetime,
-        end_datetime=source_task.end_datetime,
+        max_attempts=task.max_attempts,
+        start_datetime=task.start_datetime,
+        end_datetime=task.end_datetime,
     )
+    new_task = await task_crud.create_task(session, task_create)
 
-    session.add(new_task)
-    await session.commit()
-    await session.refresh(new_task)
-
-    return TaskRead(
-        id=new_task.id,
-        module_id=new_task.module_id,
-        group_id=target_module.group_id,
-        title=new_task.title,
-        description=new_task.description,
-        user_answer="",
-        is_correct=False,
-        user_attempts=0,
-        max_attempts=new_task.max_attempts,
-        is_active=new_task.is_active,
-        start_datetime=new_task.start_datetime,
-        end_datetime=new_task.end_datetime,
-    )
+    return mapper.build_task_read(new_task, target_group.id)

@@ -1,16 +1,18 @@
 from typing import Sequence
 
-from sqlalchemy import select, func, delete
-from sqlalchemy.engine import Result
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from features.groups.models import Account, Group
+import features.groups.crud.account as account_crud
+import features.groups.crud.group as group_crud
+import features.modules.crud.module as module_crud
+import features.modules.mappers as mapper
+import features.tasks.crud.task as task_crud
+import features.tasks.crud.user_reply as user_reply_crud
 from features.groups.validators import (
     get_group_if_exists,
-    check_admin_permission_in_group,
-    check_user_in_group,
+    get_account_if_exists,
+    check_user_is_admin_or_owner,
 )
-from features.modules.models import Module
 from features.modules.schemas import (
     ModuleCreate,
     ModuleRead,
@@ -19,10 +21,8 @@ from features.modules.schemas import (
     ModuleReadPartial,
 )
 from features.modules.validators import get_module_if_exists
-from features.tasks.models import Task, UserReply
-from features.tasks.schemas import TaskReadPartial
+from features.tasks.models import Task
 from features.users.validators import check_user_exists
-from utils import get_current_utc
 from validators import (
     check_start_time_not_in_past,
     check_end_time_not_in_past,
@@ -35,60 +35,22 @@ async def create_module(
     user_id: int,
     module_in: ModuleCreate,
 ) -> ModuleRead:
-    await check_user_exists(session=session, user_id=user_id)
-    _ = await get_group_if_exists(session=session, group_id=module_in.group_id)
+    await check_user_exists(session, user_id)
 
-    await check_user_in_group(
-        session=session,
-        user_id=user_id,
-        group_id=module_in.group_id,
-    )
-    await check_admin_permission_in_group(
-        session=session,
-        user_id=user_id,
-        group_id=module_in.group_id,
-    )
+    _ = await get_group_if_exists(session, module_in.group_id)
+    account = await get_account_if_exists(session, user_id, module_in.group_id)
 
+    check_user_is_admin_or_owner(account.role, user_id)
 
-    module = Module(
-        title=module_in.title,
-        description=module_in.description,
-        is_contest=module_in.is_contest,
-        group_id=module_in.group_id,
-        admin_id=user_id,
-        is_active=module_in.start_datetime
-        <= get_current_utc()
-        <= module_in.end_datetime,
-        start_datetime=module_in.start_datetime,
-        end_datetime=module_in.end_datetime,
+    check_start_time_not_in_past(module_in.start_datetime, obj_name="module")
+    check_end_time_not_in_past(module_in.end_datetime, obj_name="module")
+    check_end_time_is_after_start_time(
+        module_in.start_datetime, module_in.end_datetime, obj_name="module"
     )
 
-    await check_start_time_not_in_past(obj=module, start_datetime=module_in.start_datetime)
-    await check_end_time_not_in_past(obj=module, end_datetime=module_in.end_datetime)
-    await check_end_time_is_after_start_time(
-        obj=module,
-        start_datetime=module_in.start_datetime,
-        end_datetime=module_in.end_datetime,
-    )
+    module = await module_crud.create_module(session, module_in, user_id)
 
-    session.add(module)
-    await session.commit()
-    await session.refresh(module)
-
-    return ModuleRead(
-        id=module.id,
-        group_id=module_in.group_id,
-        title=module_in.title,
-        description=module_in.description,
-        is_contest=module_in.is_contest,
-        tasks_count=0,
-        user_completed_tasks_count=0,
-        is_active=module.is_active,
-        admin_id=module.admin_id,
-        tasks=[],
-        start_datetime=module_in.start_datetime,
-        end_datetime=module_in.end_datetime,
-    )
+    return mapper.build_module_read(module, module_in.group_id)
 
 
 async def get_module_by_id(
@@ -96,145 +58,95 @@ async def get_module_by_id(
     user_id: int,
     module_id: int,
 ) -> ModuleRead:
-    await check_user_exists(session=session, user_id=user_id)
-    module = await get_module_if_exists(session=session, module_id=module_id)
+    await check_user_exists(session, user_id)
 
-    await get_group_if_exists(session=session, group_id=module.group_id)
-    await check_user_in_group(
-        session=session, user_id=user_id, group_id=module.group_id
+    module, tasks_count = await module_crud.get_module_with_task_count(
+        session, module_id
+    )
+    _ = await get_group_if_exists(session, module.group_id)
+    account = await get_account_if_exists(session, user_id, module.group_id)
+    tasks = await task_crud.get_tasks_by_module_id(session, module_id)
+    user_replies = await user_reply_crud.get_user_replies_by_task_ids(
+        session, account.id, [task.id for task in tasks]
     )
 
-    statement = (
-        select(
-            Module,
-            func.count(Task.id).label("tasks_count"),
-        )
-        .outerjoin(Task, Task.module_id == Module.id)
-        .where(Module.id == module_id)
-        .group_by(Module.id)
+    return mapper.build_module_read(module, module.group_id, tasks, user_replies)
+
+
+async def get_modules_in_group(
+    session: AsyncSession,
+    user_id: int,
+    group_id: int,
+    is_active: bool | None = None,
+) -> Sequence[ModuleReadPartial]:
+    await check_user_exists(session, user_id)
+
+    _ = await get_group_if_exists(session, group_id)
+    account = await get_account_if_exists(session, user_id, group_id)
+
+    modules_with_counts = await module_crud.get_modules_by_group_ids_with_task_counts(
+        session, [group_id], is_active
     )
+    if not modules_with_counts:
+        return []
 
-    result: Result = await session.execute(statement)
-    module_data = result.one_or_none()
-
-    module, tasks_count = module_data
-
-    tasks_query = await session.execute(select(Task).where(Task.module_id == module_id))
-    tasks = tasks_query.scalars().all()
-
-    statement_account = select(Account).where(Account.user_id == user_id)
-    result_account: Result = await session.execute(statement_account)
-    account = result_account.scalars().first()
-
-    user_reply_data = await session.execute(
-        select(UserReply).where(
-            UserReply.account_id == account.id,
-            UserReply.task_id.in_([task.id for task in tasks]),
-        )
+    tasks = await task_crud.get_tasks_by_module_ids(
+        session, [module.id for module, _ in modules_with_counts]
     )
+    tasks_by_module_id: dict[int, list[Task]] = {}
+    for task in tasks:
+        tasks_by_module_id.setdefault(task.module_id, []).append(task)
 
-    user_replies = {reply.task_id: reply for reply in user_reply_data.scalars().all()}
-
-    user_completed_tasks_count = sum(
-        1 for reply in user_replies.values() if reply.is_correct
+    user_replies = await user_reply_crud.get_user_replies_by_account_ids_and_task_ids(
+        session, [account.id], [task.id for task in tasks]
     )
+    replies_by_task_id = {reply.task_id: reply for reply in user_replies}
 
-    return ModuleRead(
-        id=module.id,
-        group_id=module.group_id,
-        title=module.title,
-        description=module.description,
-        is_contest=module.is_contest,
-        admin_id=module.admin_id,
-        tasks_count=tasks_count,
-        user_completed_tasks_count=user_completed_tasks_count,
-        tasks=[
-            TaskReadPartial(
-                id=task.id,
-                title=task.title,
-                description=task.description,
-                is_correct=user_replies[task.id].is_correct,
-                is_active=task.is_active,
-            )
-            for task in tasks
-        ],
-        is_active=module.is_active,
-        start_datetime=module.start_datetime,
-        end_datetime=module.end_datetime,
+    return mapper.build_module_read_partial_list(
+        modules_with_counts,
+        tasks_by_module_id,
+        replies_by_task_id,
     )
 
 
 async def get_user_modules(
-    session: AsyncSession,
-    user_id: int,
+    session: AsyncSession, user_id: int, is_active: bool | None = None
 ) -> Sequence[ModuleReadPartial]:
     await check_user_exists(session=session, user_id=user_id)
 
-    statement_account = select(Account).where(Account.user_id == user_id)
-    result_account: Result = await session.execute(statement_account)
-    account = result_account.scalars().first()
-
-    if not account:
+    accounts = await account_crud.get_accounts_by_user_id(session, user_id)
+    if not accounts:
         return []
 
-    statement_groups = select(Group).join(Account).where(Account.user_id == user_id)
-    result_groups: Result = await session.execute(statement_groups)
-    groups = result_groups.scalars().all()
+    account_ids = [account.id for account in accounts]
 
+    groups = await group_crud.get_groups_by_account_ids(session, account_ids)
     if not groups:
         return []
 
-    group_ids = [group.id for group in groups]
-
-    statement_modules = (
-        select(
-            Module,
-            func.count(Task.id).label("tasks_count"),
-        )
-        .outerjoin(Task, Task.module_id == Module.id)
-        .where(Module.group_id.in_(group_ids))
-        .group_by(Module.id)
-        .order_by(Module.id)
+    modules_with_counts = await module_crud.get_modules_by_group_ids_with_task_counts(
+        session, [group.id for group in groups], is_active
     )
+    if not modules_with_counts:
+        return []
 
-    result_modules: Result = await session.execute(statement_modules)
-    modules = result_modules.all()
+    tasks = await task_crud.get_tasks_by_module_ids(
+        session, [module.id for module, _ in modules_with_counts]
+    )
+    tasks_by_module_id: dict[int, list[Task]] = {}
+    for task in tasks:
+        tasks_by_module_id.setdefault(task.module_id, []).append(task)
 
-    module_results = []
-    for module, tasks_count in modules:
-        tasks_query = await session.execute(
-            select(Task).where(Task.module_id == module.id)
-        )
-        tasks = tasks_query.scalars().all()
+    user_replies = await user_reply_crud.get_user_replies_by_account_ids_and_task_ids(
+        session,
+        account_ids,
+        [task.id for task in tasks],
+    )
+    replies_by_task_id = {reply.task_id: reply for reply in user_replies}
 
-        user_reply_data = await session.execute(
-            select(UserReply).where(
-                UserReply.account_id == account.id,
-                UserReply.task_id.in_([task.id for task in tasks]),
-            )
-        )
-
-        user_replies = {
-            reply.task_id: reply for reply in user_reply_data.scalars().all()
-        }
-
-        user_completed_tasks_count = sum(
-            1 for reply in user_replies.values() if reply.is_correct
-        )
-
-        module_results.append(
-            ModuleReadPartial(
-                id=module.id,
-                title=module.title,
-                description=module.description,
-                is_contest=module.is_contest,
-                tasks_count=tasks_count,
-                user_completed_tasks_count=user_completed_tasks_count,
-                is_active=module.is_active,
-            )
-        )
-
-    return module_results
+    return mapper.build_module_read_partial_list(
+        modules_with_counts, tasks_by_module_id, replies_by_task_id
+    )
 
 
 async def update_module(
@@ -244,83 +156,34 @@ async def update_module(
     module_update: ModuleUpdate | ModuleUpdatePartial,
     is_partial: bool = False,
 ) -> ModuleRead:
-    await check_user_exists(session=session, user_id=user_id)
+    await check_user_exists(session, user_id)
 
-    module = await get_module_if_exists(session=session, module_id=module_id)
+    module = await get_module_if_exists(session, module_id)
+    _ = await get_group_if_exists(session, module.group_id)
+    account = await get_account_if_exists(session, user_id, module.group_id)
 
-    _ = await get_group_if_exists(session=session, group_id=module.group_id)
-    await check_user_in_group(
-        session=session,
-        user_id=user_id,
-        group_id=module.group_id,
-    )
-    await check_admin_permission_in_group(
-        session=session, user_id=user_id, group_id=module.group_id
-    )
+    check_user_is_admin_or_owner(account.role, user_id)
 
-    if "start_datetime" in module_update.model_dump(exclude_unset=is_partial):
-        await check_start_time_not_in_past(obj=module, start_datetime=module_update.start_datetime)
-        module.start_datetime = module_update.start_datetime
+    update_data = module_update.model_dump(exclude_unset=is_partial)
 
-    if "end_datetime" in module_update.model_dump(exclude_unset=is_partial):
-        await check_end_time_not_in_past(obj=module, end_datetime=module_update.end_datetime)
-        module.end_datetime = module_update.end_datetime
+    if "start_datetime" in update_data:
+        check_start_time_not_in_past(update_data["start_datetime"], obj=module)
+    if "end_datetime" in update_data:
+        check_end_time_not_in_past(update_data["end_datetime"], obj=module)
 
-    await check_end_time_is_after_start_time(
-        obj=module,
-        start_datetime=module.start_datetime,
-        end_datetime=module.end_datetime,
-    )
+    if "start_datetime" in update_data or "end_datetime" in update_data:
+        start = update_data.get("start_datetime", module.start_datetime)
+        end = update_data.get("end_datetime", module.end_datetime)
+        check_end_time_is_after_start_time(start, end, obj=module)
 
-    for name, value in module_update.model_dump(exclude_unset=is_partial).items():
-        if name not in [
-            "start_datetime",
-            "end_datetime",
-        ]:
-            setattr(module, name, value)
+    module = await module_crud.update_module(session, module, update_data)
+    tasks = await task_crud.get_tasks_by_module_id(session, module.id)
 
-    await session.commit()
-    await session.refresh(module)
-
-    tasks_query = await session.execute(select(Task).where(Task.module_id == module_id))
-    tasks = tasks_query.scalars().all()
-
-    user_replies_query = await session.execute(
-        select(UserReply).where(
-            UserReply.account_id == user_id,
-            UserReply.task_id.in_([task.id for task in tasks]),
-        )
-    )
-    user_replies = {
-        reply.task_id: reply for reply in user_replies_query.scalars().all()
-    }
-    user_completed_tasks_count = sum(
-        1 for task_id in user_replies if user_replies[task_id].is_correct
+    user_replies = await user_reply_crud.get_user_replies_by_task_ids(
+        session, account.id, [task.id for task in tasks]
     )
 
-    return ModuleRead(
-        id=module.id,
-        group_id=module.group_id,
-        title=module.title,
-        description=module.description,
-        is_contest=module.is_contest,
-        tasks_count=module.tasks_count,
-        user_completed_tasks_count=user_completed_tasks_count,
-        admin_id=module.admin_id,
-        is_active=module.start_datetime <= get_current_utc() <= module.end_datetime,
-        start_datetime=module.start_datetime,
-        end_datetime=module.end_datetime,
-        tasks=[
-            TaskReadPartial(
-                id=task.id,
-                title=task.title,
-                description=task.description,
-                is_correct=user_replies[task.id].is_correct,
-                is_active=task.is_active,
-            )
-            for task in tasks
-        ],
-    )
+    return mapper.build_module_read(module, module.group_id, tasks, user_replies)
 
 
 async def delete_module(
@@ -328,31 +191,18 @@ async def delete_module(
     user_id: int,
     module_id: int,
 ) -> None:
-    await check_user_exists(session=session, user_id=user_id)
+    await check_user_exists(session, user_id)
 
     module = await get_module_if_exists(session=session, module_id=module_id)
+    _ = await get_group_if_exists(session, module.group_id)
+    account = await get_account_if_exists(session, user_id, module.group_id)
 
-    await get_group_if_exists(session=session, group_id=module.group_id)
+    check_user_is_admin_or_owner(account.role, user_id)
 
-    await check_user_in_group(
-        session=session,
-        user_id=user_id,
-        group_id=module.group_id,
-    )
-
-    await check_admin_permission_in_group(
-        session=session, user_id=user_id, group_id=module.group_id
-    )
-
-    tasks_query = await session.execute(select(Task).where(Task.module_id == module_id))
-    tasks = tasks_query.scalars().all()
-
-    task_ids = [task.id for task in tasks]
-    if task_ids:
-        await session.execute(delete(UserReply).where(UserReply.task_id.in_(task_ids)))
+    tasks = await task_crud.get_tasks_by_module_id(session, module_id)
 
     for task in tasks:
-        await session.delete(task)
+        await user_reply_crud.delete_user_replies_by_task_id(session, task.id)
+        await task_crud.delete_task(session, task)
 
-    await session.delete(module)
-    await session.commit()
+    await module_crud.delete_module(session, module)

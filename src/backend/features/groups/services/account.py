@@ -1,17 +1,14 @@
-from sqlalchemy import select, delete
-from sqlalchemy.engine import Result
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from features.groups.models import Account
-from features.groups.schemas.account import AccountRole
+import features.groups.crud.account as account_crud
+from features.groups.schemas import AccountRole
 from features.groups.validators import (
     get_group_if_exists,
-    check_admin_permission_in_group,
-    check_owner_permission_in_group,
-    check_user_in_group,
+    get_account_if_exists,
     check_user_is_member,
+    check_user_is_owner,
+    check_user_is_admin,
 )
-from features.tasks.models import UserReply
 from features.users.validators import check_user_exists
 
 
@@ -21,31 +18,20 @@ async def promote_user_to_admin(
     promote_user_id: int,
     group_id: int,
 ) -> None:
-    await check_user_exists(session=session, user_id=user_id)
-    await check_user_exists(session=session, user_id=promote_user_id)
+    await check_user_exists(session, user_id)
+    await check_user_exists(session, promote_user_id)
 
-    _ = await get_group_if_exists(session=session, group_id=group_id)
+    _ = await get_group_if_exists(session, group_id)
 
-    await check_user_in_group(session=session, group_id=group_id, user_id=user_id)
-    await check_user_in_group(
-        session=session, group_id=group_id, user_id=promote_user_id
+    account = await get_account_if_exists(session, group_id, user_id)
+    promote_account = await get_account_if_exists(session, group_id, promote_user_id)
+
+    check_user_is_owner(account.role, user_id)
+    check_user_is_member(promote_account.role, user_id)
+
+    await account_crud.update_account_role(
+        session, promote_account, AccountRole.ADMIN.value
     )
-
-    await check_owner_permission_in_group(
-        session=session, user_id=user_id, group_id=group_id
-    )
-
-    statement = select(Account).where(
-        Account.user_id == promote_user_id, Account.group_id == group_id
-    )
-    result: Result = await session.execute(statement)
-    account = result.scalars().first()
-
-    await check_user_is_member(role=account.role, user_id=user_id)
-
-    account.role = AccountRole.ADMIN
-
-    await session.commit()
 
 
 async def demote_user_to_member(
@@ -54,33 +40,20 @@ async def demote_user_to_member(
     demote_user_id: int,
     group_id: int,
 ) -> None:
-    await check_user_exists(session=session, user_id=user_id)
-    await check_user_exists(session=session, user_id=demote_user_id)
+    await check_user_exists(session, user_id)
+    await check_user_exists(session, demote_user_id)
 
-    _ = await get_group_if_exists(session=session, group_id=group_id)
+    _ = await get_group_if_exists(session, group_id)
 
-    await check_user_in_group(session=session, group_id=group_id, user_id=user_id)
-    await check_user_in_group(
-        session=session, group_id=group_id, user_id=demote_user_id
+    account = await get_account_if_exists(session, group_id, user_id)
+    demote_account = await get_account_if_exists(session, group_id, demote_user_id)
+
+    check_user_is_owner(account.role, user_id)
+    check_user_is_admin(demote_account.role, demote_user_id)
+
+    await account_crud.update_account_role(
+        session, demote_account, AccountRole.MEMBER.value
     )
-
-    await check_owner_permission_in_group(
-        session=session, user_id=user_id, group_id=group_id
-    )
-
-    statement = select(Account).where(
-        Account.user_id == demote_user_id, Account.group_id == group_id
-    )
-    result: Result = await session.execute(statement)
-    account = result.scalars().first()
-
-    await check_admin_permission_in_group(
-        session=session, user_id=user_id, group_id=group_id
-    )
-
-    account.role = AccountRole.MEMBER
-
-    await session.commit()
 
 
 async def remove_user_from_group(
@@ -90,33 +63,21 @@ async def remove_user_from_group(
     group_id: int,
 ) -> None:
     if user_id == remove_user_id:
-        await leave_from_group(session=session, user_id=user_id, group_id=group_id)
+        await leave_from_group(session, user_id, group_id)
         return
 
-    await check_user_exists(session=session, user_id=user_id)
-    await check_user_exists(session=session, user_id=remove_user_id)
+    await check_user_exists(session, user_id)
+    await check_user_exists(session, remove_user_id)
 
-    _ = await get_group_if_exists(session=session, group_id=group_id)
+    _ = await get_group_if_exists(session, group_id)
 
-    await check_user_in_group(session=session, group_id=group_id, user_id=user_id)
-    await check_user_in_group(
-        session=session, group_id=group_id, user_id=remove_user_id
-    )
+    account = await get_account_if_exists(session, group_id, user_id)
+    remove_account = await get_account_if_exists(session, group_id, remove_user_id)
 
-    await check_owner_permission_in_group(
-        session=session, user_id=user_id, group_id=group_id
-    )
+    check_user_is_owner(account.role, user_id)
 
-    statement = select(Account).where(
-        Account.user_id == remove_user_id, Account.group_id == group_id
-    )
-    result: Result = await session.execute(statement)
-    account = result.scalars().first()
-
-    await session.execute(delete(UserReply).where(UserReply.account_id == account.id))
-
-    await session.delete(account)
-    await session.commit()
+    await account_crud.delete_user_replies_by_account_id(session, remove_account.id)
+    await account_crud.delete_account(session, remove_account)
 
 
 async def leave_from_group(
@@ -124,41 +85,25 @@ async def leave_from_group(
     user_id: int,
     group_id: int,
 ) -> None:
-    await check_user_exists(session=session, user_id=user_id)
-    _ = await get_group_if_exists(session=session, group_id=group_id)
-    await check_user_in_group(session=session, user_id=user_id, group_id=group_id)
+    await check_user_exists(session, user_id)
 
-    account = await session.execute(
-        select(Account).where(Account.user_id == user_id, Account.group_id == group_id)
-    )
-    account = account.scalars().first()
+    _ = await get_group_if_exists(session, group_id)
+    account = await get_account_if_exists(session, user_id, group_id)
 
-    await session.execute(delete(UserReply).where(UserReply.account_id == account.id))
-    if account.role == AccountRole.OWNER.value:
-        admins = await session.execute(
-            select(Account).where(
-                Account.group_id == group_id, Account.role == AccountRole.ADMIN.value
-            )
-        )
-        admin_accounts = admins.scalars().all()
+    await account_crud.delete_user_replies_by_account_id(session, account.id)
 
-        if admin_accounts:
-            new_owner = min(admin_accounts, key=lambda a: a.user_id)
-            new_owner.role = AccountRole.OWNER.value
-            account.role = AccountRole.MEMBER.value
+    if account.role == AccountRole.OWNER:
+        admins = await account_crud.get_admins_accounts_by_group(session, group_id)
+
+        if admins:
+            new_owner = min(admins, key=lambda a: a.user_id)
+            new_owner.role = AccountRole.OWNER
         else:
-            members = await session.execute(
-                select(Account).where(
-                    Account.group_id == group_id,
-                    Account.role == AccountRole.MEMBER.value,
-                )
+            members = await account_crud.get_members_accounts_by_group(
+                session, group_id
             )
-            member_accounts = members.scalars().all()
+            if members:
+                new_owner = min(members, key=lambda a: a.user_id)
+                new_owner.role = AccountRole.OWNER
 
-            if member_accounts:
-                new_owner = min(member_accounts, key=lambda a: a.user_id)
-                new_owner.role = AccountRole.OWNER.value
-                account.role = AccountRole.MEMBER.value
-
-    await session.delete(account)
-    await session.commit()
+    await account_crud.delete_account(session, account)

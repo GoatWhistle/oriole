@@ -77,12 +77,12 @@ async def get_user_tasks(
         int,
         Depends(get_current_active_auth_user_id),
     ],
-    is_correct: Optional[bool] = None,
+    is_active: Optional[bool] = None,
 ):
     return await service.get_user_tasks(
         session=session,
         user_id=user_id,
-        is_correct=is_correct,
+        is_active=is_active,
     )
 
 
@@ -157,6 +157,3 @@ async def delete_task(
         user_id=user_id,
         task_id=task_id,
     )
-
-
-
