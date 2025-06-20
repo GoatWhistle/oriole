@@ -1,5 +1,3 @@
-from typing import Sequence
-
 from sqlalchemy.ext.asyncio import AsyncSession
 
 import features.groups.crud.account as account_crud
@@ -18,7 +16,6 @@ from features.tasks.schemas import (
     TaskRead,
     TaskUpdate,
     TaskUpdatePartial,
-    TaskReadPartial,
 )
 from features.tasks.validators import (
     get_task_if_exists,
@@ -59,7 +56,7 @@ async def create_task(
     task = await task_crud.create_task(session, task_in)
     await module_crud.increment_module_tasks_count(session, module.id)
 
-    return mapper.build_task_read(task, module.group_id)
+    return mapper.build_task_read(task, module)
 
 
 async def get_task_by_id(
@@ -77,7 +74,7 @@ async def get_task_by_id(
         session, account.id, task_id
     )
 
-    return mapper.build_task_read(task, module.group_id, user_reply)
+    return mapper.build_task_read(task, module, user_reply)
 
 
 async def get_tasks_in_module(
@@ -85,7 +82,7 @@ async def get_tasks_in_module(
     user_id: int,
     module_id: int,
     is_active: bool | None,
-) -> Sequence[TaskReadPartial]:
+) -> list[TaskRead]:
     await check_user_exists(session, user_id)
 
     module = await get_module_if_exists(session, module_id)
@@ -100,14 +97,14 @@ async def get_tasks_in_module(
         session, [account.id], [task.id for task in tasks]
     )
 
-    return mapper.build_task_read_partial_list(tasks, user_replies)
+    return mapper.build_task_read_list([module], tasks, user_replies)
 
 
 async def get_user_tasks(
     session: AsyncSession,
     user_id: int,
     is_active: bool | None,
-) -> Sequence[TaskReadPartial]:
+) -> list[TaskRead]:
     await check_user_exists(session=session, user_id=user_id)
 
     accounts = await account_crud.get_accounts_by_user_id(session, user_id)
@@ -130,7 +127,7 @@ async def get_user_tasks(
         session, [account.id for account in accounts], [task.id for task in tasks]
     )
 
-    return mapper.build_task_read_partial_list(tasks, user_replies)
+    return mapper.build_task_read_list(modules, tasks, user_replies)
 
 
 async def update_task(
@@ -173,7 +170,7 @@ async def update_task(
 
     task = await task_crud.update_task(session, task, update_data)
 
-    return mapper.build_task_read(task, module.group_id, user_reply)
+    return mapper.build_task_read(task, module, user_reply)
 
 
 async def delete_task(

@@ -1,10 +1,7 @@
-from typing import Sequence
-
-from sqlalchemy import select, delete, Result
+from sqlalchemy import select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from features.groups.models import Account
-from features.groups.schemas import AccountRole
 from features.tasks.models import UserReply
 
 
@@ -14,7 +11,11 @@ async def create_account(
     group_id: int,
     role: int,
 ) -> Account:
-    account = Account(user_id=user_id, group_id=group_id, role=role)
+    account = Account(
+        user_id=user_id,
+        group_id=group_id,
+        role=role,
+    )
     session.add(account)
     await session.commit()
     await session.refresh(account)
@@ -24,9 +25,20 @@ async def create_account(
 async def get_accounts_by_group_id(
     session: AsyncSession,
     group_id: int,
-) -> Sequence[Account]:
+) -> list[Account]:
     result = await session.execute(select(Account).where(Account.group_id == group_id))
-    return result.scalars().all()
+    return list(result.scalars().all())
+
+
+async def get_accounts_in_groups(
+    session: AsyncSession,
+    group_ids: list[int],
+) -> list[Account]:
+    if not group_ids:
+        return []
+    statement = select(Account).where(Account.group_id.in_(group_ids))
+    result = await session.execute(statement)
+    return list(result.scalars().all())
 
 
 async def get_account_by_user_id_and_group_id(
@@ -37,47 +49,34 @@ async def get_account_by_user_id_and_group_id(
     statement = select(Account).where(
         Account.user_id == user_id, Account.group_id == group_id
     )
-    result: Result = await session.execute(statement)
+    result = await session.execute(statement)
     return result.scalars().first()
 
 
-async def get_admins_accounts_by_group(
+async def get_accounts_by_group_and_role(
     session: AsyncSession,
     group_id: int,
-) -> Sequence[Account]:
+    role: int,
+) -> list[Account]:
     statement = select(Account).where(
         Account.group_id == group_id,
-        Account.role == AccountRole.ADMIN.value,
+        Account.role == role,
     )
-    result: Result = await session.execute(statement)
-    return result.scalars().all()
+    result = await session.execute(statement)
+    return list(result.scalars().all())
 
 
-async def get_members_accounts_by_group(
-    session: AsyncSession,
-    group_id: int,
-) -> Sequence[Account]:
-    statement = select(Account).where(
-        Account.group_id == group_id,
-        Account.role == AccountRole.MEMBER.value,
-    )
-    result: Result = await session.execute(statement)
-    return result.scalars().all()
-
-
-async def get_accounts_by_user_id(
-    session: AsyncSession, user_id: int
-) -> Sequence[Account]:
+async def get_accounts_by_user_id(session: AsyncSession, user_id: int) -> list[Account]:
     result = await session.execute(select(Account).where(Account.user_id == user_id))
-    return result.scalars().all()
+    return list(result.scalars().all())
 
 
 async def get_accounts_in_group(
     session: AsyncSession,
     group_id: int,
-) -> Sequence[Account]:
+) -> list[Account]:
     result = await session.execute(select(Account).where(Account.group_id == group_id))
-    return result.scalars().all()
+    return list(result.scalars().all())
 
 
 async def update_account_role(

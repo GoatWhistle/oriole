@@ -1,8 +1,8 @@
-__all__ = (
+__all__ = [
     "Group",
     "Account",
     "GroupInvite",
-)
+]
 
 from .account import Account
 from .group import Group

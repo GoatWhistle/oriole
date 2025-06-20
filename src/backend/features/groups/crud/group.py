@@ -1,11 +1,11 @@
-from typing import Sequence
+from typing import Sequence, Any
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from features.groups.models import Account
 from features.groups.models import Group
-from features.groups.schemas import GroupCreate, GroupUpdate, GroupUpdatePartial
+from features.groups.schemas import GroupCreate
 
 
 async def create_group(
@@ -26,6 +26,17 @@ async def get_group_by_id(
     return await session.get(Group, group_id)
 
 
+async def get_groups_by_ids(
+    session: AsyncSession,
+    group_ids: list[int],
+) -> list[Group]:
+    if not group_ids:
+        return []
+    statement = select(Group).where(Group.id.in_(group_ids))
+    result = await session.execute(statement)
+    return list(result.scalars().all())
+
+
 async def get_groups_by_account_ids(
     session: AsyncSession,
     account_ids: Sequence[int],
@@ -39,9 +50,9 @@ async def get_groups_by_account_ids(
 async def update_group(
     session: AsyncSession,
     group: Group,
-    group_update: GroupUpdate | GroupUpdatePartial,
+    group_update: dict[str, Any],
 ) -> Group:
-    for key, value in group_update.model_dump(exclude_unset=True).items():
+    for key, value in group_update.items():
         setattr(group, key, value)
     await session.commit()
     await session.refresh(group)

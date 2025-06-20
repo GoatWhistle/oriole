@@ -1,10 +1,10 @@
-from typing import Sequence
+from typing import Any
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from features.tasks.models import Task
-from features.tasks.schemas import TaskCreate, TaskUpdate, TaskUpdatePartial
+from features.tasks.schemas import TaskCreate
 from utils import get_current_utc
 
 
@@ -41,9 +41,9 @@ def clone_task_to_module(
 
 async def clone_tasks_to_module(
     session: AsyncSession,
-    source_tasks: Sequence[Task],
+    source_tasks: list[Task],
     module_id: int,
-) -> Sequence[Task]:
+) -> list[Task]:
     new_tasks = [clone_task_to_module(task, module_id) for task in source_tasks]
     session.add_all(new_tasks)
     for task in new_tasks:
@@ -62,40 +62,40 @@ async def get_task_by_id(
 async def get_tasks(
     session: AsyncSession,
     is_active: bool | None = None,
-) -> Sequence[Task]:
+) -> list[Task]:
     statement = select(Task)
     if is_active is not None:
         statement = statement.where(Task.is_active == is_active)
     result = await session.execute(statement)
-    return result.scalars().all()
+    return list(result.scalars().all())
 
 
 async def get_tasks_by_module_id(
     session: AsyncSession,
     module_id: int,
     is_active: bool | None = None,
-) -> Sequence[Task]:
+) -> list[Task]:
     return await get_tasks_by_module_ids(session, [module_id], is_active)
 
 
 async def get_tasks_by_module_ids(
     session: AsyncSession,
-    module_ids: Sequence[int],
+    module_ids: list[int],
     is_active: bool | None = None,
-) -> Sequence[Task]:
+) -> list[Task]:
     statement = select(Task).where(Task.module_id.in_(module_ids))
     if is_active is not None:
         statement = statement.where(Task.is_active == is_active)
     result = await session.execute(statement)
-    return result.scalars().all()
+    return list(result.scalars().all())
 
 
 async def update_task(
     session: AsyncSession,
     task: Task,
-    task_update: TaskUpdate | TaskUpdatePartial,
+    task_update: dict[str, Any],
 ) -> Task:
-    for key, value in task_update.model_dump(exclude_unset=True).items():
+    for key, value in task_update.items():
         setattr(task, key, value)
     await session.commit()
     await session.refresh(task)

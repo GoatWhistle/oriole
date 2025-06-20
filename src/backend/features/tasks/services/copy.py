@@ -25,7 +25,7 @@ async def copy_task_to_module(
     task = await get_task_if_exists(session, source_task_id)
 
     source_module = await get_module_if_exists(session, task.module_id)
-    source_group = await get_group_if_exists(session, source_module.group_id)
+    _ = await get_group_if_exists(session, source_module.group_id)
     source_account = await get_account_if_exists(
         session, user_id, source_module.group_id
     )
@@ -39,11 +39,11 @@ async def copy_task_to_module(
     )
 
     if source_module.group_id != target_module.group_id:
-        target_group = await get_group_if_exists(session, target_module.group_id)
-        target_account = await get_account_if_exists(session, user_id, target_group.id)
+        _ = await get_group_if_exists(session, target_module.group_id)
+        target_account = await get_account_if_exists(
+            session, user_id, target_module.group_id
+        )
         check_user_is_admin_or_owner(target_account.role, user_id)
-    else:
-        target_group = source_group
 
     task_create = TaskCreate(
         title=task.title,
@@ -56,4 +56,4 @@ async def copy_task_to_module(
     )
     new_task = await task_crud.create_task(session, task_create)
 
-    return mapper.build_task_read(new_task, target_group.id)
+    return mapper.build_task_read(new_task, target_module)

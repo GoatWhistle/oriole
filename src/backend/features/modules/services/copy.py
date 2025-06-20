@@ -49,4 +49,4 @@ async def copy_module_to_group(
         session, source_tasks, new_module.id
     )
 
-    return mapper.build_module_read(new_module, target_group_id, new_tasks)
+    return mapper.build_module_read(new_module, new_tasks)

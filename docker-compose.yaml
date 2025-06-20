@@ -10,7 +10,7 @@ services:
       redis:
         condition: service_healthy
     environment:
-      DB_URL: ${APP_CONFIG__DB__DB_URL}
+      DB_URL: ${APP_CONFIG__DB__URL}
     ports:
       - ${APP_CONFIG__RUN__PORT}:8000
     volumes:
@@ -121,7 +121,7 @@ services:
     volumes:
       - ./src/backend:/backend
     environment:
-      DB_URL: ${APP_CONFIG__DB__DB_URL}
+      DB_URL: ${APP_CONFIG__DB__URL}
       PYTHONPATH: /backend
     working_dir: /backend
     networks:
@@ -142,7 +142,7 @@ services:
     volumes:
       - ./src/backend:/backend
     environment:
-      DB_URL: ${APP_CONFIG__DB__DB_URL}
+      DB_URL: ${APP_CONFIG__DB__URL}
       PYTHONPATH: /backend
     working_dir: /backend
     networks:

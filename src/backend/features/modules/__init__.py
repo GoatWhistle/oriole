@@ -1,3 +1,5 @@
-__all__ = ("Module",)
+__all__ = [
+    "Module",
+]
 
 from .models import Module

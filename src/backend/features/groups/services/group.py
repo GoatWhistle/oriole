@@ -1,16 +1,14 @@
-from typing import Sequence
-
 from sqlalchemy.ext.asyncio import AsyncSession
 
 import features.groups.crud.account as account_crud
 import features.groups.crud.group as group_crud
 import features.groups.crud.invite as group_invite_crud
-import features.groups.mappers.group as mapper
+import features.groups.mappers as mapper
 import features.modules.crud.module as module_crud
 import features.tasks.crud.task as task_crud
 import features.tasks.crud.user_reply as user_reply_crud
 import features.users.crud.user_profile as user_profile_crud
-from features.groups.schemas import AccountRole, GroupReadPartial
+from features.groups.schemas import AccountRole, AccountRead
 from features.groups.schemas import (
     GroupCreate,
     GroupRead,
@@ -23,7 +21,6 @@ from features.groups.validators import (
     check_user_is_admin_or_owner,
     check_user_is_owner,
 )
-from features.users.schemas import UserProfileRead
 from features.users.validators import check_user_exists
 
 
@@ -53,47 +50,59 @@ async def get_group_by_id(
     account = await get_account_if_exists(session, user_id, group_id)
 
     accounts = await account_crud.get_accounts_in_group(session, group_id)
-    modules = await module_crud.get_modules_by_group_id_with_task_counts(
-        session, group_id
+    modules = await module_crud.get_modules_by_group_id(session, group_id)
+    module_ids = [module.id for module in modules]
+
+    tasks = await task_crud.get_tasks_by_module_ids(session, module_ids)
+    task_ids = [task.id for task in tasks]
+
+    user_replies = await user_reply_crud.get_user_replies(
+        session=session,
+        account_ids=[account.id],
+        task_ids=task_ids,
     )
 
-    task_map = {}
-    all_task_ids = []
-
-    for module, _ in modules:
-        tasks = await task_crud.get_tasks_by_module_id(session, module.id)
-        task_map[module.id] = tasks
-        all_task_ids.extend(task.id for task in tasks)
-
-    user_replies = await user_reply_crud.get_user_replies_by_task_ids(
-        session, account.id, all_task_ids
-    )
-
-    return mapper.build_group_read(group, accounts, modules, task_map, user_replies)
+    return mapper.build_group_read(group, accounts, modules, tasks, user_replies)
 
 
 async def get_user_groups(
     session: AsyncSession,
     user_id: int,
-) -> Sequence[GroupReadPartial]:
-    await check_user_exists(session=session, user_id=user_id)
+) -> list[GroupRead]:
+    await check_user_exists(session, user_id)
 
     accounts = await account_crud.get_accounts_by_user_id(session, user_id)
     if not accounts:
         return []
 
-    groups = await group_crud.get_groups_by_account_ids(
-        session, [account.id for account in accounts]
+    group_ids = [account.group_id for account in accounts]
+
+    groups = await group_crud.get_groups_by_ids(session, group_ids)
+    all_group_accounts = await account_crud.get_accounts_in_groups(session, group_ids)
+    modules = await module_crud.get_modules_by_group_ids(session, group_ids)
+
+    tasks = await task_crud.get_tasks_by_module_ids(
+        session, [module.id for module in modules]
     )
 
-    return [GroupReadPartial.model_validate(group) for group in groups]
+    user_replies = await user_reply_crud.get_user_replies(
+        session, [account.id for account in accounts], [task.id for task in tasks]
+    )
+
+    user_profiles = await user_profile_crud.get_user_profiles_by_user_ids(
+        session, [account.user_id for account in all_group_accounts]
+    )
+
+    return mapper.build_group_read_list(
+        groups, all_group_accounts, user_profiles, modules, tasks, user_replies
+    )
 
 
 async def get_users_in_group(
     session: AsyncSession,
     user_id: int,
     group_id: int,
-) -> Sequence[UserProfileRead]:
+) -> list[AccountRead]:
     await check_user_exists(session, user_id)
 
     _ = await get_group_if_exists(session, group_id)
@@ -103,8 +112,7 @@ async def get_users_in_group(
     user_profiles = await user_profile_crud.get_user_profiles_by_user_ids(
         session, [account.user_id for account in accounts]
     )
-
-    return [UserProfileRead.model_validate(profile) for profile in user_profiles]
+    return mapper.build_account_read_list(accounts, user_profiles)
 
 
 async def update_group(
@@ -125,23 +133,16 @@ async def update_group(
     group = await group_crud.update_group(session, group, update_data)
 
     accounts = await account_crud.get_accounts_in_group(session, group_id)
-    modules = await module_crud.get_modules_by_group_id_with_task_counts(
-        session, group_id
+    modules = await module_crud.get_modules_by_group_id(session, group_id)
+    module_ids = [module.id for module in modules]
+
+    tasks = await task_crud.get_tasks_by_module_ids(session, module_ids)
+
+    user_replies = await user_reply_crud.get_user_replies(
+        session, [account.id], [task.id for task in tasks]
     )
 
-    task_map = {}
-    all_task_ids = []
-
-    for module, _ in modules:
-        tasks = await task_crud.get_tasks_by_module_id(session, module.id)
-        task_map[module.id] = tasks
-        all_task_ids.extend(task.id for task in tasks)
-
-    user_replies = await user_reply_crud.get_user_replies_by_task_ids(
-        session, account.id, all_task_ids
-    )
-
-    return mapper.build_group_read(group, accounts, modules, task_map, user_replies)
+    return mapper.build_group_read(group, accounts, modules, tasks, user_replies)
 
 
 async def delete_group(

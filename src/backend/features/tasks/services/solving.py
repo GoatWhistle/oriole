@@ -45,4 +45,4 @@ async def try_to_complete_task(
             session, account.id, task, user_answer
         )
 
-    return mapper.build_task_read(task, module.group_id, user_reply)
+    return mapper.build_task_read(task, module, user_reply)

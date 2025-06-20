@@ -1,5 +1,3 @@
-from typing import Annotated
-
 from fastapi import APIRouter, Depends, status, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -16,25 +14,14 @@ router = APIRouter()
 )
 async def invite_user(
     request: Request,
-    session: Annotated[
-        AsyncSession,
-        Depends(db_helper.dependency_session_getter),
-    ],
-    user_id: Annotated[
-        int,
-        Depends(get_current_active_auth_user_id),
-    ],
     group_id: int,
     expires_minutes: int = 30,
     single_use: bool = False,
+    session: AsyncSession = Depends(db_helper.dependency_session_getter),
+    user_id: int = Depends(get_current_active_auth_user_id),
 ):
     return await service.invite_user(
-        session=session,
-        user_id=user_id,
-        request=request,
-        group_id=group_id,
-        expires_minutes=expires_minutes,
-        single_use=single_use,
+        session, user_id, request, group_id, expires_minutes, single_use
     )
 
 
@@ -43,21 +30,11 @@ async def invite_user(
     status_code=status.HTTP_200_OK,
 )
 async def join_by_link(
-    session: Annotated[
-        AsyncSession,
-        Depends(db_helper.dependency_session_getter),
-    ],
-    user_id: Annotated[
-        int,
-        Depends(get_current_active_auth_user_id),
-    ],
     invite_code: str,
+    session: AsyncSession = Depends(db_helper.dependency_session_getter),
+    user_id: int = Depends(get_current_active_auth_user_id),
 ):
-    return await service.join_by_link(
-        session=session,
-        user_id=user_id,
-        invite_code=invite_code,
-    )
+    return await service.join_by_link(session, user_id, invite_code)
 
 
 @router.delete(
@@ -65,18 +42,8 @@ async def join_by_link(
     status_code=status.HTTP_204_NO_CONTENT,
 )
 async def delete_group_invites(
-    session: Annotated[
-        AsyncSession,
-        Depends(db_helper.dependency_session_getter),
-    ],
-    user_id: Annotated[
-        int,
-        Depends(get_current_active_auth_user_id),
-    ],
     group_id: int,
+    session: AsyncSession = Depends(db_helper.dependency_session_getter),
+    user_id: int = Depends(get_current_active_auth_user_id),
 ) -> None:
-    await service.delete_group_invites(
-        session=session,
-        user_id=user_id,
-        group_id=group_id,
-    )
+    await service.delete_group_invites(session, user_id, group_id)

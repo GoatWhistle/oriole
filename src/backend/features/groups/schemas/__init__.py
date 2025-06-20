@@ -1,18 +1,16 @@
-__all__ = (
+__all__ = [
     "AccountRole",
-    "AccountReadPartial",
+    "AccountRead",
     "GroupCreate",
     "GroupRead",
-    "GroupReadPartial",
     "GroupUpdate",
     "GroupUpdatePartial",
-)
+]
 
-from .account import AccountRole, AccountReadPartial
+from .account import AccountRole, AccountRead
 from .group import (
     GroupCreate,
     GroupRead,
-    GroupReadPartial,
     GroupUpdate,
     GroupUpdatePartial,
 )

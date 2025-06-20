@@ -1,18 +1,15 @@
-from typing import Annotated, Sequence
-
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from database import db_helper
+from features.groups.schemas import AccountRead
 from features.groups.schemas.group import (
     GroupCreate,
     GroupRead,
-    GroupReadPartial,
     GroupUpdate,
     GroupUpdatePartial,
 )
 from features.groups.services import group as service
-from features.users.schemas import UserProfileRead
 from features.users.services.auth import get_current_active_auth_user_id
 
 router = APIRouter()
@@ -24,21 +21,11 @@ router = APIRouter()
     status_code=status.HTTP_201_CREATED,
 )
 async def create_group(
-    session: Annotated[
-        AsyncSession,
-        Depends(db_helper.dependency_session_getter),
-    ],
-    user_id: Annotated[
-        int,
-        Depends(get_current_active_auth_user_id),
-    ],
     group_in: GroupCreate,
+    session: AsyncSession = Depends(db_helper.dependency_session_getter),
+    user_id: int = Depends(get_current_active_auth_user_id),
 ):
-    return await service.create_group(
-        session=session,
-        user_id=user_id,
-        group_in=group_in,
-    )
+    return await service.create_group(session, user_id, group_in)
 
 
 @router.get(
@@ -47,42 +34,23 @@ async def create_group(
     status_code=status.HTTP_200_OK,
 )
 async def get_group_by_id(
-    session: Annotated[
-        AsyncSession,
-        Depends(db_helper.dependency_session_getter),
-    ],
-    user_id: Annotated[
-        int,
-        Depends(get_current_active_auth_user_id),
-    ],
     group_id: int,
+    session: AsyncSession = Depends(db_helper.dependency_session_getter),
+    user_id: int = Depends(get_current_active_auth_user_id),
 ):
-    return await service.get_group_by_id(
-        session=session,
-        user_id=user_id,
-        group_id=group_id,
-    )
+    return await service.get_group_by_id(session, user_id, group_id)
 
 
 @router.get(
     "/",
-    response_model=Sequence[GroupReadPartial],
+    response_model=list[GroupRead],
     status_code=status.HTTP_200_OK,
 )
 async def get_user_groups(
-    session: Annotated[
-        AsyncSession,
-        Depends(db_helper.dependency_session_getter),
-    ],
-    user_id: Annotated[
-        int,
-        Depends(get_current_active_auth_user_id),
-    ],
+    session: AsyncSession = Depends(db_helper.dependency_session_getter),
+    user_id: int = Depends(get_current_active_auth_user_id),
 ):
-    return await service.get_user_groups(
-        session=session,
-        user_id=user_id,
-    )
+    return await service.get_user_groups(session, user_id)
 
 
 @router.put(
@@ -91,24 +59,12 @@ async def get_user_groups(
     status_code=status.HTTP_200_OK,
 )
 async def update_group(
-    session: Annotated[
-        AsyncSession,
-        Depends(db_helper.dependency_session_getter),
-    ],
-    user_id: Annotated[
-        int,
-        Depends(get_current_active_auth_user_id),
-    ],
     group_id: int,
     group_update: GroupUpdate,
+    session: AsyncSession = Depends(db_helper.dependency_session_getter),
+    user_id: int = Depends(get_current_active_auth_user_id),
 ):
-    return await service.update_group(
-        session=session,
-        user_id=user_id,
-        group_id=group_id,
-        group_update=group_update,
-        is_partial=False,
-    )
+    return await service.update_group(session, user_id, group_id, group_update, False)
 
 
 @router.patch(
@@ -117,24 +73,12 @@ async def update_group(
     status_code=status.HTTP_200_OK,
 )
 async def update_group_partial(
-    session: Annotated[
-        AsyncSession,
-        Depends(db_helper.dependency_session_getter),
-    ],
-    user_id: Annotated[
-        int,
-        Depends(get_current_active_auth_user_id),
-    ],
     group_id: int,
     group_update: GroupUpdatePartial,
+    session: AsyncSession = Depends(db_helper.dependency_session_getter),
+    user_id: int = Depends(get_current_active_auth_user_id),
 ):
-    return await service.update_group(
-        session=session,
-        user_id=user_id,
-        group_id=group_id,
-        group_update=group_update,
-        is_partial=True,
-    )
+    return await service.update_group(session, user_id, group_id, group_update, True)
 
 
 @router.delete(
@@ -142,41 +86,21 @@ async def update_group_partial(
     status_code=status.HTTP_204_NO_CONTENT,
 )
 async def delete_group(
-    session: Annotated[
-        AsyncSession,
-        Depends(db_helper.dependency_session_getter),
-    ],
-    user_id: Annotated[
-        int,
-        Depends(get_current_active_auth_user_id),
-    ],
     group_id: int,
+    session: AsyncSession = Depends(db_helper.dependency_session_getter),
+    user_id: int = Depends(get_current_active_auth_user_id),
 ):
-    await service.delete_group(
-        session=session,
-        user_id=user_id,
-        group_id=group_id,
-    )
+    await service.delete_group(session, user_id, group_id)
 
 
 @router.get(
     "/{group_id}/users/",
-    response_model=Sequence[UserProfileRead],
+    response_model=list[AccountRead],
     status_code=status.HTTP_200_OK,
 )
 async def get_users_in_group(
-    session: Annotated[
-        AsyncSession,
-        Depends(db_helper.dependency_session_getter),
-    ],
-    user_id: Annotated[
-        int,
-        Depends(get_current_active_auth_user_id),
-    ],
     group_id: int,
+    session: AsyncSession = Depends(db_helper.dependency_session_getter),
+    user_id: int = Depends(get_current_active_auth_user_id),
 ):
-    return await service.get_users_in_group(
-        session=session,
-        user_id=user_id,
-        group_id=group_id,
-    )
+    return await service.get_users_in_group(session, user_id, group_id)

@@ -93,14 +93,16 @@ async def leave_from_group(
     await account_crud.delete_user_replies_by_account_id(session, account.id)
 
     if account.role == AccountRole.OWNER:
-        admins = await account_crud.get_admins_accounts_by_group(session, group_id)
+        admins = await account_crud.get_accounts_by_group_and_role(
+            session, group_id, AccountRole.ADMIN
+        )
 
         if admins:
             new_owner = min(admins, key=lambda a: a.user_id)
             new_owner.role = AccountRole.OWNER
         else:
-            members = await account_crud.get_members_accounts_by_group(
-                session, group_id
+            members = await account_crud.get_accounts_by_group_and_role(
+                session, group_id, AccountRole.MEMBER
             )
             if members:
                 new_owner = min(members, key=lambda a: a.user_id)

@@ -1,5 +1,3 @@
-from typing import Annotated
-
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -10,26 +8,18 @@ from features.users.services.auth import get_current_active_auth_user_id
 
 router = APIRouter()
 
+
 @router.post(
     "/{task_id}/copy-to-module/{target_module_id}",
     response_model=TaskRead,
     status_code=status.HTTP_201_CREATED,
 )
 async def copy_task_to_module(
-    session: Annotated[
-        AsyncSession,
-        Depends(db_helper.dependency_session_getter),
-    ],
-    user_id: Annotated[
-        int,
-        Depends(get_current_active_auth_user_id),
-    ],
-    task_id: int,
+    source_task_id: int,
     target_module_id: int,
+    session: AsyncSession = Depends(db_helper.dependency_session_getter),
+    user_id: int = Depends(get_current_active_auth_user_id),
 ):
     return await service.copy_task_to_module(
-        session=session,
-        user_id=user_id,
-        source_task_id=task_id,
-        target_module_id=target_module_id,
+        session, user_id, source_task_id, target_module_id
     )

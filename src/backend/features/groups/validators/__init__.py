@@ -1,4 +1,4 @@
-__all__ = (
+__all__ = [
     "get_group_if_exists",
     "get_account_if_exists",
     "get_group_invite_if_exists",
@@ -9,7 +9,7 @@ __all__ = (
     "check_group_invite_active",
     "check_group_invite_not_expired",
     "get_group_invite_if_valid",
-)
+]
 
 from .existence import (
     get_group_if_exists,

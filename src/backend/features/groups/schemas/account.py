@@ -2,6 +2,8 @@ from enum import IntEnum
 
 from pydantic import BaseModel
 
+from features.users.schemas import UserProfileRead
+
 
 class AccountRole(IntEnum):
     OWNER = 0
@@ -9,6 +11,6 @@ class AccountRole(IntEnum):
     MEMBER = 2
 
 
-class AccountReadPartial(BaseModel):
-    user_id: int
+class AccountRead(BaseModel):
+    user_profile: UserProfileRead
     role: int

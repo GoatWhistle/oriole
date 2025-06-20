@@ -1,5 +1,3 @@
-from typing import Annotated, Sequence, Optional
-
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -7,7 +5,6 @@ from database import db_helper
 from features.modules.schemas import (
     ModuleCreate,
     ModuleRead,
-    ModuleReadPartial,
     ModuleUpdate,
     ModuleUpdatePartial,
 )
@@ -23,21 +20,11 @@ router = APIRouter()
     status_code=status.HTTP_201_CREATED,
 )
 async def create_module(
-    session: Annotated[
-        AsyncSession,
-        Depends(db_helper.dependency_session_getter),
-    ],
-    user_id: Annotated[
-        int,
-        Depends(get_current_active_auth_user_id),
-    ],
     module_in: ModuleCreate,
+    session: AsyncSession = Depends(db_helper.dependency_session_getter),
+    user_id: int = Depends(get_current_active_auth_user_id),
 ):
-    return await service.create_module(
-        session=session,
-        user_id=user_id,
-        module_in=module_in,
-    )
+    return await service.create_module(session, user_id, module_in)
 
 
 @router.get(
@@ -46,44 +33,24 @@ async def create_module(
     status_code=status.HTTP_200_OK,
 )
 async def get_module_by_id(
-    session: Annotated[
-        AsyncSession,
-        Depends(db_helper.dependency_session_getter),
-    ],
-    user_id: Annotated[
-        int,
-        Depends(get_current_active_auth_user_id),
-    ],
     module_id: int,
+    session: AsyncSession = Depends(db_helper.dependency_session_getter),
+    user_id: int = Depends(get_current_active_auth_user_id),
 ):
-    return await service.get_module_by_id(
-        session=session,
-        user_id=user_id,
-        module_id=module_id,
-    )
+    return await service.get_module_by_id(session, user_id, module_id)
 
 
 @router.get(
     "/",
-    response_model=Sequence[ModuleReadPartial],
+    response_model=list[ModuleRead],
     status_code=status.HTTP_200_OK,
 )
 async def get_user_modules(
-    session: Annotated[
-        AsyncSession,
-        Depends(db_helper.dependency_session_getter),
-    ],
-    user_id: Annotated[
-        int,
-        Depends(get_current_active_auth_user_id),
-    ],
-    is_active: Optional[bool] = None,
+    is_active: bool | None = None,
+    session: AsyncSession = Depends(db_helper.dependency_session_getter),
+    user_id: int = Depends(get_current_active_auth_user_id),
 ):
-    return await service.get_user_modules(
-        session=session,
-        user_id=user_id,
-        is_active=is_active,
-    )
+    return await service.get_user_modules(session, user_id, is_active)
 
 
 @router.put(
@@ -92,23 +59,13 @@ async def get_user_modules(
     status_code=status.HTTP_200_OK,
 )
 async def update_module(
-    session: Annotated[
-        AsyncSession,
-        Depends(db_helper.dependency_session_getter),
-    ],
-    user_id: Annotated[
-        int,
-        Depends(get_current_active_auth_user_id),
-    ],
     module_update: ModuleUpdate,
     module_id: int,
+    session: AsyncSession = Depends(db_helper.dependency_session_getter),
+    user_id: int = Depends(get_current_active_auth_user_id),
 ):
     return await service.update_module(
-        session=session,
-        user_id=user_id,
-        module_id=module_id,
-        module_update=module_update,
-        is_partial=False,
+        session, user_id, module_id, module_update, False
     )
 
 
@@ -118,24 +75,12 @@ async def update_module(
     status_code=status.HTTP_200_OK,
 )
 async def update_module_partial(
-    session: Annotated[
-        AsyncSession,
-        Depends(db_helper.dependency_session_getter),
-    ],
-    user_id: Annotated[
-        int,
-        Depends(get_current_active_auth_user_id),
-    ],
     module_update: ModuleUpdatePartial,
     module_id: int,
+    session: AsyncSession = Depends(db_helper.dependency_session_getter),
+    user_id: int = Depends(get_current_active_auth_user_id),
 ):
-    return await service.update_module(
-        session=session,
-        user_id=user_id,
-        module_id=module_id,
-        module_update=module_update,
-        is_partial=True,
-    )
+    return await service.update_module(session, user_id, module_id, module_update, True)
 
 
 @router.delete(
@@ -143,18 +88,8 @@ async def update_module_partial(
     status_code=status.HTTP_204_NO_CONTENT,
 )
 async def delete_module(
-    session: Annotated[
-        AsyncSession,
-        Depends(db_helper.dependency_session_getter),
-    ],
-    user_id: Annotated[
-        int,
-        Depends(get_current_active_auth_user_id),
-    ],
     module_id: int,
-) -> None:
-    await service.delete_module(
-        session=session,
-        user_id=user_id,
-        module_id=module_id,
-    )
+    session: AsyncSession = Depends(db_helper.dependency_session_getter),
+    user_id: int = Depends(get_current_active_auth_user_id),
+):
+    await service.delete_module(session, user_id, module_id)

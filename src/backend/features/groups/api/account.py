@@ -1,5 +1,3 @@
-from typing import Annotated
-
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -15,23 +13,12 @@ router = APIRouter()
     status_code=status.HTTP_200_OK,
 )
 async def promote_user_to_admin(
-    session: Annotated[
-        AsyncSession,
-        Depends(db_helper.dependency_session_getter),
-    ],
-    user_id: Annotated[
-        int,
-        Depends(get_current_active_auth_user_id),
-    ],
     promote_user_id: int,
     group_id: int,
+    session: AsyncSession = Depends(db_helper.dependency_session_getter),
+    user_id: int = Depends(get_current_active_auth_user_id),
 ):
-    await service.promote_user_to_admin(
-        session=session,
-        user_id=user_id,
-        promote_user_id=promote_user_id,
-        group_id=group_id,
-    )
+    await service.promote_user_to_admin(session, user_id, promote_user_id, group_id)
 
 
 @router.patch(
@@ -39,23 +26,12 @@ async def promote_user_to_admin(
     status_code=status.HTTP_200_OK,
 )
 async def demote_user_to_member(
-    session: Annotated[
-        AsyncSession,
-        Depends(db_helper.dependency_session_getter),
-    ],
-    user_id: Annotated[
-        int,
-        Depends(get_current_active_auth_user_id),
-    ],
     demote_user_id: int,
     group_id: int,
+    session: AsyncSession = Depends(db_helper.dependency_session_getter),
+    user_id: int = Depends(get_current_active_auth_user_id),
 ):
-    await service.demote_user_to_member(
-        session=session,
-        user_id=user_id,
-        demote_user_id=demote_user_id,
-        group_id=group_id,
-    )
+    await service.demote_user_to_member(session, user_id, demote_user_id, group_id)
 
 
 @router.delete(
@@ -63,23 +39,12 @@ async def demote_user_to_member(
     status_code=status.HTTP_204_NO_CONTENT,
 )
 async def remove_user_from_group(
-    session: Annotated[
-        AsyncSession,
-        Depends(db_helper.dependency_session_getter),
-    ],
-    user_id: Annotated[
-        int,
-        Depends(get_current_active_auth_user_id),
-    ],
     remove_user_id: int,
     group_id: int,
+    session: AsyncSession = Depends(db_helper.dependency_session_getter),
+    user_id: int = Depends(get_current_active_auth_user_id),
 ):
-    await service.remove_user_from_group(
-        session=session,
-        user_id=user_id,
-        remove_user_id=remove_user_id,
-        group_id=group_id,
-    )
+    await service.remove_user_from_group(session, user_id, remove_user_id, group_id)
 
 
 @router.delete(
@@ -87,18 +52,8 @@ async def remove_user_from_group(
     status_code=status.HTTP_204_NO_CONTENT,
 )
 async def leave_from_group(
-    session: Annotated[
-        AsyncSession,
-        Depends(db_helper.dependency_session_getter),
-    ],
-    user_id: Annotated[
-        int,
-        Depends(get_current_active_auth_user_id),
-    ],
     group_id: int,
+    session: AsyncSession = Depends(db_helper.dependency_session_getter),
+    user_id: int = Depends(get_current_active_auth_user_id),
 ):
-    await service.leave_from_group(
-        session=session,
-        user_id=user_id,
-        group_id=group_id,
-    )
+    await service.leave_from_group(session, user_id, group_id)

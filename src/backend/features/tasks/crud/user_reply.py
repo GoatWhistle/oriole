@@ -1,5 +1,3 @@
-from typing import Sequence
-
 from sqlalchemy import select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -26,18 +24,11 @@ async def create_user_reply(
     return user_reply
 
 
-async def get_user_reply_by_id(
-    session: AsyncSession,
-    user_reply_id: int,
-) -> UserReply | None:
-    return await session.get(UserReply, user_reply_id)
-
-
 async def get_user_replies(
     session: AsyncSession,
-    account_ids: Sequence[int] | None = None,
-    task_ids: Sequence[int] | None = None,
-) -> Sequence[UserReply]:
+    account_ids: list[int] | None = None,
+    task_ids: list[int] | None = None,
+) -> list[UserReply]:
     statement = select(UserReply)
     conditions = []
     if account_ids is not None:
@@ -48,7 +39,7 @@ async def get_user_replies(
         statement = statement.where(*conditions)
 
     result = await session.execute(statement)
-    return result.scalars().all()
+    return list(result.scalars().all())
 
 
 async def get_user_reply_by_account_id_and_task_id(
@@ -62,19 +53,18 @@ async def get_user_reply_by_account_id_and_task_id(
 
 async def get_user_replies_by_account_ids_and_task_ids(
     session: AsyncSession,
-    account_ids: Sequence[int],
-    task_ids: Sequence[int],
-) -> Sequence[UserReply]:
+    account_ids: list[int],
+    task_ids: list[int],
+) -> list[UserReply]:
     return await get_user_replies(session, account_ids, task_ids)
 
 
 async def get_user_replies_by_task_ids(
     session: AsyncSession,
     account_id: int,
-    task_ids: Sequence[int],
-) -> dict[int, UserReply]:
-    replies = await get_user_replies(session, [account_id], task_ids)
-    return {reply.task_id: reply for reply in replies}
+    task_ids: list[int],
+) -> list[UserReply]:
+    return await get_user_replies(session, [account_id], task_ids)
 
 
 async def update_user_reply(
