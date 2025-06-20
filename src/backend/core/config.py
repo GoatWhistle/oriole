@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Literal
 
 from dotenv import load_dotenv
 from pydantic import BaseModel, EmailStr
@@ -72,6 +73,11 @@ class SMTPEmail(BaseModel):
 class Redis(BaseModel):
     port: int
     url: str
+    full_url: str
+    limiter_enabled: bool = True
+    limiter_strategy: Literal["fixed-window", "moving-window"] = "moving-window"
+    limiter_default: str = "10/minute"
+    socket_timeout: int = 2
 
 
 class Settings(BaseSettings):

@@ -31,7 +31,7 @@ limiter = Limiter(key_func=get_remote_address)
     response_model=UserAuthRead,
     status_code=status.HTTP_201_CREATED,
 )
-@limiter.limit("3/hour")
+@limiter.limit("10/hour")
 async def register_user(
     request: Request,
     user_data: RegisterUserInput,

@@ -6,8 +6,12 @@ from api import router as api_router
 from core.config import settings
 from core.events import lifespan
 from middlewares import LoggingMiddleware, AutoCacheMiddleware
+from slowapi.middleware import SlowAPIMiddleware
 
 app = FastAPI(lifespan=lifespan)
+
+if settings.redis.limiter_enabled:
+    app.add_middleware(SlowAPIMiddleware)
 
 app.add_middleware(
     CORSMiddleware,
@@ -20,7 +24,13 @@ app.add_middleware(
 app.add_middleware(
     AutoCacheMiddleware,
     ttl=600,
-    exclude_paths=["docs", "openapi.json", "redoc", "static", "docs#"],
+    exclude_paths=[
+        "docs",
+        "openapi.json",
+        "redoc",
+        "static",
+        "docs#",
+    ],
     invalidate_paths=["auth", "verify"],
 )
 app.add_middleware(LoggingMiddleware)
