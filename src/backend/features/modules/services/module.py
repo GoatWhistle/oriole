@@ -1,5 +1,3 @@
-from typing import Sequence
-
 from sqlalchemy.ext.asyncio import AsyncSession
 
 import features.groups.crud.account as account_crud
@@ -74,7 +72,7 @@ async def get_modules_in_group(
     user_id: int,
     group_id: int,
     is_active: bool | None = None,
-) -> Sequence[ModuleRead]:
+) -> list[ModuleRead]:
     await check_user_exists(session, user_id)
 
     _ = await get_group_if_exists(session, group_id)
@@ -96,8 +94,8 @@ async def get_modules_in_group(
 
 async def get_user_modules(
     session: AsyncSession, user_id: int, is_active: bool | None = None
-) -> Sequence[ModuleRead]:
-    await check_user_exists(session=session, user_id=user_id)
+) -> list[ModuleRead]:
+    await check_user_exists(session, user_id)
 
     accounts = await account_crud.get_accounts_by_user_id(session, user_id)
     if not accounts:
@@ -116,7 +114,7 @@ async def get_user_modules(
         return []
 
     tasks = await task_crud.get_tasks_by_module_ids(
-        session, [module.id for module, _ in modules]
+        session, [module.id for module in modules]
     )
     user_replies = await user_reply_crud.get_user_replies_by_account_ids_and_task_ids(
         session, account_ids, [task.id for task in tasks]

@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import Sequence
 
 from pydantic import BaseModel, Field, ConfigDict
 
@@ -32,7 +31,7 @@ class ModuleRead(ModuleBase):
     tasks_count: int
     user_completed_tasks_count: int
 
-    tasks: Sequence[TaskRead]
+    tasks: list[TaskRead]
 
     model_config = ConfigDict(
         from_attributes=True,
