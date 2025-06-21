@@ -73,11 +73,29 @@ class SMTPEmail(BaseModel):
 class Redis(BaseModel):
     port: int
     url: str
-    full_url: str
+    password: str = None
+    use_ssl: bool = False
+    socket_timeout: int = 2
+
     limiter_enabled: bool = True
     limiter_strategy: Literal["fixed-window", "moving-window"] = "moving-window"
     limiter_default: str = "10/minute"
-    socket_timeout: int = 2
+
+    @property
+    def full_url(self):
+        scheme = "rediss" if self.use_ssl else "redis"
+        return f"{scheme}://{self.url}:{self.port}/0"
+
+    @property
+    def safe_storage_options(self) -> dict:
+        return {
+            "socket_timeout": self.socket_timeout,
+            "ssl": self.use_ssl,
+            "ssl_cert_reqs": None,
+            "health_check_interval": 30,
+            "retry_on_timeout": True,
+            "socket_keepalive": True,
+        }
 
 
 class Settings(BaseSettings):
