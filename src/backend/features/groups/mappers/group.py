@@ -11,6 +11,7 @@ from features.users.models import UserProfile
 def build_group_read(
     group: Group,
     accounts: list[Account],
+    user_profiles: list[UserProfile],
     modules: list[Module] | None = None,
     tasks: list[Task] | None = None,
     user_replies: list[UserReply] | None = None,
@@ -19,6 +20,8 @@ def build_group_read(
     tasks = tasks or []
     user_replies = user_replies or []
 
+    account_reads: list[AccountRead] = build_account_read_list(accounts, user_profiles)
+
     module_reads: list[ModuleRead] = build_module_read_list(
         modules=modules,
         tasks=tasks,
@@ -26,10 +29,10 @@ def build_group_read(
     )
 
     return GroupRead(
+        id=group.id,
         title=group.title,
         description=group.description,
-        id=group.id,
-        accounts=[AccountRead.model_validate(account.__dict__) for account in accounts],
+        accounts=account_reads,
         modules=module_reads,
     )
 

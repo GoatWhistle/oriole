@@ -22,6 +22,7 @@ from features.groups.validators import (
     check_user_is_owner,
 )
 from features.users.validators import check_user_exists
+from features.users.validators.existence import get_user_profile_if_exists
 
 
 async def create_group(
@@ -35,8 +36,9 @@ async def create_group(
     account = await account_crud.create_account(
         session, user_id, group.id, AccountRole.OWNER.value
     )
+    profile = await get_user_profile_if_exists(session, user_id)
 
-    return mapper.build_group_read(group, [account])
+    return mapper.build_group_read(group, [account], [profile])
 
 
 async def get_group_by_id(
@@ -51,18 +53,21 @@ async def get_group_by_id(
 
     accounts = await account_crud.get_accounts_in_group(session, group_id)
     modules = await module_crud.get_modules_by_group_id(session, group_id)
-    module_ids = [module.id for module in modules]
 
-    tasks = await task_crud.get_tasks_by_module_ids(session, module_ids)
-    task_ids = [task.id for task in tasks]
-
-    user_replies = await user_reply_crud.get_user_replies(
-        session=session,
-        account_ids=[account.id],
-        task_ids=task_ids,
+    tasks = await task_crud.get_tasks_by_module_ids(
+        session, [module.id for module in modules]
     )
 
-    return mapper.build_group_read(group, accounts, modules, tasks, user_replies)
+    user_replies = await user_reply_crud.get_user_replies(
+        session, [account.id], [task.id for task in tasks]
+    )
+    user_profiles = await user_profile_crud.get_user_profiles_by_user_ids(
+        session, [account.user_id for account in accounts]
+    )
+
+    return mapper.build_group_read(
+        group, accounts, user_profiles, modules, tasks, user_replies
+    )
 
 
 async def get_user_groups(
@@ -134,15 +139,21 @@ async def update_group(
 
     accounts = await account_crud.get_accounts_in_group(session, group_id)
     modules = await module_crud.get_modules_by_group_id(session, group_id)
-    module_ids = [module.id for module in modules]
 
-    tasks = await task_crud.get_tasks_by_module_ids(session, module_ids)
+    tasks = await task_crud.get_tasks_by_module_ids(
+        session, [module.id for module in modules]
+    )
 
     user_replies = await user_reply_crud.get_user_replies(
         session, [account.id], [task.id for task in tasks]
     )
+    user_profiles = await user_profile_crud.get_user_profiles_by_user_ids(
+        session, [account.user_id for account in accounts]
+    )
 
-    return mapper.build_group_read(group, accounts, modules, tasks, user_replies)
+    return mapper.build_group_read(
+        group, accounts, user_profiles, modules, tasks, user_replies
+    )
 
 
 async def delete_group(
