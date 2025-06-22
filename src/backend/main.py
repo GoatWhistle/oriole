@@ -1,12 +1,16 @@
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from slowapi.middleware import SlowAPIMiddleware
 
 from api import router as api_router
 from core.config import settings
 from core.events import lifespan
-from middlewares import LoggingMiddleware, AutoCacheMiddleware
-from slowapi.middleware import SlowAPIMiddleware
+from middlewares import (
+    LoggingMiddleware,
+    AutoCacheMiddleware,
+    ExceptionHandlerMiddleware,
+)
 
 app = FastAPI(lifespan=lifespan)
 
@@ -34,7 +38,7 @@ app.add_middleware(
     invalidate_paths=["auth", "verify"],
 )
 app.add_middleware(LoggingMiddleware)
-
+app.add_middleware(ExceptionHandlerMiddleware)
 
 app.include_router(
     api_router,
