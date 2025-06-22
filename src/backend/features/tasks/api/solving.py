@@ -1,10 +1,14 @@
 from fastapi import APIRouter, Depends, status
+from fastapi.encoders import jsonable_encoder
+from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from database import db_helper
 from features.tasks.schemas import TaskRead
 from features.tasks.services import solving as service
 from features.users.services.auth import get_current_active_auth_user_id
+from utils import get_current_utc
+from utils.schemas import SuccessResponse, Meta
 
 router = APIRouter()
 
@@ -20,4 +24,10 @@ async def try_to_complete_task(
     session: AsyncSession = Depends(db_helper.dependency_session_getter),
     user_id: int = Depends(get_current_active_auth_user_id),
 ):
-    return await service.try_to_complete_task(session, user_id, task_id, user_answer)
+    data = await service.try_to_complete_task(session, user_id, task_id, user_answer)
+    response_content = jsonable_encoder(
+        SuccessResponse[TaskRead](
+            data=data, meta=Meta(version="v1", timestamp=str(get_current_utc()))
+        )
+    )
+    return JSONResponse(content=response_content, status_code=200)
