@@ -1,5 +1,5 @@
 __all__ = [
-    "get_module_if_exists",
+    "get_module_or_404",
 ]
 
-from .existence import get_module_if_exists
+from .existence import get_module_or_404

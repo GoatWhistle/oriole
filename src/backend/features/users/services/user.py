@@ -4,10 +4,11 @@ from sqlalchemy.engine import Result
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
+from core.celery.email_tasks import send_confirmation_email
 from features.groups.models import Account
 from features.groups.schemas import AccountRole
 from features.groups.services.group import get_user_groups
-from features.groups.validators import get_group_if_exists, get_account_if_exists
+from features.groups.validators import get_group_or_404, get_account_or_404
 from features.users.models import User
 from features.users.schemas import (
     EmailUpdate,
@@ -16,7 +17,6 @@ from features.users.schemas import (
     UserProfileRead,
     UserProfileUpdatePartial,
 )
-from core.celery.email_tasks import send_confirmation_email
 from features.users.validators import check_user_exists
 from utils.JWT import create_email_confirmation_token
 
@@ -150,8 +150,8 @@ async def get_int_role_in_group(
     group_id: int,
 ) -> int:
     await check_user_exists(session=session, user_id=user_id)
-    _ = await get_group_if_exists(session=session, group_id=group_id)
-    await get_account_if_exists(session=session, user_id=user_id, group_id=group_id)
+    _ = await get_group_or_404(session=session, group_id=group_id)
+    await get_account_or_404(session=session, user_id=user_id, group_id=group_id)
 
     statement_account = select(Account).where(Account.user_id == user_id)
     result_account: Result = await session.execute(statement_account)

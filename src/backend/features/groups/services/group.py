@@ -16,8 +16,8 @@ from features.groups.schemas import (
     GroupUpdatePartial,
 )
 from features.groups.validators import (
-    get_group_if_exists,
-    get_account_if_exists,
+    get_group_or_404,
+    get_account_or_404,
     check_user_is_admin_or_owner,
     check_user_is_owner,
 )
@@ -48,8 +48,8 @@ async def get_group_by_id(
 ) -> GroupRead:
     await check_user_exists(session, user_id)
 
-    group = await get_group_if_exists(session, group_id)
-    account = await get_account_if_exists(session, user_id, group_id)
+    group = await get_group_or_404(session, group_id)
+    account = await get_account_or_404(session, user_id, group_id)
 
     accounts = await account_crud.get_accounts_in_group(session, group_id)
     modules = await module_crud.get_modules_by_group_id(session, group_id)
@@ -110,8 +110,8 @@ async def get_users_in_group(
 ) -> list[AccountRead]:
     await check_user_exists(session, user_id)
 
-    _ = await get_group_if_exists(session, group_id)
-    _ = await get_account_if_exists(session, user_id, group_id)
+    _ = await get_group_or_404(session, group_id)
+    _ = await get_account_or_404(session, user_id, group_id)
 
     accounts = await account_crud.get_accounts_by_group_id(session, group_id)
     user_profiles = await user_profile_crud.get_user_profiles_by_user_ids(
@@ -129,10 +129,10 @@ async def update_group(
 ) -> GroupRead:
     await check_user_exists(session, user_id)
 
-    group = await get_group_if_exists(session, group_id)
-    account = await get_account_if_exists(session, user_id, group_id)
+    group = await get_group_or_404(session, group_id)
+    account = await get_account_or_404(session, user_id, group_id)
 
-    check_user_is_owner(account.role, user_id)
+    check_user_is_owner(account.role)
 
     update_data = group_update.model_dump(exclude_unset=is_partial)
     group = await group_crud.update_group(session, group, update_data)
@@ -163,10 +163,10 @@ async def delete_group(
 ) -> None:
     await check_user_exists(session, user_id)
 
-    group = await get_group_if_exists(session, group_id)
-    account = await get_account_if_exists(session, user_id, group_id)
+    group = await get_group_or_404(session, group_id)
+    account = await get_account_or_404(session, user_id, group_id)
 
-    check_user_is_admin_or_owner(account.role, user_id)
+    check_user_is_admin_or_owner(account.role)
 
     modules = await module_crud.get_modules_by_group_id(session, group_id)
 

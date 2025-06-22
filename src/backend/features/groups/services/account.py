@@ -3,8 +3,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 import features.groups.crud.account as account_crud
 from features.groups.schemas import AccountRole
 from features.groups.validators import (
-    get_group_if_exists,
-    get_account_if_exists,
+    get_group_or_404,
+    get_account_or_404,
     check_user_is_member,
     check_user_is_owner,
     check_user_is_admin,
@@ -21,13 +21,13 @@ async def promote_user_to_admin(
     await check_user_exists(session, user_id)
     await check_user_exists(session, promote_user_id)
 
-    _ = await get_group_if_exists(session, group_id)
+    _ = await get_group_or_404(session, group_id)
 
-    account = await get_account_if_exists(session, group_id, user_id)
-    promote_account = await get_account_if_exists(session, group_id, promote_user_id)
+    account = await get_account_or_404(session, group_id, user_id)
+    promote_account = await get_account_or_404(session, group_id, promote_user_id)
 
-    check_user_is_owner(account.role, user_id)
-    check_user_is_member(promote_account.role, user_id)
+    check_user_is_owner(account.role)
+    check_user_is_member(promote_account.role)
 
     await account_crud.update_account_role(
         session, promote_account, AccountRole.ADMIN.value
@@ -43,13 +43,13 @@ async def demote_user_to_member(
     await check_user_exists(session, user_id)
     await check_user_exists(session, demote_user_id)
 
-    _ = await get_group_if_exists(session, group_id)
+    _ = await get_group_or_404(session, group_id)
 
-    account = await get_account_if_exists(session, group_id, user_id)
-    demote_account = await get_account_if_exists(session, group_id, demote_user_id)
+    account = await get_account_or_404(session, group_id, user_id)
+    demote_account = await get_account_or_404(session, group_id, demote_user_id)
 
-    check_user_is_owner(account.role, user_id)
-    check_user_is_admin(demote_account.role, demote_user_id)
+    check_user_is_owner(account.role)
+    check_user_is_admin(demote_account.role)
 
     await account_crud.update_account_role(
         session, demote_account, AccountRole.MEMBER.value
@@ -69,12 +69,12 @@ async def remove_user_from_group(
     await check_user_exists(session, user_id)
     await check_user_exists(session, remove_user_id)
 
-    _ = await get_group_if_exists(session, group_id)
+    _ = await get_group_or_404(session, group_id)
 
-    account = await get_account_if_exists(session, group_id, user_id)
-    remove_account = await get_account_if_exists(session, group_id, remove_user_id)
+    account = await get_account_or_404(session, group_id, user_id)
+    remove_account = await get_account_or_404(session, group_id, remove_user_id)
 
-    check_user_is_owner(account.role, user_id)
+    check_user_is_owner(account.role)
 
     await account_crud.delete_user_replies_by_account_id(session, remove_account.id)
     await account_crud.delete_account(session, remove_account)
@@ -87,8 +87,8 @@ async def leave_from_group(
 ) -> None:
     await check_user_exists(session, user_id)
 
-    _ = await get_group_if_exists(session, group_id)
-    account = await get_account_if_exists(session, user_id, group_id)
+    _ = await get_group_or_404(session, group_id)
+    account = await get_account_or_404(session, user_id, group_id)
 
     await account_crud.delete_user_replies_by_account_id(session, account.id)
 

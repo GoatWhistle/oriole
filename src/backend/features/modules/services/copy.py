@@ -4,12 +4,12 @@ import features.modules.crud.module as module_crud
 import features.modules.mappers as mapper
 import features.tasks.crud.task as task_crud
 from features.groups.validators import (
-    get_group_if_exists,
-    get_account_if_exists,
+    get_group_or_404,
+    get_account_or_404,
     check_user_is_admin_or_owner,
 )
 from features.modules.schemas import ModuleRead, ModuleCreate
-from features.modules.validators import get_module_if_exists
+from features.modules.validators import get_module_or_404
 from features.users.validators import check_user_exists
 
 
@@ -21,18 +21,18 @@ async def copy_module_to_group(
 ) -> ModuleRead:
     await check_user_exists(session, user_id)
 
-    module = await get_module_if_exists(session, module_id)
+    module = await get_module_or_404(session, module_id)
 
-    _ = await get_group_if_exists(session, module.group_id)
-    source_account = await get_account_if_exists(session, user_id, module.group_id)
+    _ = await get_group_or_404(session, module.group_id)
+    source_account = await get_account_or_404(session, user_id, module.group_id)
 
-    check_user_is_admin_or_owner(source_account.role, user_id)
+    check_user_is_admin_or_owner(source_account.role)
 
     if module.group_id != target_group_id:
-        _ = await get_group_if_exists(session, target_group_id)
-        target_account = await get_account_if_exists(session, user_id, target_group_id)
+        _ = await get_group_or_404(session, target_group_id)
+        target_account = await get_account_or_404(session, user_id, target_group_id)
 
-        check_user_is_admin_or_owner(target_account.role, user_id)
+        check_user_is_admin_or_owner(target_account.role)
 
     source_tasks = await task_crud.get_tasks_by_module_id(session, module_id)
 

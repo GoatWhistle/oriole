@@ -11,10 +11,12 @@ import features.groups.crud.invite as group_invite_crud
 from features.groups.models import GroupInvite
 from features.groups.schemas import AccountRole
 from features.groups.validators import (
-    get_group_if_exists,
-    get_account_if_exists,
-    get_group_invite_if_valid,
+    get_group_or_404,
+    get_account_or_404,
     check_user_is_admin_or_owner,
+    get_group_invite_or_404,
+    check_group_invite_active,
+    check_group_invite_not_expired,
 )
 from features.users.validators import check_user_exists
 
@@ -43,10 +45,10 @@ async def invite_user(
 ):
     await check_user_exists(session, user_id)
 
-    _ = await get_group_if_exists(session, group_id)
-    account = await get_account_if_exists(session, user_id, group_id)
+    _ = await get_group_or_404(session, group_id)
+    account = await get_account_or_404(session, user_id, group_id)
 
-    check_user_is_admin_or_owner(account.role, user_id)
+    check_user_is_admin_or_owner(account.role)
 
     code = await generate_unique_group_invite_code(session)
     code += "1" if single_use else "0"
@@ -68,10 +70,12 @@ async def join_by_link(
     await check_user_exists(session, user_id)
 
     single_use = invite_code[-1] == "1"
-    invite = await get_group_invite_if_valid(session, invite_code)
+    invite = await get_group_invite_or_404(session, invite_code)
+    check_group_invite_active(invite.is_active)
+    check_group_invite_not_expired(invite.expires_at)
     group_id = invite.group_id
 
-    await get_account_if_exists(session, user_id, group_id, is_correct=False)
+    await get_account_or_404(session, user_id, group_id, is_correct=False)
 
     accounts = await account_crud.get_accounts_in_group(session, group_id)
     role = AccountRole.OWNER if not accounts else AccountRole.MEMBER
@@ -91,9 +95,9 @@ async def delete_group_invites(
 ) -> None:
     await check_user_exists(session, user_id)
 
-    _ = await get_group_if_exists(session, group_id)
-    account = await get_account_if_exists(session, group_id, user_id)
+    _ = await get_group_or_404(session, group_id)
+    account = await get_account_or_404(session, group_id, user_id)
 
-    check_user_is_admin_or_owner(account.role, user_id)
+    check_user_is_admin_or_owner(account.role)
 
     await group_invite_crud.delete_group_invites_by_group_id(session, group_id)

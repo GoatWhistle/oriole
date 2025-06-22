@@ -1,12 +1,12 @@
-__all__ = (
-    "check_deadline_not_passed",
+__all__ = [
+    "check_is_active",
     "check_start_time_not_in_past",
     "check_end_time_not_in_past",
     "check_end_time_is_after_start_time",
-)
+]
 
+from .rules import check_is_active
 from .timing import (
-    check_deadline_not_passed,
     check_start_time_not_in_past,
     check_end_time_not_in_past,
     check_end_time_is_after_start_time,

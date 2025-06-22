@@ -6,11 +6,11 @@ import features.tasks.crud.task as task_crud
 import features.tasks.crud.user_reply as user_reply_crud
 import features.tasks.mappers as mapper
 from features.groups.validators import (
-    get_group_if_exists,
-    get_account_if_exists,
+    get_group_or_404,
+    get_account_or_404,
     check_user_is_admin_or_owner,
 )
-from features.modules.validators import get_module_if_exists
+from features.modules.validators import get_module_or_404
 from features.tasks.schemas import (
     TaskCreate,
     TaskRead,
@@ -18,12 +18,12 @@ from features.tasks.schemas import (
     TaskUpdatePartial,
 )
 from features.tasks.validators import (
-    get_task_if_exists,
+    get_task_or_404,
     check_task_start_deadline_after_module_start,
     check_task_end_deadline_before_module_end,
 )
 from features.users.validators import check_user_exists
-from validators import (
+from shared.validators import (
     check_start_time_not_in_past,
     check_end_time_not_in_past,
     check_end_time_is_after_start_time,
@@ -37,17 +37,15 @@ async def create_task(
 ) -> TaskRead:
     await check_user_exists(session, user_id)
 
-    module = await get_module_if_exists(session, task_in.module_id)
-    _ = await get_group_if_exists(session, module.group_id)
-    account = await get_account_if_exists(session, user_id, module.group_id)
+    module = await get_module_or_404(session, task_in.module_id)
+    _ = await get_group_or_404(session, module.group_id)
+    account = await get_account_or_404(session, user_id, module.group_id)
 
-    check_user_is_admin_or_owner(account.role, user_id)
+    check_user_is_admin_or_owner(account.role)
 
-    check_start_time_not_in_past(task_in.start_datetime, obj_name="task")
-    check_end_time_not_in_past(task_in.end_datetime, obj_name="task")
-    check_end_time_is_after_start_time(
-        task_in.start_datetime, task_in.end_datetime, obj_name="task"
-    )
+    check_start_time_not_in_past(task_in.start_datetime)
+    check_end_time_not_in_past(task_in.end_datetime)
+    check_end_time_is_after_start_time(task_in.start_datetime, task_in.end_datetime)
     check_task_start_deadline_after_module_start(
         task_in.start_datetime, module.start_datetime
     )
@@ -66,10 +64,10 @@ async def get_task_by_id(
 ) -> TaskRead:
     await check_user_exists(session, user_id)
 
-    task = await get_task_if_exists(session, task_id)
-    module = await get_module_if_exists(session, task.module_id)
-    _ = await get_group_if_exists(session, module.group_id)
-    account = await get_account_if_exists(session, user_id, module.group_id)
+    task = await get_task_or_404(session, task_id)
+    module = await get_module_or_404(session, task.module_id)
+    _ = await get_group_or_404(session, module.group_id)
+    account = await get_account_or_404(session, user_id, module.group_id)
     user_reply = await user_reply_crud.get_user_reply_by_account_id_and_task_id(
         session, account.id, task_id
     )
@@ -85,9 +83,9 @@ async def get_tasks_in_module(
 ) -> list[TaskRead]:
     await check_user_exists(session, user_id)
 
-    module = await get_module_if_exists(session, module_id)
-    _ = await get_group_if_exists(session, module.group_id)
-    account = await get_account_if_exists(session, user_id, module.group_id)
+    module = await get_module_or_404(session, module_id)
+    _ = await get_group_or_404(session, module.group_id)
+    account = await get_account_or_404(session, user_id, module.group_id)
 
     tasks = await task_crud.get_tasks_by_module_id(session, module_id, is_active)
     if not tasks:
@@ -139,34 +137,32 @@ async def update_task(
 ) -> TaskRead:
     await check_user_exists(session, user_id)
 
-    task = await get_task_if_exists(session, task_id)
-    module = await get_module_if_exists(session, task.module_id)
-    _ = await get_group_if_exists(session, module.group_id)
-    account = await get_account_if_exists(session, user_id, module.group_id)
+    task = await get_task_or_404(session, task_id)
+    module = await get_module_or_404(session, task.module_id)
+    _ = await get_group_or_404(session, module.group_id)
+    account = await get_account_or_404(session, user_id, module.group_id)
     user_reply = await user_reply_crud.get_user_reply_by_account_id_and_task_id(
         session, account.id, task_id
     )
 
-    check_user_is_admin_or_owner(account.role, user_id)
+    check_user_is_admin_or_owner(account.role)
 
     update_data = task_update.model_dump(exclude_unset=is_partial)
 
     if "start_datetime" in update_data:
-        check_start_time_not_in_past(update_data["start_datetime"], obj=task)
+        check_start_time_not_in_past(update_data["start_datetime"])
     if "end_datetime" in update_data:
-        check_end_time_not_in_past(update_data["end_datetime"], obj=task)
+        check_end_time_not_in_past(update_data["end_datetime"])
 
     if "start_datetime" in update_data or "end_datetime" in update_data:
         start = update_data.get("start_datetime", task.start_datetime)
         end = update_data.get("end_datetime", task.end_datetime)
-        check_end_time_is_after_start_time(start, end, obj=task)
+        check_end_time_is_after_start_time(start, end)
 
     check_task_start_deadline_after_module_start(
-        task.start_datetime, module.start_datetime, task.id, module.id
+        task.start_datetime, module.start_datetime
     )
-    check_task_end_deadline_before_module_end(
-        task.end_datetime, module.end_datetime, task.id, module.id
-    )
+    check_task_end_deadline_before_module_end(task.end_datetime, module.end_datetime)
 
     task = await task_crud.update_task(session, task, update_data)
 
@@ -180,12 +176,12 @@ async def delete_task(
 ) -> None:
     await check_user_exists(session, user_id)
 
-    task = await get_task_if_exists(session, task_id)
-    module = await get_module_if_exists(session, task.module_id)
-    _ = await get_group_if_exists(session, module.group_id)
-    account = await get_account_if_exists(session, user_id, module.group_id)
+    task = await get_task_or_404(session, task_id)
+    module = await get_module_or_404(session, task.module_id)
+    _ = await get_group_or_404(session, module.group_id)
+    account = await get_account_or_404(session, user_id, module.group_id)
 
-    check_user_is_admin_or_owner(account.role, user_id)
+    check_user_is_admin_or_owner(account.role)
 
     await user_reply_crud.delete_user_replies_by_task_id(session, task_id)
     await task_crud.delete_task(session, task)
