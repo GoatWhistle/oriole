@@ -87,3 +87,8 @@ class UserProfileUpdatePartial(BaseModel):
     name: Annotated[str, Field(max_length=get_num_opt(30))] = None
     surname: Annotated[str, Field(max_length=get_num_opt(30))] = None
     patronymic: Annotated[Optional[str], Field(max_length=get_num_opt(30))] = None
+
+
+class UserRole(BaseModel):
+    user_role: int
+    id: int
