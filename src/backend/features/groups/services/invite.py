@@ -10,6 +10,7 @@ import features.groups.crud.account as account_crud
 import features.groups.crud.invite as group_invite_crud
 from features.groups.models import GroupInvite
 from features.groups.schemas import AccountRole
+from features.groups.schemas.invite import LinkRead, LinkJoinRead
 from features.groups.validators import (
     get_group_or_404,
     get_account_or_404,
@@ -58,14 +59,14 @@ async def invite_user(
     )
 
     base_url = str(request.base_url).rstrip("/")
-    return {"link": urljoin(base_url, f"/groups/join/{code}")}
+    return LinkRead(link=urljoin(base_url, f"/groups/join/{code}"))
 
 
 async def join_by_link(
     session: AsyncSession,
     user_id: int,
     invite_code: str,
-) -> dict:
+) -> LinkJoinRead:
 
     await check_user_exists(session, user_id)
 
@@ -85,7 +86,7 @@ async def join_by_link(
     if single_use:
         await group_invite_crud.set_invite_inactive(session, invite)
 
-    return {"group_id": group_id}
+    return LinkJoinRead(group_id=group_id)
 
 
 async def delete_group_invites(

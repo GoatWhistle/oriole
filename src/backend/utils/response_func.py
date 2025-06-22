@@ -11,12 +11,11 @@ from utils.schemas import (
 
 def pagination_build(total, page, per_page, base_url):
     total_pages = (total + per_page - 1) // per_page
+    base_url = base_url + "?" if base_url[-1] == "/" else base_url + "&"
     next_url = (
-        f"{base_url}?page={page + 1}&per_page={per_page}"
-        if page < total_pages
-        else None
+        f"{base_url}page={page + 1}&per_page={per_page}" if page < total_pages else None
     )
-    prev_url = f"{base_url}?page={page - 1}&per_page={per_page}" if page > 1 else None
+    prev_url = f"{base_url}page={page - 1}&per_page={per_page}" if page > 1 else None
     return Pagination(
         current_page=page,
         per_page=per_page,

@@ -14,3 +14,8 @@ class AccountRole(IntEnum):
 class AccountRead(BaseModel):
     user_profile: UserProfileRead
     role: int
+
+
+class AccountRoleChangeRead(BaseModel):
+    group_id: int
+    user_id: int

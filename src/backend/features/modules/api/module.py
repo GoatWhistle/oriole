@@ -74,7 +74,7 @@ async def get_user_modules(
         data=data,
         page=page,
         per_page=per_page,
-        base_url=f"http://127.0.0.1:8000/api/modules/?is_active={is_active}",
+        base_url=f"http://127.0.0.1:8000/api/modules/?is_active={is_active if is_active else False}",
     )
     return JSONResponse(content=response_content, status_code=200)
 

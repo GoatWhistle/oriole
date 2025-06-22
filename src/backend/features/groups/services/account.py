@@ -2,6 +2,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 import features.groups.crud.account as account_crud
 from features.groups.schemas import AccountRole
+from features.groups.schemas.account import AccountRoleChangeRead
 from features.groups.validators import (
     get_group_or_404,
     get_account_or_404,
@@ -17,7 +18,7 @@ async def promote_user_to_admin(
     user_id: int,
     promote_user_id: int,
     group_id: int,
-) -> None:
+) -> AccountRoleChangeRead:
     await check_user_exists(session, user_id)
     await check_user_exists(session, promote_user_id)
 
@@ -32,6 +33,7 @@ async def promote_user_to_admin(
     await account_crud.update_account_role(
         session, promote_account, AccountRole.ADMIN.value
     )
+    return AccountRoleChangeRead(group_id=group_id, user_id=promote_user_id)
 
 
 async def demote_user_to_member(
