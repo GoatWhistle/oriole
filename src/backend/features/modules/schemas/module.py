@@ -15,6 +15,9 @@ class ModuleBase(BaseModel):
 
     is_contest: bool
 
+    class Config:
+        json_encoders = {datetime: lambda v: v.isoformat()}
+
 
 class ModuleCreate(ModuleBase):
     group_id: int

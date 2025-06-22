@@ -46,8 +46,8 @@ async def clone_tasks_to_module(
 ) -> list[Task]:
     new_tasks = [clone_task_to_module(task, module_id) for task in source_tasks]
     session.add_all(new_tasks)
-    for task in new_tasks:
-        await session.refresh(task)
+    # for task in new_tasks:
+    #     await session.refresh(task)
     await session.commit()
     return new_tasks
 
