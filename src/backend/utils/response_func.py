@@ -1,3 +1,5 @@
+from typing import Any
+
 from fastapi.encoders import jsonable_encoder
 
 from utils import get_current_utc
@@ -9,7 +11,7 @@ from utils.schemas import (
 )
 
 
-def pagination_build(total, page, per_page, base_url):
+def pagination_build(total: int, page: int, per_page: int, base_url: str) -> Pagination:
     total_pages = (total + per_page - 1) // per_page
     base_url = base_url + "?" if base_url[-1] == "/" else base_url + "&"
     next_url = (
@@ -26,7 +28,9 @@ def pagination_build(total, page, per_page, base_url):
     )
 
 
-def create_list_response(data, page, per_page, base_url):
+def create_list_response(
+    data: list[Any], page: int | None, per_page: int | None, base_url: str
+) -> dict:
     if data and page and per_page:
         pagination = pagination_build(
             total=len(data),

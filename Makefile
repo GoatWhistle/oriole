@@ -1,5 +1,5 @@
 .RECIPEPREFIX = >  # Теперь команды начинаются с '>'
-.PHONY: up down re
+.PHONY: up down re test
 
 up:
 > docker compose --env-file src/backend/.env build
@@ -12,3 +12,6 @@ re:
 > docker compose down
 > docker compose --env-file src/backend/.env build
 > docker compose --env-file src/backend/.env up -d
+
+test:
+> PYTHONPATH=src/backend pytest src/tests/
