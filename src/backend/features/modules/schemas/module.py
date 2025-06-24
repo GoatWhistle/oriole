@@ -1,6 +1,7 @@
 from datetime import datetime
+from typing import Any
 
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, Field, ConfigDict, field_serializer
 
 from features.tasks.schemas import TaskRead
 from utils import get_number_one_bit_less as get_num_opt
@@ -15,8 +16,9 @@ class ModuleBase(BaseModel):
 
     is_contest: bool
 
-    class Config:
-        json_encoders = {datetime: lambda v: v.isoformat()}
+    @field_serializer("start_datetime", "end_datetime")
+    def serialize_datetime(self, dt: datetime, _info: Any) -> str:
+        return dt.isoformat()
 
 
 class ModuleCreate(ModuleBase):

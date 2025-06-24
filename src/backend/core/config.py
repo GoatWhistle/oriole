@@ -11,7 +11,7 @@ env_files = (".env.app_config",)
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 for file in env_files:
-    load_dotenv(f"../{file}")
+    load_dotenv(BASE_DIR / file)
 
 
 class RunConfig(BaseModel):

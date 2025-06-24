@@ -34,7 +34,7 @@ async def try_to_complete_task(
     )
     if user_reply:
         check_task_is_already_correct(user_reply.is_correct)
-        check_counter_limit(user_id, task_id)
+        check_counter_limit(task.max_attempts, user_reply.user_attempts)
         user_reply = await user_reply_crud.update_user_reply(
             session, user_reply, user_answer, task.correct_answer
         )

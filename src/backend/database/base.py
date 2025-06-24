@@ -7,7 +7,7 @@ from utils.case_converter import pluralize_snake_case
 
 class Base(DeclarativeBase):
     __abstract__ = True
-
+    __table_args__ = {"extend_existing": True}
     metadata = MetaData(
         naming_convention=settings.db.naming_convention,
     )
