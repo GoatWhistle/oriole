@@ -1,0 +1,10 @@
+body, html, #root {
+  background-color: #292a2d;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+.ant-layout {
+  background: #292a2d;
+}

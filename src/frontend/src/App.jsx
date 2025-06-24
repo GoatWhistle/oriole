@@ -14,6 +14,8 @@ import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import Task from './pages/Task';
 
+import './App.css';
+
 export default function App() {
   return (
     <div>
