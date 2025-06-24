@@ -122,11 +122,11 @@ celerybeat.pid
 *.sage.py
 
 # Environments
-.env
-.env.app_config
-.env.docker
-.env.smtp_email
-.env.redis
+src/backend/.env
+src/backend/.env.app_config
+src/backend/.env.docker
+src/backend/.env.smtp_email
+src/backend/.env.redis
 .venv
 env/
 venv/
