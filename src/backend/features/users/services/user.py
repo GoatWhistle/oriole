@@ -1,15 +1,9 @@
-from fastapi import HTTPException, Response, Request
-from sqlalchemy import select
-from sqlalchemy.engine import Result
+from fastapi import Response, Request
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import joinedload
 
 from core.celery.email_tasks import send_confirmation_email
-from features.groups.models import Account
-from features.groups.schemas import AccountRole
 from features.groups.services.group import get_user_groups
 from features.groups.validators import get_group_or_404, get_account_or_404
-from features.users.models import User
 from features.users.schemas import (
     EmailUpdate,
     EmailUpdateRead,
@@ -17,8 +11,15 @@ from features.users.schemas import (
     UserProfileRead,
     UserProfileUpdatePartial,
 )
+from features.users.crud.user import get_user_by_id
+from features.groups.services.account import leave_from_group
 from features.users.validators import check_user_exists
 from utils.JWT import create_email_confirmation_token
+
+from features.users.crud.user_profile import (
+    get_user_profile_by_id,
+    update_profile,
+)
 
 
 async def delete_user(
@@ -27,46 +28,13 @@ async def delete_user(
     request: Request,
     response: Response | None = None,
 ) -> None:
-    await check_user_exists(session=session, user_id=user_id)
 
-    user = await session.get(User, user_id)
+    user = await get_user_by_id(session=session, user_id=user_id)
 
     groups = await get_user_groups(session=session, user_id=user_id)
 
     for group in groups:
-        account = await session.execute(
-            select(Account).where(
-                Account.user_id == user_id, Account.group_id == group.id
-            )
-        )
-        account = account.scalars().first()
-
-        if account.role == AccountRole.OWNER.value:
-            admins = await session.execute(
-                select(Account).where(
-                    Account.group_id == group.id,
-                    Account.role == AccountRole.ADMIN.value,
-                )
-            )
-            admin_accounts = admins.scalars().all()
-
-            if admin_accounts:
-                new_owner = min(admin_accounts, key=lambda a: a.user_id)
-                new_owner.role = AccountRole.OWNER.value
-            else:
-                members = await session.execute(
-                    select(Account).where(
-                        Account.group_id == group.id,
-                        Account.role == AccountRole.MEMBER.value,
-                    )
-                )
-                member_accounts = members.scalars().all()
-
-                if member_accounts:
-                    new_owner = min(member_accounts, key=lambda a: a.user_id)
-                    new_owner.role = AccountRole.OWNER.value
-
-        await session.delete(account)
+        await leave_from_group(session=session, user_id=user_id, group_id=group.id)
 
     await session.delete(user)
 
@@ -86,25 +54,17 @@ async def update_user_profile(
     user_id: int,
     partial: bool = False,
 ) -> UserProfileRead:
-    await check_user_exists(session=session, user_id=user_id)
+    await check_user_exists(session, user_id)
 
-    user = await session.get(User, user_id, options=[joinedload(User.profile)])
-
-    if not user.profile:
-        raise HTTPException(
-            status_code=400,
-            detail="User profile not exists",
-        )
+    profile = await get_user_profile_by_id(session=session, profile_id=user_id)
 
     update_data = user_data.model_dump(exclude_unset=partial)
-    for field in {"name", "surname", "patronymic"}:
-        if field in update_data:
-            setattr(user.profile, field, update_data[field])
 
-    await session.commit()
-    await session.refresh(user)
+    updated_profile = await update_profile(
+        session, profile=profile, update_data=update_data
+    )
 
-    return UserProfileRead.model_validate(user.profile)
+    return UserProfileRead.model_validate(updated_profile)
 
 
 async def update_user_email(
@@ -116,7 +76,7 @@ async def update_user_email(
 ) -> EmailUpdateRead:
     await check_user_exists(session=session, user_id=user_id)
 
-    user = await session.get(User, user_id)
+    user = await get_user_by_id(session=session, user_id=user_id)
     user.email = user_data.email
 
     user.is_verified = False
@@ -151,10 +111,8 @@ async def get_int_role_in_group(
 ) -> int:
     await check_user_exists(session=session, user_id=user_id)
     _ = await get_group_or_404(session=session, group_id=group_id)
-    await get_account_or_404(session=session, user_id=user_id, group_id=group_id)
-
-    statement_account = select(Account).where(Account.user_id == user_id)
-    result_account: Result = await session.execute(statement_account)
-    account = result_account.scalars().first()
+    account = await get_account_or_404(
+        session=session, user_id=user_id, group_id=group_id
+    )
 
     return account.role
