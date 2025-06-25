@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <title>WebSocket Чат</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 2rem;
+            background-color: #1e1e1e;
+            color: white;
+        }
+        #messages {
+            border: 1px solid #555;
+            padding: 1rem;
+            height: 200px;
+            overflow-y: auto;
+            margin-bottom: 1rem;
+            background-color: #2d2d2d;
+        }
+        input, button {
+            padding: 0.5rem;
+            font-size: 1rem;
+            margin-right: 0.5rem;
+        }
+        .message.sent { color: #66ff66; }
+        .message.received { color: #66aaff; }
+        #status {
+            margin-bottom: 1rem;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+<h2>WebSocket Чат</h2>
+
+<div id="status">👤 Не подключено</div>
+
+<label>
+    Group ID:
+    <input type="number" id="groupId" value="1" />
+</label>
+<label>
+    User ID:
+    <input type="number" id="userId" value="42" />
+</label>
+<button onclick="connect()">Подключиться</button>
+
+<div id="messages"></div>
+
+<input type="text" id="input" placeholder="Введите сообщение..." />
+<button onclick="sendMessage()">Отправить</button>
+
+<script>
+    const connectionId = crypto.randomUUID();
+    let socket;
+    let currentUserId;
+    let currentGroupId;
+
+    function connect() {
+        currentGroupId = document.getElementById("groupId").value;
+        currentUserId = document.getElementById("userId").value;
+
+        socket = new WebSocket(`ws://127.0.0.1:8000/api/websocket/?group_id=${currentGroupId}&user_id=${currentUserId}`);
+
+        socket.onopen = () => {
+            updateStatus(`👤 Пользователь: [${currentUserId}] | 👥 Группа: [${currentGroupId}]`);
+            addSystemMessage("✅ Соединение открыто");
+        };
+
+        socket.onmessage = (event) => {
+            try {
+                const data = JSON.parse(event.data);
+
+                if (data.connectionId === connectionId) return;
+
+                const icon = data.user_id == currentUserId ? "✉️" : "📩";
+                addMessage(`${icon} [${data.user_id}]: ${data.message}`, "received");
+            } catch {
+                addSystemMessage("⚠️ Некорректный формат сообщения");
+            }
+        };
+
+        socket.onclose = () => {
+            updateStatus("👤 Не подключено");
+            addSystemMessage("❌ Соединение закрыто");
+        };
+
+        socket.onerror = () => addSystemMessage("⚠️ Ошибка соединения");
+    }
+
+    function sendMessage() {
+        const input = document.getElementById("input");
+        const messageText = input.value.trim();
+        if (!messageText) return;
+
+        if (socket && socket.readyState === WebSocket.OPEN) {
+            const msg = {
+                user_id: currentUserId,
+                connectionId,
+                message: messageText
+            };
+
+            addMessage(`✉️ [${currentUserId}]: ${messageText}`, "sent");
+            socket.send(JSON.stringify(msg));
+            input.value = "";
+        } else {
+            addSystemMessage("⚠️ Соединение не открыто");
+        }
+    }
+
+    function addMessage(text, cssClass) {
+        const messagesDiv = document.getElementById("messages");
+        const div = document.createElement("div");
+        div.className = `message ${cssClass}`;
+        div.textContent = text;
+        messagesDiv.appendChild(div);
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+
+    function addSystemMessage(text) {
+        addMessage(text, "received");
+    }
+
+    function updateStatus(text) {
+        document.getElementById("status").textContent = text;
+    }
+</script>
+</body>
+</html>
