@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Вход</title>
+  <style>
+    body { font-family: sans-serif; background: #f4f4f4; padding: 2rem; }
+    .form-box {
+      background: white; padding: 2rem; max-width: 400px;
+      margin: 2rem auto; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    input { display: block; width: 100%; margin-bottom: 1rem; padding: 0.5rem; font-size: 1rem; }
+    button { padding: 0.5rem 1rem; font-size: 1rem; cursor: pointer; }
+    #groups { margin-top: 2rem; }
+    .group-item {
+      background: #e2e2ff; padding: 0.5rem;
+      border-radius: 5px; margin-bottom: 0.5rem; cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+<div class="form-box" id="login-box">
+  <h2>Вход</h2>
+  <input type="email" id="email" placeholder="Email">
+  <input type="password" id="password" placeholder="Пароль">
+  <button onclick="login()">Войти</button>
+  <p id="error" style="color: red;"></p>
+</div>
+
+<div id="groups" style="display: none;">
+  <h2>Ваши группы</h2>
+  <div id="group-list"></div>
+</div>
+
+<script>
+  async function login() {
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value.trim();
+    const error = document.getElementById("error");
+
+    error.textContent = "";
+
+    const formData = new URLSearchParams();
+    formData.append("username", email);
+    formData.append("password", password);
+
+    try {
+      const res = await fetch("http://127.0.0.1:8000/api/auth/token", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: formData
+      });
+
+      if (!res.ok) throw new Error(`Ошибка авторизации: ${res.status}`);
+
+      const data = await res.json();
+      const token = data.access_token;
+      if (!token) throw new Error("Токен не получен");
+
+      localStorage.setItem("access_token", token);
+
+      // Получаем пользователя из /api/auth/me
+      const userRes = await fetch("http://127.0.0.1:8000/api/auth/me", {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+      if (!userRes.ok) throw new Error("Ошибка получения пользователя");
+      const user = await userRes.json();
+
+      // Получаем группы
+      const groupsRes = await fetch("http://127.0.0.1:8000/api/groups", {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+      if (!groupsRes.ok) throw new Error("Ошибка получения групп");
+
+      const groups = await groupsRes.json();
+      showGroups(groups, user.id);
+
+    } catch (e) {
+      console.error(e);
+      error.textContent = e.message;
+    }
+  }
+
+  function showGroups(groups, userId) {
+    document.getElementById("login-box").style.display = "none";
+    const groupList = document.getElementById("group-list");
+    document.getElementById("groups").style.display = "block";
+
+    groupList.innerHTML = "";
+    groups.forEach(group => {
+      const div = document.createElement("div");
+      div.className = "group-item";
+      div.textContent = `${group.title} — ${group.description || 'Без описания'}`;
+      div.onclick = () => {
+        window.location.href = `chat.html?group_id=${group.id}&user_id=${userId}`;
+      };
+      groupList.appendChild(div);
+    });
+  }
+</script>
+
+</body>
+</html>

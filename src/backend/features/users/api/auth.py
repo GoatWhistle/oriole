@@ -142,3 +142,10 @@ async def send_confirmation_email_again(
         request=request,
         user_data=user_data,
     )
+
+@router.get("/me", response_model=UserAuthRead)
+async def get_current_user_info(
+    current_user: UserAuthRead = Depends(service.get_current_auth_user),
+):
+    return current_user
+

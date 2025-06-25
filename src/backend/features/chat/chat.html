@@ -1,130 +1,198 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8" />
-    <title>WebSocket Чат</title>
-    <style>
-        body {
-            font-family: sans-serif;
-            margin: 2rem;
-            background-color: #1e1e1e;
-            color: white;
-        }
-        #messages {
-            border: 1px solid #555;
-            padding: 1rem;
-            height: 200px;
-            overflow-y: auto;
-            margin-bottom: 1rem;
-            background-color: #2d2d2d;
-        }
-        input, button {
-            padding: 0.5rem;
-            font-size: 1rem;
-            margin-right: 0.5rem;
-        }
-        .message.sent { color: #66ff66; }
-        .message.received { color: #66aaff; }
-        #status {
-            margin-bottom: 1rem;
-            font-weight: bold;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <title>Ориоле Чат</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #121212;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    header {
+      background-color: #ff6600;
+      padding: 1rem 2rem;
+      text-align: center;
+      font-size: 1.5rem;
+      font-weight: bold;
+      letter-spacing: 1px;
+      color: #121212;
+    }
+
+    #status {
+      text-align: center;
+      padding: 0.5rem;
+      background-color: #1e1e1e;
+      font-size: 0.9rem;
+      border-bottom: 1px solid #333;
+    }
+
+    #messages {
+      flex: 1;
+      padding: 1rem;
+      overflow-y: auto;
+      background-color: #1a1a1a;
+      border-top: 1px solid #333;
+      border-bottom: 1px solid #333;
+    }
+
+    .message {
+      margin-bottom: 0.8rem;
+      padding: 0.6rem 1rem;
+      border-radius: 12px;
+      max-width: 70%;
+      word-wrap: break-word;
+      font-size: 1rem;
+      line-height: 1.4;
+    }
+
+    .message.sent {
+      background-color: #ff6600;
+      color: #121212;
+      align-self: flex-end;
+      margin-left: auto;
+    }
+
+    .message.received {
+      background-color: #2b2b2b;
+      color: #e0e0e0;
+      align-self: flex-start;
+      margin-right: auto;
+    }
+
+    footer {
+      display: flex;
+      padding: 1rem;
+      background-color: #121212;
+      border-top: 1px solid #333;
+    }
+
+    input[type="text"] {
+      flex: 1;
+      padding: 0.6rem;
+      border-radius: 8px;
+      border: none;
+      margin-right: 0.5rem;
+      font-size: 1rem;
+      background-color: #2d2d2d;
+      color: white;
+    }
+
+    button {
+      background-color: #ff6600;
+      border: none;
+      padding: 0.6rem 1.2rem;
+      border-radius: 8px;
+      color: black;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+
+    button:hover {
+      background-color: #ff8533;
+    }
+
+    .chat-container {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+  </style>
 </head>
 <body>
-<h2>WebSocket Чат</h2>
 
-<div id="status">👤 Не подключено</div>
+<header>Ориоле Чат</header>
+<div id="status">🔌 Отключено</div>
 
-<label>
-    Group ID:
-    <input type="number" id="groupId" value="1" />
-</label>
-<label>
-    User ID:
-    <input type="number" id="userId" value="42" />
-</label>
-<button onclick="connect()">Подключиться</button>
-
-<div id="messages"></div>
-
-<input type="text" id="input" placeholder="Введите сообщение..." />
-<button onclick="sendMessage()">Отправить</button>
+<div class="chat-container">
+  <div id="messages"></div>
+  <footer>
+    <input type="text" id="input" placeholder="Введите сообщение..." />
+    <button onclick="sendMessage()">➤</button>
+  </footer>
+</div>
 
 <script>
-    const connectionId = crypto.randomUUID();
-    let socket;
-    let currentUserId;
-    let currentGroupId;
+  const params = new URLSearchParams(window.location.search);
+  const groupId = params.get("group_id");
+  const userId = params.get("user_id");
+  const connectionId = crypto.randomUUID();
+  let socket;
 
-    function connect() {
-        currentGroupId = document.getElementById("groupId").value;
-        currentUserId = document.getElementById("userId").value;
-
-        socket = new WebSocket(`ws://127.0.0.1:8000/api/websocket/?group_id=${currentGroupId}&user_id=${currentUserId}`);
-
-        socket.onopen = () => {
-            updateStatus(`👤 Пользователь: [${currentUserId}] | 👥 Группа: [${currentGroupId}]`);
-            addSystemMessage("✅ Соединение открыто");
-        };
-
-        socket.onmessage = (event) => {
-            try {
-                const data = JSON.parse(event.data);
-
-                if (data.connectionId === connectionId) return;
-
-                const icon = data.user_id == currentUserId ? "✉️" : "📩";
-                addMessage(`${icon} [${data.user_id}]: ${data.message}`, "received");
-            } catch {
-                addSystemMessage("⚠️ Некорректный формат сообщения");
-            }
-        };
-
-        socket.onclose = () => {
-            updateStatus("👤 Не подключено");
-            addSystemMessage("❌ Соединение закрыто");
-        };
-
-        socket.onerror = () => addSystemMessage("⚠️ Ошибка соединения");
+  function connect() {
+    if (!groupId || !userId) {
+      updateStatus("❌ Не указан group_id или user_id");
+      return;
     }
 
-    function sendMessage() {
-        const input = document.getElementById("input");
-        const messageText = input.value.trim();
-        if (!messageText) return;
+    socket = new WebSocket(`ws://127.0.0.1:8000/api/websocket/?group_id=${groupId}&user_id=${userId}`);
 
-        if (socket && socket.readyState === WebSocket.OPEN) {
-            const msg = {
-                user_id: currentUserId,
-                connectionId,
-                message: messageText
-            };
+    socket.onopen = () => {
+      updateStatus(`🟢 Подключено как пользователь ${userId} в группе ${groupId}`);
+      addSystemMessage("✅ Соединение установлено");
+    };
 
-            addMessage(`✉️ [${currentUserId}]: ${messageText}`, "sent");
-            socket.send(JSON.stringify(msg));
-            input.value = "";
-        } else {
-            addSystemMessage("⚠️ Соединение не открыто");
-        }
-    }
+    socket.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        if (data.connectionId === connectionId) return;
+        const cssClass = data.user_id == userId ? "sent" : "received";
+        addMessage(`[${data.user_id}]: ${data.message}`, cssClass);
+      } catch {
+        addSystemMessage("⚠️ Ошибка при получении сообщения");
+      }
+    };
 
-    function addMessage(text, cssClass) {
-        const messagesDiv = document.getElementById("messages");
-        const div = document.createElement("div");
-        div.className = `message ${cssClass}`;
-        div.textContent = text;
-        messagesDiv.appendChild(div);
-        messagesDiv.scrollTop = messagesDiv.scrollHeight;
-    }
+    socket.onclose = () => {
+      updateStatus("🔴 Соединение закрыто");
+      addSystemMessage("❌ Соединение потеряно");
+    };
 
-    function addSystemMessage(text) {
-        addMessage(text, "received");
-    }
+    socket.onerror = () => {
+      addSystemMessage("⚠️ Ошибка соединения");
+    };
+  }
 
-    function updateStatus(text) {
-        document.getElementById("status").textContent = text;
-    }
+  function sendMessage() {
+    const input = document.getElementById("input");
+    const text = input.value.trim();
+    if (!text || !socket || socket.readyState !== WebSocket.OPEN) return;
+
+    const message = {
+      user_id: userId,
+      connectionId,
+      message: text
+    };
+
+    socket.send(JSON.stringify(message));
+    addMessage(`[${userId}]: ${text}`, "sent");
+    input.value = "";
+  }
+
+  function addMessage(text, cssClass) {
+    const messages = document.getElementById("messages");
+    const div = document.createElement("div");
+    div.className = `message ${cssClass}`;
+    div.textContent = text;
+    messages.appendChild(div);
+    messages.scrollTop = messages.scrollHeight;
+  }
+
+  function addSystemMessage(text) {
+    addMessage(text, "received");
+  }
+
+  function updateStatus(text) {
+    document.getElementById("status").textContent = text;
+  }
+
+  window.onload = connect;
 </script>
 </body>
 </html>
