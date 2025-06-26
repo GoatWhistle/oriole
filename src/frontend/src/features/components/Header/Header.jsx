@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { useEffect } from 'react';
 
 import orioleIcon from '../../presets/oriole-icon.png';
-import AuthButton from '../AuthButton.jsx';
+import AuthButton from '../AuthButton/AuthButton.jsx';
 
 import styles from './Header.module.css';
 
