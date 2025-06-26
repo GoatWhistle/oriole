@@ -1,18 +1,18 @@
 import React from 'react';
 import { Routes, Route, Link } from 'react-router-dom';
 
-import Home from './pages/Home';
-import Hello from './pages/Hello';
-import Login from './pages/Login';
-import Registration from './pages/Registration';
-import Profile from './pages/Profile';
-import Verify from './pages/Verify';
-import Module from './pages/Module';
-import Group from './pages/Group';
-import JoinGroup from './pages/JoinGroup';
-import ForgotPassword from './pages/ForgotPassword';
-import ResetPassword from './pages/ResetPassword';
-import Task from './pages/Task';
+import Home from '../pages/Home';
+import Hello from '../pages/Hello';
+import Login from '../pages/Login';
+import Registration from '../pages/Registration';
+import Profile from '../pages/Profile';
+import Verify from '../pages/Verify';
+import Module from '../pages/Module';
+import Group from '../pages/Group';
+import JoinGroup from '../pages/JoinGroup';
+import ForgotPassword from '../pages/ForgotPassword';
+import ResetPassword from '../pages/ResetPassword';
+import Task from '../pages/Task';
 
 import './App.css';
 

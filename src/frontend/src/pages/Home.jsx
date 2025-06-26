@@ -1,5 +1,5 @@
 import React from 'react';
-import Header from "/src/features/components/Header.jsx";
+import Header from "/src/features/components/Header/Header.jsx";
 import GroupMenu from "/src/features/components/GroupMenu.jsx";
 import ModuleMenu from "/src/features/components/ModuleMenu.jsx";
 import CreateGroupButton from "/src/features/components/CreateGroupButton.jsx";
