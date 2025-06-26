@@ -9,6 +9,7 @@ from utils import get_number_one_bit_less as get_num_opt
 
 if TYPE_CHECKING:
     from features.users.models import UserProfile
+    from features.chat.models import Message
 
 
 class User(Base, IdIntPkMixin):
@@ -21,7 +22,7 @@ class User(Base, IdIntPkMixin):
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     is_superuser: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     is_verified: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
-
+    messages: Mapped[list["Message"]] = relationship(back_populates="group")
     profile: Mapped["UserProfile"] = relationship(
         back_populates="user", cascade="all, delete-orphan"
     )

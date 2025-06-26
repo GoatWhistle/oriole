@@ -1,23 +1,63 @@
+from datetime import datetime, timezone
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 from starlette.websockets import WebSocket, WebSocketDisconnect
 from .manager import connection_manager
+from .models import Message
 import json
 
-async def handle_websocket(websocket: WebSocket, group_id: int, user_id: int):
+
+async def handle_websocket(websocket: WebSocket,
+                           group_id: int,
+                           user_id: int,
+                           session: AsyncSession):
     await connection_manager.connect(websocket, group_id, user_id)
 
     try:
+        history_stmt = select(Message).where(Message.group_id == group_id).order_by(Message.timestamp)
+        result = await session.execute(history_stmt)
+        messages = result.scalars().all()
+
+        history_payload = [
+            {
+                "user_id": msg.sender_id,
+                "message": msg.text,
+                "timestamp": msg.timestamp.isoformat()
+            }
+            for msg in messages
+        ]
+        await websocket.send_text(json.dumps({"type": "history", "messages": history_payload}))
+
         while True:
             raw_data = await websocket.receive_text()
             try:
                 data = json.loads(raw_data)
+                text = data.get("message", "")
+                if not text:
+                    continue
+
+                timestamp = datetime.now(timezone.utc)
+
+                message = Message(
+                    text=text,
+                    group_id=group_id,
+                    sender_id=user_id,
+                    timestamp=timestamp,
+                )
+                session.add(message)
+                await session.commit()
+
                 msg = {
-                    "user_id": data.get("user_id", user_id),
-                    "message": data.get("message", ""),
-                    "connectionId": data.get("connectionId", None)
+                    "user_id": user_id,
+                    "message": text,
+                    "timestamp": timestamp.isoformat(),
+                    "connectionId": data.get("connectionId")
                 }
                 await connection_manager.broadcast(group_id, json.dumps(msg))
+
             except json.JSONDecodeError:
-                print("[websocket] ❌ Invalid JSON")
+                print("[websocket] Invalid JSON")
+
     except WebSocketDisconnect:
         await connection_manager.disconnect(group_id, websocket)
 

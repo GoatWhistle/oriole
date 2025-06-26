@@ -1,108 +1,186 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <title>Вход</title>
+  <meta charset="UTF-8" />
+  <title>Вход — Oriole</title>
   <style>
-    body { font-family: sans-serif; background: #f4f4f4; padding: 2rem; }
-    .form-box {
-      background: white; padding: 2rem; max-width: 400px;
-      margin: 2rem auto; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    /* Базовые стили */
+    *, *::before, *::after {
+      box-sizing: border-box;
     }
-    input { display: block; width: 100%; margin-bottom: 1rem; padding: 0.5rem; font-size: 1rem; }
-    button { padding: 0.5rem 1rem; font-size: 1rem; cursor: pointer; }
-    #groups { margin-top: 2rem; }
-    .group-item {
-      background: #e2e2ff; padding: 0.5rem;
-      border-radius: 5px; margin-bottom: 0.5rem; cursor: pointer;
+    body {
+      margin: 0; padding: 0; height: 100vh;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f5f7fa;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #333;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    .form-box {
+      background: white;
+      padding: 2.5rem 3rem;
+      max-width: 400px;
+      width: 100%;
+      border-radius: 10px;
+      box-shadow: 0 6px 15px rgb(0 120 212 / 0.25);
+      border: 2px solid #0078d4;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    h2 {
+      margin: 0 0 1rem 0;
+      color: #0078d4;
+      font-weight: 700;
+      font-size: 1.8rem;
+      user-select: none;
+      text-align: center;
+    }
+
+    input[type="email"],
+    input[type="password"] {
+      padding: 0.85rem 1rem;
+      font-size: 1rem;
+      border: 2px solid #0078d4;
+      border-radius: 30px;
+      outline-offset: 2px;
+      transition: border-color 0.3s, box-shadow 0.3s;
+      color: #333;
+      background: #fefefe;
+      box-shadow: inset 0 1px 3px rgb(0 120 212 / 0.2);
+      user-select: text;
+    }
+    input[type="email"]:focus,
+    input[type="password"]:focus {
+      border-color: #005a9e;
+      box-shadow: 0 0 8px #005a9eaa;
+    }
+
+    button {
+      background-color: #0078d4;
+      border: none;
+      border-radius: 30px;
+      color: white;
+      padding: 0.85rem 1.5rem;
+      font-size: 1.1rem;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 6px 12px rgb(0 120 212 / 0.45);
+      transition: background-color 0.3s, box-shadow 0.3s;
+      user-select: none;
+    }
+    button:hover,
+    button:focus {
+      background-color: #005a9e;
+      box-shadow: 0 8px 16px rgb(0 90 158 / 0.6);
+      outline: none;
+    }
+
+    #error {
+      color: #d00000;
+      font-weight: 600;
+      text-align: center;
+      min-height: 1.4em;
+      user-select: none;
+    }
+
+    /* Адаптив */
+    @media (max-width: 480px) {
+      .form-box {
+        padding: 2rem 1.5rem;
+        max-width: 90%;
+      }
+      h2 {
+        font-size: 1.5rem;
+      }
+      button {
+        font-size: 1rem;
+      }
     }
   </style>
 </head>
 <body>
 
-<div class="form-box" id="login-box">
-  <h2>Вход</h2>
-  <input type="email" id="email" placeholder="Email">
-  <input type="password" id="password" placeholder="Пароль">
-  <button onclick="login()">Войти</button>
-  <p id="error" style="color: red;"></p>
-</div>
+  <div class="form-box" id="login-box">
+    <h2>Oriole Вход</h2>
+    <input type="email" id="email" placeholder="Email" autocomplete="username" />
+    <input type="password" id="password" placeholder="Пароль" autocomplete="current-password" />
+    <button onclick="login()">Войти</button>
+    <p id="error"></p>
+  </div>
 
-<div id="groups" style="display: none;">
-  <h2>Ваши группы</h2>
-  <div id="group-list"></div>
-</div>
+  <script>
+    async function login() {
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value.trim();
+      const error = document.getElementById("error");
+      error.textContent = "";
 
-<script>
-  async function login() {
-    const email = document.getElementById("email").value.trim();
-    const password = document.getElementById("password").value.trim();
-    const error = document.getElementById("error");
+      const formData = new URLSearchParams();
+      formData.append("username", email);
+      formData.append("password", password);
 
-    error.textContent = "";
+      try {
+        const res = await fetch("http://127.0.0.1:8000/api/auth/token", {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: formData
+        });
 
-    const formData = new URLSearchParams();
-    formData.append("username", email);
-    formData.append("password", password);
+        if (!res.ok) throw new Error(`Ошибка авторизации: ${res.status}`);
 
-    try {
-      const res = await fetch("http://127.0.0.1:8000/api/auth/token", {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: formData
-      });
+        const data = await res.json();
+        const token = data.access_token;
+        if (!token) throw new Error("Токен не получен");
 
-      if (!res.ok) throw new Error(`Ошибка авторизации: ${res.status}`);
+        localStorage.setItem("access_token", token);
 
-      const data = await res.json();
-      const token = data.access_token;
-      if (!token) throw new Error("Токен не получен");
+        const userRes = await fetch("http://127.0.0.1:8000/api/auth/me", {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (!userRes.ok) throw new Error("Ошибка получения пользователя");
+        const user = await userRes.json();
 
-      localStorage.setItem("access_token", token);
+        const groupsRes = await fetch("http://127.0.0.1:8000/api/groups", {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (!groupsRes.ok) throw new Error("Ошибка получения групп");
 
-      // Получаем пользователя из /api/auth/me
-      const userRes = await fetch("http://127.0.0.1:8000/api/auth/me", {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
-      if (!userRes.ok) throw new Error("Ошибка получения пользователя");
-      const user = await userRes.json();
-
-      // Получаем группы
-      const groupsRes = await fetch("http://127.0.0.1:8000/api/groups", {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
-      if (!groupsRes.ok) throw new Error("Ошибка получения групп");
-
-      const groups = await groupsRes.json();
-      showGroups(groups, user.id);
-
-    } catch (e) {
-      console.error(e);
-      error.textContent = e.message;
+        const groups = await groupsRes.json();
+        showGroups(groups, user.id);
+      } catch (e) {
+        console.error(e);
+        error.textContent = e.message;
+      }
     }
-  }
 
-  function showGroups(groups, userId) {
-    document.getElementById("login-box").style.display = "none";
-    const groupList = document.getElementById("group-list");
-    document.getElementById("groups").style.display = "block";
+    function showGroups(groups, userId) {
+      document.getElementById("login-box").style.display = "none";
+      const groupList = document.getElementById("group-list");
+      document.getElementById("groups").style.display = "block";
 
-    groupList.innerHTML = "";
-    groups.forEach(group => {
-      const div = document.createElement("div");
-      div.className = "group-item";
-      div.textContent = `${group.title} — ${group.description || 'Без описания'}`;
-      div.onclick = () => {
-        window.location.href = `chat.html?group_id=${group.id}&user_id=${userId}`;
-      };
-      groupList.appendChild(div);
-    });
-  }
-</script>
+      groupList.innerHTML = "";
+      groups.forEach(group => {
+        const div = document.createElement("div");
+        div.className = "group-item";
+        div.textContent = `${group.title} — ${group.description || 'Без описания'}`;
+        div.onclick = () => {
+          window.location.href = `chat.html?group_id=${group.id}&user_id=${userId}`;
+        };
+        groupList.appendChild(div);
+      });
+    }
+  </script>
+
+  <div id="groups" style="display:none; max-width:400px; margin:2rem auto; font-family: 'Segoe UI', sans-serif;">
+    <h2 style="color:#0078d4; text-align:center; user-select:none;">Ваши группы</h2>
+    <div id="group-list" style="display:flex; flex-direction:column; gap:0.5rem;"></div>
+  </div>
 
 </body>
 </html>

@@ -10,6 +10,8 @@ from utils import get_number_one_bit_less as get_num_opt
 if TYPE_CHECKING:
     from features.modules.models import Module
     from features.groups.models import Account, GroupInvite
+    from features.chat.models import Message
+
 
 
 class Group(Base, IdIntPkMixin):
@@ -19,3 +21,4 @@ class Group(Base, IdIntPkMixin):
     accounts: Mapped[list["Account"]] = relationship(back_populates="group")
     modules: Mapped[list["Module"]] = relationship(back_populates="group")
     invites: Mapped[list["GroupInvite"]] = relationship(back_populates="group")
+    messages: Mapped[list["Message"]] = relationship(back_populates="sender")
