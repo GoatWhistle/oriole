@@ -1,5 +1,5 @@
 import React from 'react';
-import Header from "/src/features/components/Header.jsx";
+import Header from "/src/features/components/Header/Header.jsx";
 import ModuleDetails from "/src/features/components/ModuleDetails.jsx";
 
 export default function Module() {
