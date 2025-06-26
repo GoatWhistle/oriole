@@ -21,4 +21,4 @@ class Group(Base, IdIntPkMixin):
     accounts: Mapped[list["Account"]] = relationship(back_populates="group")
     modules: Mapped[list["Module"]] = relationship(back_populates="group")
     invites: Mapped[list["GroupInvite"]] = relationship(back_populates="group")
-    messages: Mapped[list["Message"]] = relationship(back_populates="sender")
+    messages: Mapped[list["Message"]] = relationship(back_populates="group")

@@ -22,7 +22,7 @@ class User(Base, IdIntPkMixin):
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     is_superuser: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     is_verified: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
-    messages: Mapped[list["Message"]] = relationship(back_populates="group")
+    messages: Mapped[list["Message"]] = relationship(back_populates="sender")
     profile: Mapped["UserProfile"] = relationship(
         back_populates="user", cascade="all, delete-orphan"
     )

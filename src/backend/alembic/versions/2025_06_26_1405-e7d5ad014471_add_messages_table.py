@@ -1,4 +1,4 @@
-"""Add messages table
+"""Add messages table with timestamp using func.now()
 
 Revision ID: e7d5ad014471
 Revises: 7b400eaf49d4
@@ -23,7 +23,7 @@ def upgrade() -> None:
         sa.Column('group_id', sa.Integer(), sa.ForeignKey('groups.id', ondelete='CASCADE'), nullable=False),
         sa.Column('sender_id', sa.Integer(), sa.ForeignKey('users.id', ondelete='CASCADE'), nullable=False),
         sa.Column('text', sa.Text(), nullable=False),
-        sa.Column('timestamp', sa.DateTime(timezone=True), nullable=False, server_default=sa.text("timezone('utc', now())"))
+        sa.Column('timestamp', sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now())
     )
 
 

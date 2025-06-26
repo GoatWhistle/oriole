@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <title>Oriole Чат</title>
   <style>
-    /* --- Сброс стилей и базовая типографика --- */
     *, *::before, *::after {
       box-sizing: border-box;
     }
@@ -77,17 +76,17 @@
     }
 
     .message {
-      max-width: 85%; /* шире */
-      padding: 14px 18px; /* больше отступы */
+      max-width: 85%;
+      padding: 14px 18px;
       border-radius: 20px;
       font-size: 1rem;
       line-height: 1.5;
       word-wrap: break-word;
       box-shadow: 0 2px 5px rgba(0,0,0,0.05);
       user-select: text;
-      position: relative;
       white-space: pre-wrap;
-      margin-bottom: 14px; /* больший отступ между сообщениями */
+      margin-bottom: 14px;
+      animation: fadeInUp 0.25s forwards;
     }
 
     .message.sent {
@@ -105,14 +104,14 @@
     }
 
     .message .timestamp {
-      position: absolute;
-      bottom: 6px; /* ниже */
-      right: 14px;
-      font-size: 0.8rem; /* крупнее */
-      opacity: 0.7; /* ярче */
-      color: #666; /* контрастнее */
+      display: block;
+      margin-top: 6px;
+      font-size: 0.85rem;
+      color: #ffcc00;
       font-family: monospace;
       user-select: none;
+      position: static;
+      text-align: right;
     }
 
     footer {
@@ -157,20 +156,17 @@
       outline: none;
     }
 
-    /* Легкий анимационный эффект появления сообщений */
-    .message {
-      opacity: 0;
-      transform: translateY(12px);
-      animation: fadeInUp 0.25s forwards;
-    }
     @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(12px);
+      }
       to {
         opacity: 1;
         transform: translateY(0);
       }
     }
 
-    /* Адаптив */
     @media (max-width: 480px) {
       .chat-container {
         padding: 1rem;
@@ -216,14 +212,14 @@
   }
 
   function formatMessage({ user_id, message, timestamp }) {
-    return `${message}\n`; // Время покажем отдельным спаном
+    return `${message}\n`;
   }
 
   function addMessage(text, cssClass, timestamp) {
     const messages = document.getElementById("messages");
     const div = document.createElement("div");
     div.className = `message ${cssClass}`;
-    div.textContent = text;
+    div.innerText = text;
 
     if (timestamp) {
       const timeSpan = document.createElement("span");
