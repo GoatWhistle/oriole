@@ -1,5 +1,12 @@
 import axios from 'axios';
 
+export const createGroup = async (groupData) => {
+    const response = await axios.post('api/groups/', groupData, {
+      withCredentials: true,
+    });
+    return response.data;
+};
+
 export const fetchGroup = async (groupId) => {
   const response = await axios.get(`/api/groups/${groupId}/`);
   return response.data;
