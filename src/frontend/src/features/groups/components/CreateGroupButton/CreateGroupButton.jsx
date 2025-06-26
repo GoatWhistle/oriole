@@ -1,28 +1,25 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Modal, Form, Input, message } from 'antd';
-import axios from 'axios';
+import { Button, Modal, Form, Input } from 'antd';
 import { useNavigate } from 'react-router-dom';
+
+import { fetchCheckAuth } from '../../../api/check_auth.jsx';
+import { handleCreateGroup } from '../../handlers/group.jsx';
+
+import styles from './CreateGroupButton.module.css';
 
 const CreateGroupButton = () => {
   const [open, setOpen] = useState(false);
   const [confirmLoading, setConfirmLoading] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [loadingAuthCheck, setLoadingAuthCheck] = useState(true);
+  const [loading, setLoading] = useState(true);
   const [form] = Form.useForm();
   const navigate = useNavigate();
 
   useEffect(() => {
     const checkAuth = async () => {
-      try {
-        await axios.get('api/auth/check-auth', {
-          withCredentials: true,
-        });
-        setIsAuthenticated(true);
-      } catch (error) {
-        setIsAuthenticated(false);
-      } finally {
-        setLoadingAuthCheck(false);
-      }
+      const authStatus = await fetchCheckAuth();
+      setIsAuthenticated(authStatus);
+      setLoading(false);
     };
 
     checkAuth();
@@ -38,31 +35,10 @@ const CreateGroupButton = () => {
   };
 
   const onFinish = async (values) => {
-    setConfirmLoading(true);
-    try {
-      const groupData = {
-        title: values.title,
-        description: values.description || '',
-      };
-
-      const response = await axios.post('api/groups/', groupData, {
-        withCredentials: true,
-      });
-
-      message.success(`Группа "${response.data.title}" успешно создана!`);
-      form.resetFields();
-      setOpen(false);
-
-    } catch (error) {
-      console.error('Ошибка при создании группы:', error);
-      message.error('Не удалось создать группу');
-    } finally {
-      setConfirmLoading(false);
-      window.location.reload();
-    }
+    const createdGroup = await handleCreateGroup(values, setConfirmLoading, form, setOpen);
   };
 
-  if (loadingAuthCheck) {
+  if (loading) {
     return null;
   }
 
@@ -71,8 +47,8 @@ const CreateGroupButton = () => {
   }
 
   return (
-    <>
-      <Button type="primary" onClick={showModal}>
+    <div className={styles.container}>
+      <Button type="primary" onClick={showModal} className={styles.createButton}>
         Создать группу
       </Button>
       <Modal
@@ -83,6 +59,7 @@ const CreateGroupButton = () => {
         onCancel={handleCancel}
         okText="Создать"
         cancelText="Отмена"
+        className={styles.modal}
       >
         <Form
           form={form}
@@ -95,7 +72,7 @@ const CreateGroupButton = () => {
             name="title"
             rules={[{ required: true, message: 'Пожалуйста, введите название группы' }]}
           >
-            <Input placeholder="Введите название группы" />
+            <Input placeholder="Введите название группы" className={styles.input} />
           </Form.Item>
 
           <Form.Item
@@ -103,11 +80,11 @@ const CreateGroupButton = () => {
             name="description"
             initialValue=""
           >
-            <Input.TextArea rows={4} placeholder="Введите описание группы" />
+            <Input.TextArea rows={4} placeholder="Введите описание группы" className={styles.textarea} />
           </Form.Item>
         </Form>
       </Modal>
-    </>
+    </div>
   );
 };
 

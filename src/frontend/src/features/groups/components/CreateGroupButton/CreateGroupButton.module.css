@@ -1,0 +1,26 @@
+.container {
+  margin-bottom: 20px;
+}
+
+.createButton {
+  background-color: #1890ff;
+  border-color: #1890ff;
+}
+
+.createButton:hover {
+  background-color: #40a9ff;
+  border-color: #40a9ff;
+}
+
+.modal {
+  max-width: 600px;
+}
+
+.input {
+  width: 100%;
+}
+
+.textarea {
+  width: 100%;
+  resize: vertical;
+}
