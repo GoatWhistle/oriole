@@ -40,7 +40,7 @@
 }
 
 .logoLink:hover .image {
-  content: url('oriole-icon-hover.png');
+  content: url('../../presets/oriole-icon-hover.png');
 }
 
 .logoText {
