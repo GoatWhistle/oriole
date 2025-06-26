@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Avatar } from 'antd';
 import { UserOutlined } from '@ant-design/icons';
 
-import { fetchCheckAuth } from '../../api/check_auth.jsx';
+import { fetchCheckAuth } from '../../../api/check_auth.jsx';
 import styles from './AuthButton.module.css';
 
 const AuthButton = () => {
