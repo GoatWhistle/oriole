@@ -1,6 +1,6 @@
 import { fetchError } from '../../api/error'
 
-import { promoteUser, demoteUser, kickUser } from '../../groups/api/user';
+import { promoteUser, demoteUser, kickUser, loadGroups, showGroupList } from '../../groups/api/user';
 
 
 export const handlePromoteUser = async (groupId, userId) => {
@@ -27,5 +27,30 @@ export const handleKickUser = async (groupId, userId) => {
     return userId;
   } catch (error) {
     return fetchError(error, 'Не удалось удалить пользователя');
+  }
+};
+
+export const handleShowGroupList = async (setUserGroups, setLoading) => {
+  try {
+    const data = await showGroupList();
+
+    if (data.length === 0) {
+      setUserGroups([{
+        key: 'no-groups',
+        label: 'У вас пока нет групп',
+        disabled: true
+      }]);
+    } else {
+      const menuItems = data.map(group => ({
+        key: group.id,
+        label: group.title,
+        title: group.description
+      }));
+      setUserGroups(menuItems);
+    }
+
+    setLoading(false);
+  } catch (error) {
+      return fetchError(error, 'Не удалось загрузить список групп пользователя');
   }
 };
