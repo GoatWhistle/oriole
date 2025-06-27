@@ -1,6 +1,6 @@
 import React from 'react';
 import Header from "/src/features/components/Header/Header.jsx";
-import GroupMenu from "/src/features/components/GroupMenu.jsx";
+import GroupList from "/src/features/groups/components/GroupList/GroupList.jsx";
 import ModuleMenu from "/src/features/components/ModuleMenu.jsx";
 import CreateGroupButton from "/src/features/groups/components/CreateGroupButton/CreateGroupButton.jsx";
 
@@ -28,7 +28,7 @@ export default function Home() {
               bordered={false}
               style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}
             >
-              <GroupMenu />
+              <GroupList />
             </Card>
           </div>
 
