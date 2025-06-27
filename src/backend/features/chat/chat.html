@@ -12,8 +12,6 @@
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       background: #f5f7fa;
       color: #333;
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
     }
 
     body {
@@ -64,15 +62,6 @@
       display: flex;
       flex-direction: column;
       gap: 14px;
-      scrollbar-width: thin;
-      scrollbar-color: #c3d3f5 transparent;
-    }
-    #messages::-webkit-scrollbar {
-      width: 8px;
-    }
-    #messages::-webkit-scrollbar-thumb {
-      background-color: #a1b7e6;
-      border-radius: 10px;
     }
 
     .message {
@@ -87,6 +76,8 @@
       white-space: pre-wrap;
       margin-bottom: 14px;
       animation: fadeInUp 0.25s forwards;
+      display: flex;
+      flex-direction: column;
     }
 
     .message.sent {
@@ -103,6 +94,13 @@
       border-bottom-left-radius: 4px;
     }
 
+    .message .user-id {
+      font-size: 0.8rem;
+      color: #999;
+      margin-bottom: 4px;
+      user-select: none;
+    }
+
     .message .timestamp {
       display: block;
       margin-top: 6px;
@@ -110,7 +108,6 @@
       color: #ffcc00;
       font-family: monospace;
       user-select: none;
-      position: static;
       text-align: right;
     }
 
@@ -126,15 +123,7 @@
       font-size: 1rem;
       border: 2px solid #0078d4;
       border-radius: 30px;
-      outline-offset: 2px;
-      transition: border-color 0.3s;
-      color: #333;
       background: white;
-      box-shadow: 0 1px 3px rgb(0 120 212 / 0.3);
-    }
-    input[type="text"]:focus {
-      border-color: #005a9e;
-      box-shadow: 0 0 8px #005a9eaa;
     }
 
     button {
@@ -146,14 +135,6 @@
       font-size: 1.1rem;
       font-weight: 700;
       cursor: pointer;
-      box-shadow: 0 4px 8px rgb(0 120 212 / 0.4);
-      transition: background-color 0.3s, box-shadow 0.3s;
-      user-select: none;
-    }
-    button:hover, button:focus {
-      background-color: #005a9e;
-      box-shadow: 0 6px 12px rgb(0 90 158 / 0.6);
-      outline: none;
     }
 
     @keyframes fadeInUp {
@@ -164,22 +145,6 @@
       to {
         opacity: 1;
         transform: translateY(0);
-      }
-    }
-
-    @media (max-width: 480px) {
-      .chat-container {
-        padding: 1rem;
-        border-radius: 0;
-        max-width: 100%;
-      }
-      header {
-        font-size: 1.4rem;
-        padding: 1rem;
-      }
-      button {
-        padding: 0 18px;
-        font-size: 1rem;
       }
     }
   </style>
@@ -193,8 +158,8 @@
   <div id="messages" aria-live="polite" aria-relevant="additions"></div>
 
   <footer>
-    <input type="text" id="input" placeholder="Введите сообщение..." autocomplete="off" aria-label="Введите сообщение" />
-    <button id="sendBtn" aria-label="Отправить сообщение">➤</button>
+    <input type="text" id="input" placeholder="Введите сообщение..." autocomplete="off" />
+    <button id="sendBtn">➤</button>
   </footer>
 </div>
 
@@ -211,29 +176,29 @@
     return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   }
 
-  function formatMessage({ user_id, message, timestamp }) {
-    return `${message}\n`;
-  }
-
-  function addMessage(text, cssClass, timestamp) {
+  function addMessage(msg, cssClass) {
     const messages = document.getElementById("messages");
     const div = document.createElement("div");
     div.className = `message ${cssClass}`;
-    div.innerText = text;
 
-    if (timestamp) {
+    const userIdSpan = document.createElement("div");
+    userIdSpan.className = "user-id";
+    userIdSpan.textContent = `Пользователь ${msg.user_id}`;
+    div.appendChild(userIdSpan);
+
+    const textSpan = document.createElement("div");
+    textSpan.textContent = msg.message;
+    div.appendChild(textSpan);
+
+    if (msg.timestamp) {
       const timeSpan = document.createElement("span");
       timeSpan.className = "timestamp";
-      timeSpan.textContent = formatTimestamp(timestamp);
+      timeSpan.textContent = formatTimestamp(msg.timestamp);
       div.appendChild(timeSpan);
     }
 
     messages.appendChild(div);
     messages.scrollTop = messages.scrollHeight;
-  }
-
-  function addSystemMessage(text) {
-    addMessage(text, "received");
   }
 
   function updateStatus(text) {
@@ -250,35 +215,33 @@
 
     socket.onopen = () => {
       updateStatus(`🟢 Подключено как пользователь ${userId} в группе ${groupId}`);
-      addSystemMessage("✅ Соединение установлено");
+      addMessage({ user_id: 0, message: "✅ Соединение установлено", timestamp: null }, "received");
     };
 
     socket.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
-
         if (data.type === "history") {
           data.messages.forEach(msg => {
             const cssClass = msg.user_id == userId ? "sent" : "received";
-            addMessage(formatMessage(msg), cssClass, msg.timestamp);
+            addMessage(msg, cssClass);
           });
         } else {
-          if (data.connectionId === connectionId) return;
           const cssClass = data.user_id == userId ? "sent" : "received";
-          addMessage(formatMessage(data), cssClass, data.timestamp);
+          addMessage(data, cssClass);
         }
       } catch {
-        addSystemMessage("⚠️ Ошибка при получении сообщения");
+        addMessage({ user_id: 0, message: "⚠️ Ошибка при получении сообщения", timestamp: null }, "received");
       }
     };
 
     socket.onclose = () => {
       updateStatus("🔴 Соединение закрыто");
-      addSystemMessage("❌ Соединение потеряно");
+      addMessage({ user_id: 0, message: "❌ Соединение потеряно", timestamp: null }, "received");
     };
 
     socket.onerror = () => {
-      addSystemMessage("⚠️ Ошибка соединения");
+      addMessage({ user_id: 0, message: "⚠️ Ошибка соединения", timestamp: null }, "received");
     };
   }
 
@@ -294,12 +257,10 @@
     };
 
     socket.send(JSON.stringify(message));
-    addMessage(formatMessage(message), "sent", new Date().toISOString());
     input.value = "";
   }
 
   document.getElementById("sendBtn").addEventListener("click", sendMessage);
-
   document.getElementById("input").addEventListener("keydown", function (e) {
     if (e.key === "Enter") {
       e.preventDefault();
