@@ -17,6 +17,7 @@ from features.modules.schemas import (
     ModuleUpdate,
     ModuleUpdatePartial,
 )
+from features.modules.schemas.module import ModuleReadWithoutTasks
 from features.modules.validators import get_module_or_404
 from features.users.validators import check_user_exists
 from shared.validators import (
@@ -30,7 +31,7 @@ async def create_module(
     session: AsyncSession,
     user_id: int,
     module_in: ModuleCreate,
-) -> ModuleRead:
+) -> ModuleReadWithoutTasks:
     await check_user_exists(session, user_id)
 
     _ = await get_group_or_404(session, module_in.group_id)
@@ -51,15 +52,24 @@ async def get_module_by_id(
     session: AsyncSession,
     user_id: int,
     module_id: int,
+    include: list[str],
 ) -> ModuleRead:
     await check_user_exists(session, user_id)
 
     module = await get_module_or_404(session, module_id)
     _ = await get_group_or_404(session, module.group_id)
     account = await get_account_or_404(session, user_id, module.group_id)
-    tasks = await task_crud.get_tasks_by_module_id(session, module_id)
-    user_replies = await user_reply_crud.get_user_replies_by_task_ids(
-        session, account.id, [task.id for task in tasks]
+    tasks = (
+        await task_crud.get_tasks_by_module_id(session, module_id)
+        if include and "tasks" in include
+        else None
+    )
+    user_replies = (
+        await user_reply_crud.get_user_replies_by_task_ids(
+            session, account.id, [task.id for task in tasks]
+        )
+        if tasks and include and "tasks" in include
+        else None
     )
 
     return mapper.build_module_read(module, tasks, user_replies)
@@ -69,6 +79,7 @@ async def get_modules_in_group(
     session: AsyncSession,
     user_id: int,
     group_id: int,
+    include: list[str] | None,
     is_active: bool | None = None,
 ) -> list[ModuleRead]:
     await check_user_exists(session, user_id)
@@ -81,17 +92,24 @@ async def get_modules_in_group(
         return []
 
     tasks = await task_crud.get_tasks_by_module_ids(
-        session, [module.id for module in modules]
+        session,
+        [module.id for module in modules] if include and "tasks" in include else [],
     )
-    user_replies = await user_reply_crud.get_user_replies_by_account_ids_and_task_ids(
-        session, [account.id], [task.id for task in tasks]
+    user_replies = (
+        await user_reply_crud.get_user_replies_by_account_ids_and_task_ids(
+            session, [account.id], [task.id for task in tasks]
+        )
+        if tasks and include and "user_replies" in include
+        else None
     )
-
     return mapper.build_module_read_list(modules, tasks, user_replies)
 
 
 async def get_user_modules(
-    session: AsyncSession, user_id: int, is_active: bool | None = None
+    session: AsyncSession,
+    user_id: int,
+    include: list[str],
+    is_active: bool | None = None,
 ) -> list[ModuleRead]:
     await check_user_exists(session, user_id)
 
@@ -111,11 +129,19 @@ async def get_user_modules(
     if not modules:
         return []
 
-    tasks = await task_crud.get_tasks_by_module_ids(
-        session, [module.id for module in modules]
+    tasks = (
+        await task_crud.get_tasks_by_module_ids(
+            session, [module.id for module in modules]
+        )
+        if include and "tasks" in include
+        else None
     )
-    user_replies = await user_reply_crud.get_user_replies_by_account_ids_and_task_ids(
-        session, account_ids, [task.id for task in tasks]
+    user_replies = (
+        await user_reply_crud.get_user_replies_by_account_ids_and_task_ids(
+            session, account_ids, [task.id for task in tasks]
+        )
+        if tasks and include and "user_replies" in include
+        else None
     )
 
     return mapper.build_module_read_list(modules, tasks, user_replies)
@@ -149,13 +175,7 @@ async def update_module(
         check_end_time_is_after_start_time(start, end)
 
     module = await module_crud.update_module(session, module, update_data)
-    tasks = await task_crud.get_tasks_by_module_id(session, module.id)
-
-    user_replies = await user_reply_crud.get_user_replies_by_task_ids(
-        session, account.id, [task.id for task in tasks]
-    )
-
-    return mapper.build_module_read(module, tasks, user_replies)
+    return mapper.build_module_read(module)
 
 
 async def delete_module(

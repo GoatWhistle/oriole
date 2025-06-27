@@ -1,14 +1,12 @@
 from fastapi import APIRouter, Depends, status, Request
-from fastapi.encoders import jsonable_encoder
-from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from database import db_helper
 from features.groups.schemas.invite import LinkRead, LinkJoinRead
 from features.groups.services import invite as service
 from features.users.services.auth import get_current_active_auth_user_id
-from utils import get_current_utc
-from utils.schemas import SuccessResponse, Meta
+from utils.response_func import create_json_response
+from utils.schemas import SuccessResponse
 
 router = APIRouter()
 
@@ -29,12 +27,7 @@ async def invite_user(
     data = await service.invite_user(
         session, user_id, request, group_id, expires_minutes, single_use
     )
-    response_content = jsonable_encoder(
-        SuccessResponse[LinkRead](
-            data=data, meta=Meta(version="v1", timestamp=str(get_current_utc()))
-        )
-    )
-    return JSONResponse(content=response_content, status_code=201)
+    return create_json_response(data=data)
 
 
 @router.post(
@@ -48,12 +41,7 @@ async def join_by_link(
     user_id: int = Depends(get_current_active_auth_user_id),
 ):
     data = await service.join_by_link(session, user_id, invite_code)
-    response_content = jsonable_encoder(
-        SuccessResponse[LinkJoinRead](
-            data=data, meta=Meta(version="v1", timestamp=str(get_current_utc()))
-        )
-    )
-    return JSONResponse(content=response_content, status_code=201)
+    return create_json_response(data=data)
 
 
 @router.delete(

@@ -17,6 +17,7 @@ from features.tasks.schemas import (
     TaskUpdate,
     TaskUpdatePartial,
 )
+from features.tasks.schemas.task import TaskReadWithoutReplies
 from features.tasks.validators import (
     get_task_or_404,
     check_task_start_deadline_after_module_start,
@@ -61,15 +62,20 @@ async def get_task_by_id(
     session: AsyncSession,
     user_id: int,
     task_id: int,
-) -> TaskRead:
+    include: list[str] | None,
+) -> TaskRead | TaskReadWithoutReplies:
     await check_user_exists(session, user_id)
 
     task = await get_task_or_404(session, task_id)
     module = await get_module_or_404(session, task.module_id)
     _ = await get_group_or_404(session, module.group_id)
     account = await get_account_or_404(session, user_id, module.group_id)
-    user_reply = await user_reply_crud.get_user_reply_by_account_id_and_task_id(
-        session, account.id, task_id
+    user_reply = (
+        await user_reply_crud.get_user_reply_by_account_id_and_task_id(
+            session, account.id, task_id
+        )
+        if include and "user_replies" in include
+        else []
     )
 
     return mapper.build_task_read(task, module, user_reply)
@@ -80,6 +86,7 @@ async def get_tasks_in_module(
     user_id: int,
     module_id: int,
     is_active: bool | None,
+    include: list[str] | None,
 ) -> list[TaskRead]:
     await check_user_exists(session, user_id)
 
@@ -91,8 +98,12 @@ async def get_tasks_in_module(
     if not tasks:
         return []
 
-    user_replies = await user_reply_crud.get_user_replies_by_account_ids_and_task_ids(
-        session, [account.id], [task.id for task in tasks]
+    user_replies = (
+        await user_reply_crud.get_user_replies_by_account_ids_and_task_ids(
+            session, [account.id], [task.id for task in tasks]
+        )
+        if include and "user_replies" in include
+        else []
     )
 
     return mapper.build_task_read_list([module], tasks, user_replies)
@@ -102,7 +113,8 @@ async def get_user_tasks(
     session: AsyncSession,
     user_id: int,
     is_active: bool | None,
-) -> list[TaskRead]:
+    include: list[str] | None,
+) -> list[TaskRead | TaskReadWithoutReplies]:
     await check_user_exists(session=session, user_id=user_id)
 
     accounts = await account_crud.get_accounts_by_user_id(session, user_id)
@@ -121,8 +133,12 @@ async def get_user_tasks(
     if not tasks:
         return []
 
-    user_replies = await user_reply_crud.get_user_replies_by_account_ids_and_task_ids(
-        session, [account.id for account in accounts], [task.id for task in tasks]
+    user_replies = (
+        await user_reply_crud.get_user_replies_by_account_ids_and_task_ids(
+            session, [account.id for account in accounts], [task.id for task in tasks]
+        )
+        if include and "user_replies" in include
+        else []
     )
 
     return mapper.build_task_read_list(modules, tasks, user_replies)
@@ -141,9 +157,6 @@ async def update_task(
     module = await get_module_or_404(session, task.module_id)
     _ = await get_group_or_404(session, module.group_id)
     account = await get_account_or_404(session, user_id, module.group_id)
-    user_reply = await user_reply_crud.get_user_reply_by_account_id_and_task_id(
-        session, account.id, task_id
-    )
 
     check_user_is_admin_or_owner(account.role)
 
@@ -166,7 +179,7 @@ async def update_task(
 
     task = await task_crud.update_task(session, task, update_data)
 
-    return mapper.build_task_read(task, module, user_reply)
+    return mapper.build_task_read(task, module)
 
 
 async def delete_task(

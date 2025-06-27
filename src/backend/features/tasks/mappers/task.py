@@ -1,26 +1,40 @@
 from features.modules.models import Module
 from features.tasks.models import Task, UserReply
 from features.tasks.schemas import TaskRead
+from features.tasks.schemas.task import TaskReadWithoutReplies
 
 
 def build_task_read(
     task: Task,
     module: Module,
     user_reply: UserReply | None = None,
-) -> TaskRead:
-    return TaskRead(
+) -> TaskRead | TaskReadWithoutReplies:
+    if user_reply:
+        return TaskRead(
+            title=task.title,
+            description=task.description,
+            start_datetime=task.start_datetime,
+            end_datetime=task.end_datetime,
+            max_attempts=task.max_attempts,
+            id=task.id,
+            is_correct=user_reply.is_correct if user_reply else False,
+            is_active=task.is_active,
+            module_id=task.module_id,
+            group_id=module.group_id,
+            user_answer=user_reply.user_answer if user_reply else "",
+            user_attempts=user_reply.user_attempts if user_reply else 0,
+        )
+    return TaskReadWithoutReplies(
         title=task.title,
         description=task.description,
         start_datetime=task.start_datetime,
         end_datetime=task.end_datetime,
         max_attempts=task.max_attempts,
         id=task.id,
-        is_correct=user_reply.is_correct if user_reply else False,
         is_active=task.is_active,
         module_id=task.module_id,
         group_id=module.group_id,
-        user_answer=user_reply.user_answer if user_reply else "",
-        user_attempts=user_reply.user_attempts if user_reply else 0,
+        is_correct=False,
     )
 
 

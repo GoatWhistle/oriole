@@ -1,9 +1,7 @@
 from datetime import datetime
-from typing import Any
 
-from pydantic import BaseModel, Field, ConfigDict, field_serializer
+from pydantic import BaseModel, Field, ConfigDict
 
-from features.tasks.schemas import TaskRead
 from utils import get_number_one_bit_less as get_num_opt
 
 
@@ -15,10 +13,6 @@ class ModuleBase(BaseModel):
     end_datetime: datetime
 
     is_contest: bool
-
-    @field_serializer("start_datetime", "end_datetime")
-    def serialize_datetime(self, dt: datetime, _info: Any) -> str:
-        return dt.isoformat()
 
 
 class ModuleCreate(ModuleBase):
@@ -36,7 +30,7 @@ class ModuleRead(ModuleBase):
     tasks_count: int
     user_completed_tasks_count: int
 
-    tasks: list[TaskRead]
+    tasks: list
 
     model_config = ConfigDict(
         from_attributes=True,
@@ -55,3 +49,28 @@ class ModuleUpdatePartial(ModuleUpdate):
     end_datetime: datetime | None = None
 
     is_contest: bool | None = None
+
+
+class ModuleReadWithoutReplies(ModuleBase):
+    id: int
+    is_active: bool
+    group_id: int
+    admin_id: int
+    tasks_count: int
+    tasks: list
+
+    model_config = ConfigDict(
+        from_attributes=True,
+    )
+
+
+class ModuleReadWithoutTasks(ModuleBase):
+    id: int
+    is_active: bool
+    group_id: int
+    admin_id: int
+    tasks_count: int
+
+    model_config = ConfigDict(
+        from_attributes=True,
+    )

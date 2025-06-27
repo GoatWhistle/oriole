@@ -1,15 +1,12 @@
 from fastapi import APIRouter, Depends, status
-from fastapi.encoders import jsonable_encoder
-from fastapi.responses import JSONResponse
-from pygments.lexers import data
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from database import db_helper
 from features.groups.schemas.account import AccountRoleChangeRead
 from features.groups.services import account as service
 from features.users.services.auth import get_current_active_auth_user_id
-from utils import get_current_utc
-from utils.schemas import SuccessResponse, Meta
+from utils.response_func import create_json_response
+from utils.schemas import SuccessResponse
 
 router = APIRouter()
 
@@ -25,13 +22,10 @@ async def promote_user_to_admin(
     session: AsyncSession = Depends(db_helper.dependency_session_getter),
     user_id: int = Depends(get_current_active_auth_user_id),
 ):
-    await service.promote_user_to_admin(session, user_id, promote_user_id, group_id)
-    response_content = jsonable_encoder(
-        SuccessResponse[AccountRoleChangeRead](
-            data=data, meta=Meta(version="v1", timestamp=str(get_current_utc()))
-        )
+    data = await service.promote_user_to_admin(
+        session, user_id, promote_user_id, group_id
     )
-    return JSONResponse(content=response_content, status_code=201)
+    return create_json_response(data=data)
 
 
 @router.patch(
@@ -45,13 +39,10 @@ async def demote_user_to_member(
     session: AsyncSession = Depends(db_helper.dependency_session_getter),
     user_id: int = Depends(get_current_active_auth_user_id),
 ):
-    data = service.demote_user_to_member(session, user_id, demote_user_id, group_id)
-    response_content = jsonable_encoder(
-        SuccessResponse[AccountRoleChangeRead](
-            data=data, meta=Meta(version="v1", timestamp=str(get_current_utc()))
-        )
+    data = await service.demote_user_to_member(
+        session, user_id, demote_user_id, group_id
     )
-    return JSONResponse(content=response_content, status_code=201)
+    return create_json_response(data=data)
 
 
 @router.delete(

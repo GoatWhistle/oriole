@@ -50,3 +50,15 @@ class TaskUpdatePartial(TaskUpdate):
 
     max_attempts: str | None = None
     correct_answer: str | None = None
+
+
+class TaskReadWithoutReplies(TaskBase):
+    id: int
+    is_active: bool
+    is_correct: bool
+    module_id: int
+    group_id: int
+
+    model_config = ConfigDict(
+        from_attributes=True,
+    )
