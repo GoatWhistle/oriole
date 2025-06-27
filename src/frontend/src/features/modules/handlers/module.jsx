@@ -1,6 +1,6 @@
 import { fetchError } from '../../api/error'
 
-import { createModule } from '../../groups/api/module';
+import { createModule } from '../../modules/api/module';
 
 export const handleCreateModule = async (groupId, values) => {
   try {
