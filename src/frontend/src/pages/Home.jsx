@@ -1,7 +1,7 @@
 import React from 'react';
 import Header from "/src/features/components/Header/Header.jsx";
 import GroupList from "/src/features/groups/components/GroupList/GroupList.jsx";
-import ModuleMenu from "/src/features/components/ModuleMenu.jsx";
+import ModuleList from "/src/features/modules/components/ModuleList/ModuleList.jsx";
 import CreateGroupButton from "/src/features/groups/components/CreateGroupButton/CreateGroupButton.jsx";
 
 import { Card, Typography } from 'antd';
@@ -38,7 +38,7 @@ export default function Home() {
               bordered={false}
               style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}
             >
-              <ModuleMenu />
+              <ModuleList />
             </Card>
           </div>
           <CreateGroupButton />
