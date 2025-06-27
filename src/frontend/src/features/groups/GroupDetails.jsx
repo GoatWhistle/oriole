@@ -20,7 +20,7 @@ import {
 } from '../groups/handlers/group';
 
 import { handleGenerateInvite, handleCopyToClipboard } from '../groups/handlers/invite';
-import { handleCreateModule } from '../groups/handlers/module';
+import { handleCreateModule } from '../modules/handlers/module';
 import {
     handlePromoteUser,
   handleDemoteUser,
