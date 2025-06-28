@@ -5,8 +5,9 @@ import { createGroup,
         fetchGroup,
         leaveGroup,
         updateGroup,
-        deleteGroup
-} from '../../groups/api/group';
+        deleteGroup,
+        joinGroup
+} from '../../groups/api/group.jsx';
 
 export const handleCreateGroup = async (values, setConfirmLoading, form, setOpen) => {
   setConfirmLoading(true);
@@ -64,5 +65,21 @@ export const handleDeleteGroup = async (groupId) => {
     return true;
   } catch (error) {
     return fetchError(error, 'Не удалось удалить группу');
+  }
+};
+
+export const handleJoinGroup = async (invite_code, setResult, setError, setLoading) => {
+  try {
+    setLoading(true);
+    const response = await joinGroup(invite_code);
+    setResult(response);
+    return true;
+  } catch (err) {
+    const errorMessage = err.response?.data?.detail || 'Не удалось вступить в группу';
+    setError(errorMessage);
+    fetchError(err, errorMessage);
+    return false;
+  } finally {
+    setLoading(false);
   }
 };
