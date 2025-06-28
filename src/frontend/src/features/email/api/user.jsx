@@ -21,3 +21,8 @@ export const resetPassword = async (token, newPassword) => {
   );
   return response.data;
 };
+
+export const verify = async (token) => {
+  const response = await axios.get(`/api/verify/${token}`);
+  return response.data;
+};
