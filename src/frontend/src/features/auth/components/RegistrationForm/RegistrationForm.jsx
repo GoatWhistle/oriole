@@ -1,0 +1,143 @@
+import React, { useState } from 'react';
+import { Button, Form, Input, Typography, Divider, Row, Col } from 'antd';
+import { Link, useNavigate } from 'react-router-dom';
+
+import { handleRegister } from '../../handlers/auth';
+
+import styles from './RegistrationForm.module.css';
+
+const { Title } = Typography;
+
+const RegistrationForm = () => {
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+  const [form] = Form.useForm();
+
+  const onFinish = async (values) => {
+    await handleRegister(values, navigate, setLoading);
+  };
+
+  return (
+    <div className={styles.container}>
+      <div className={styles.formContainer}>
+        <Title level={2} className={styles.title}>Регистрация</Title>
+
+        <Form
+          form={form}
+          name="register"
+          onFinish={onFinish}
+          layout="vertical"
+          scrollToFirstError
+          className={styles.form}
+        >
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                label="Имя"
+                name="firstName"
+                rules={[
+                  { required: true, message: 'Пожалуйста, введите ваше имя!' },
+                  { max: 31, message: 'Имя не должно превышать 31 символ' }
+                ]}
+              >
+                <Input placeholder="Иван" size="large" />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                label="Фамилия"
+                name="lastName"
+                rules={[
+                  { required: true, message: 'Пожалуйста, введите вашу фамилию!' },
+                  { max: 31, message: 'Фамилия не должна превышать 31 символ' }
+                ]}
+              >
+                <Input placeholder="Иванов" size="large" />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Form.Item
+            label="Отчество"
+            name="middleName"
+            rules={[
+              { max: 63, message: 'Отчество не должно превышать 63 символа' }
+            ]}
+          >
+            <Input placeholder="Иванович (необязательно)" size="large" />
+          </Form.Item>
+
+          <Form.Item
+            label="Email"
+            name="email"
+            rules={[
+              { required: true, message: 'Пожалуйста, введите ваш email!' },
+              { type: 'email', message: 'Введите корректный email адрес' },
+              { max: 63, message: 'Email не должен превышать 63 символа' }
+            ]}
+          >
+            <Input placeholder="example@mail.com" size="large" />
+          </Form.Item>
+
+          <Form.Item
+            label="Пароль"
+            name="password"
+            rules={[
+              { required: true, message: 'Пожалуйста, введите пароль!' },
+              { min: 8, message: 'Пароль должен быть не менее 8 символов' },
+              { max: 1023, message: 'Пароль не должен превышать 1023 символа' },
+              { pattern: /[A-Z]/, message: 'Пароль должен содержать хотя бы одну заглавную букву' },
+              { pattern: /[0-9]/, message: 'Пароль должен содержать хотя бы одну цифру' }
+            ]}
+            hasFeedback
+          >
+            <Input.Password placeholder="Придумайте пароль" size="large" />
+          </Form.Item>
+
+          <Form.Item
+            label="Подтвердите пароль"
+            name="confirmPassword"
+            dependencies={['password']}
+            hasFeedback
+            rules={[
+              { required: true, message: 'Пожалуйста, подтвердите пароль!' },
+              ({ getFieldValue }) => ({
+                validator(_, value) {
+                  if (!value || getFieldValue('password') === value) {
+                    return Promise.resolve();
+                  }
+                  return Promise.reject(new Error('Пароли не совпадают!'));
+                },
+              }),
+            ]}
+          >
+            <Input.Password placeholder="Повторите пароль" size="large" />
+          </Form.Item>
+
+          <Form.Item>
+            <Button
+              type="primary"
+              htmlType="submit"
+              loading={loading}
+              block
+              size="large"
+              className={styles.submitButton}
+            >
+              Зарегистрироваться
+            </Button>
+          </Form.Item>
+
+          <Divider plain className={styles.divider}>Уже есть аккаунт?</Divider>
+
+          <Row justify="center" className={styles.loginRow}>
+            <Col>
+              <Link to="/login" className={styles.loginLink}>Войти в систему</Link>
+            </Col>
+          </Row>
+        </Form>
+      </div>
+    </div>
+  );
+};
+
+export default RegistrationForm;

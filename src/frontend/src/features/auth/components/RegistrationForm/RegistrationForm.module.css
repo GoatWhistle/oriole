@@ -1,0 +1,62 @@
+.container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background: #f0f2f5;
+}
+
+.formContainer {
+  background: #fff;
+  padding: 32px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  width: 450px;
+}
+
+.title {
+  text-align: center;
+  margin-bottom: 24px !important;
+  color: #1890ff;
+}
+
+.form {
+  width: 100%;
+}
+
+.submitButton {
+  background-color: #1890ff;
+  border-color: #1890ff;
+  height: 40px;
+}
+
+.submitButton:hover {
+  background-color: #40a9ff;
+  border-color: #40a9ff;
+}
+
+.divider {
+  color: rgba(0, 0, 0, 0.45);
+  font-size: 14px;
+}
+
+.loginRow {
+  margin-top: 16px;
+}
+
+.loginLink {
+  font-weight: 500;
+  color: #1890ff;
+}
+
+.loginLink:hover {
+  color: #40a9ff;
+}
+
+.ant-form-item-label label {
+  font-weight: 500;
+}
+
+.ant-input-affix-wrapper-lg {
+  padding: 8px 11px;
+}
