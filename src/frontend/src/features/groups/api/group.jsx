@@ -24,3 +24,8 @@ export const updateGroup = async (groupId, data) => {
 export const deleteGroup = async (groupId) => {
   await axios.delete(`/api/groups/${groupId}/`);
 };
+
+export const joinGroup = async (invite_code) => {
+  const response = await axios.post(`/api/groups/join/${invite_code}`);
+  return response.data;
+};
