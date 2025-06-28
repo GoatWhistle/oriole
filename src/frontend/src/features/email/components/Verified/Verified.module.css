@@ -1,0 +1,58 @@
+.container {
+  min-height: 100vh;
+}
+
+.loading {
+  text-align: center;
+  padding: 40px;
+  font-size: 18px;
+  color: #1890ff;
+}
+
+.successContainer,
+.errorContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: #f0f2f5;
+  padding: 20px;
+}
+
+.card,
+.errorCard {
+  background: #fff;
+  padding: 32px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 450px;
+  text-align: center;
+}
+
+.title,
+.errorTitle {
+  margin-bottom: 24px !important;
+  color: #1890ff;
+}
+
+.errorTitle {
+  color: #ff4d4f;
+}
+
+.errorMessage {
+  color: #ff4d4f;
+  margin-bottom: 24px;
+}
+
+.link {
+  display: inline-block;
+  margin-top: 16px;
+  color: #1890ff;
+  font-weight: 500;
+  transition: color 0.3s;
+}
+
+.link:hover {
+  color: #40a9ff;
+}
