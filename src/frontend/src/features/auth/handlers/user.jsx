@@ -1,4 +1,4 @@
-import { login, forgotPassword } from '../api/user.jsx';
+import { login, forgotPassword, register } from '../api/user.jsx';
 import { fetchError } from '../../api/error.jsx';
 
 export const handleLogin = async (values, navigate, setLoading) => {
@@ -29,6 +29,30 @@ export const handleForgotPassword = async (email, setLoading) => {
     return true;
   } catch (error) {
       fetchError(error, error.response.data?.detail || 'Ошибка сервера');
+  } finally {
+    setLoading(false);
+  }
+};
+
+export const handleRegister = async (values, navigate, setLoading) => {
+  try {
+    setLoading(true);
+    const userData = {
+      email: values.email,
+      password: values.password,
+      name: values.firstName,
+      surname: values.lastName,
+      patronymic: values.middleName || '',
+      is_active: true,
+      is_superuser: false,
+      is_verified: false
+    };
+
+    await register(userData);
+    navigate('/login');
+    return true;
+  } catch (error) {
+      fetchError(error, `Ошибка сервера: ${error.response.status}`);
   } finally {
     setLoading(false);
   }
