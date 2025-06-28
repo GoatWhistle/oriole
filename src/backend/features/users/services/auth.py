@@ -14,24 +14,32 @@ from fastapi.security import (
 from jwt.exceptions import InvalidTokenError
 from pydantic.v1 import EmailStr
 from pytz import utc
-from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped
 
 from core.config import settings
 from database import db_helper
-from features.users.models import User, UserProfile
 from features.users.schemas import (
     UserAuth,
     RegisterUserInput,
-    RegisterUserInternal,
     UserAuthRead,
     UserLogin,
     UserRead,
     UserProfileRead,
     TokenResponseForOAuth2,
 )
+
+from features.users.crud.user import (
+    get_user_by_email,
+    create_user,
+)
+from features.users.crud.user_profile import (
+    create_user_profile,
+    get_user_profile_by_id,
+)
+
+
 from core.celery.email_tasks import send_confirmation_email
 from features.users.validators import validate_activity_and_verification
 from utils.JWT import (
@@ -41,7 +49,6 @@ from utils.JWT import (
     create_email_confirmation_token,
     create_password_confirmation_token,
     decode_jwt,
-    hash_password,
 )
 
 
@@ -132,16 +139,7 @@ async def get_current_auth_user(
 ) -> UserAuth:
     email = payload.get("email")
 
-    if not email:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token invalid (email not found in payload)",
-        )
-
-    statement = select(User).filter_by(email=email)
-    user_from_db = await session.scalars(statement)
-    user_from_db = user_from_db.first()
-
+    user_from_db = await get_user_by_email(session=session, email=email)
     await validate_activity_and_verification(user_from_db=user_from_db)
 
     return UserAuthRead.model_validate(user_from_db)
@@ -176,9 +174,7 @@ async def refresh_tokens(
                 detail="Invalid refresh token",
             )
 
-        statement = select(User).filter_by(email=user_email)
-        user_from_db = await session.scalars(statement)
-        user_from_db = user_from_db.first()
+        user_from_db = await get_user_by_email(session=session, email=user_email)
 
         await validate_activity_and_verification(user_from_db=user_from_db)
 
@@ -230,27 +226,11 @@ async def register_user(
         )
 
     try:
-        internal_data = RegisterUserInternal(**user_data.model_dump())
-        internal_data.is_active = True
-        internal_data.is_verified = False
+        user = await create_user(session=session, user_data=user_data)
 
-        user = User(
-            email=user_data.email,
-            hashed_password=hash_password(user_data.password),
-            is_active=internal_data.is_active,
-            is_verified=internal_data.is_verified,
+        await create_user_profile(
+            session=session, user_id=user.id, profile_data=user_data
         )
-        session.add(user)
-        await session.flush()
-
-        profile = UserProfile(
-            user_id=user.id,
-            name=user_data.name,
-            surname=user_data.surname,
-            patronymic=user_data.patronymic,
-        )
-        session.add(profile)
-        await session.commit()
 
         token = create_email_confirmation_token(
             user_id=user.id,
@@ -283,9 +263,7 @@ async def validate_registered_user(
     email = user_data.email
     password = user_data.password
 
-    statement = select(User).filter_by(email=email)
-    user_from_db = await session.scalars(statement)
-    user_from_db = user_from_db.first()
+    user_from_db = await get_user_by_email(session=session, email=email)
 
     await validate_activity_and_verification(user_from_db=user_from_db)
 
@@ -306,9 +284,7 @@ async def login_user(
     response: Response,
 ) -> TokenResponseForOAuth2:
 
-    statement = select(User).filter_by(email=user_data.email)
-    user_by_email = await session.scalars(statement)
-    user_by_email = user_by_email.first()
+    user_by_email = await get_user_by_email(session=session, email=user_data.email)
 
     await validate_activity_and_verification(user_from_db=user_by_email)
 
@@ -380,15 +356,11 @@ async def check_auth(
             detail="Token invalid (email not found in payload)",
         )
 
-    statement = select(User).filter_by(email=email)
-    user_from_db = await session.scalars(statement)
-    user_from_db = user_from_db.first()
+    user_from_db = await get_user_by_email(session=session, email=email)
 
     await validate_activity_and_verification(user_from_db=user_from_db)
 
-    statement = select(UserProfile).filter_by(user_id=user_id)
-    profile_from_db = await session.scalars(statement)
-    profile_from_db = profile_from_db.first()
+    profile_from_db = await get_user_profile_by_id(session=session, profile_id=user_id)
 
     if not profile_from_db:
         raise HTTPException(
@@ -440,9 +412,7 @@ async def forgot_password(
             detail="Please enter an email",
         )
 
-    statement = select(User).filter_by(email=email)
-    user_from_db = await session.scalars(statement)
-    user_from_db = user_from_db.first()
+    user_from_db = await get_user_by_email(session=session, email=email)
 
     if not user_from_db:
         raise HTTPException(
