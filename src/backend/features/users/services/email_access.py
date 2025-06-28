@@ -36,7 +36,7 @@ async def send_confirmation_email_base(
         MAIL_STARTTLS=True,
     )
 
-    base_url = f"{request.url.scheme}://{settings.run.host}:{settings.run.port}"
+    base_url = f"{request.url.scheme}://{settings.run.host}:80"
     base_url = base_url.rstrip("/")
 
     address = getattr(settings.api, address_type, "")
