@@ -1,0 +1,84 @@
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.card {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.title {
+  margin-bottom: 0 !important;
+}
+
+.loadingContainer {
+  display: flex;
+  justify-content: center;
+  padding: 50px;
+}
+
+.errorContainer {
+  padding: 24px;
+  text-align: center;
+  font-size: 16px;
+  color: #ff4d4f;
+}
+
+.field {
+  margin-bottom: 24px;
+  font-size: 16px;
+}
+
+.fieldLabel {
+  font-size: 16px;
+}
+
+.fieldValue {
+  margin-left: 8px;
+}
+
+.emailContainer {
+  display: flex;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.resetPasswordButton {
+  padding: 0;
+  margin-left: auto;
+}
+
+.profileGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+.profileField {
+  margin-bottom: 8px;
+}
+
+.profileLabel {
+  display: block;
+  margin-bottom: 8px;
+}
+
+.formActions {
+  display: flex;
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.actions {
+  margin-top: 32px;
+  text-align: right;
+}
+
+.deleteButton {
+  margin-left: 16px;
+}
+
+.logoutButton {
+  margin-left: 16px;
+}
