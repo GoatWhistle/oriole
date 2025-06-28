@@ -1,3 +1,4 @@
+<!--suppress HtmlDeprecatedAttribute -->
 <div align="center">
   <h1>
     <img src="https://github.com/GoatWhistle/oriole/blob/main/src/frontend/src/components/oriole-icon.png" alt="Oriole Logo" width="80" style="vertical-align: middle; margin-right: 20px;"/>
@@ -17,17 +18,17 @@ technical stack.
 
 **Oriole** bridges mentors and learners through:
 
-✔ **Group Management** - Create and organize learning groups with custom roles  
-✔ **Modular Content** - Build structured learning modules with sequenced tasks  
-✔ **Task Assignment** - Distribute exercises and projects to participants  
-✔ **Participant Invitation** - Easy member onboarding with referral links  
-✔ **Solution Submission** - Complete tasks with multi-format responses  
+✔ **Group Management** - Create and organize learning groups with custom roles
+✔ **Modular Content** - Build structured learning modules with sequenced tasks
+✔ **Task Assignment** - Distribute exercises and projects to participants
+✔ **Participant Invitation** - Easy member onboarding with referral links
+✔ **Solution Submission** - Complete tasks with multi-format responses
 ✔ **Moderation Tools** - Review and evaluate submitted work
 
 ### 🚀 Coming Soon:
 
-• Automated task verification  
-• Peer review system  
+• Automated task verification
+• Peer review system
 • Integration with e-learning standards (SCORM/xAPI)
 
 #
@@ -88,29 +89,11 @@ technical stack.
 |                                                                                                                                                                 |                                                     |
 |:---------------------------------------------------------------------------------------------------------------------------------------------------------------:|:---------------------------------------------------:|
 | <a href="https://github.com/mikhailkhorokhorin" target="_blank"><img src="https://github.com/mikhailkhorokhorin.png" width="80" style="border-radius: 50%"></a> | **Mikhail Khorokhorin**<br>*Teamlead & Backend*<br> |
-
-</div>
-
-<div align="center">
-
-|                                                                                                                                                         |                                     |
-|:-------------------------------------------------------------------------------------------------------------------------------------------------------:|:-----------------------------------:|
-| <a href="https://github.com/timofeipupykin" target="_blank"><img src="https://github.com/timofeipupykin.png" width="80" style="border-radius: 50%"></a> | **Timofey Pupykin**<br>*DevOps*<br> |
-
-</div>
-
-<div align="center">
-
-|                                                                                                                                                     |                                               |
-|:---------------------------------------------------------------------------------------------------------------------------------------------------:|:---------------------------------------------:|
-| <a href="https://github.com/AI-AVENGER-S" target="_blank"><img src="https://github.com/AI-AVENGER-S.png" width="80" style="border-radius: 50%"></a> | **Artem Saveliev**<br>*Backend Developer*<br> |
-
-</div>
-
-<div align="center">
-
-|                                                                                                                                                     |                                                  |
-|:---------------------------------------------------------------------------------------------------------------------------------------------------:|:------------------------------------------------:|
-| <a href="https://github.com/amemeansrain" target="_blank"><img src="https://github.com/amemeansrain.png" width="80" style="border-radius: 50%"></a> | **Robert Savitskas**<br>*Frontend Developer*<br> |
+|     <a href="https://github.com/timofeipupykin" target="_blank"><img src="https://github.com/timofeipupykin.png" width="80" style="border-radius: 50%"></a>     |         **Timofey Pupykin**<br>*DevOps*<br>         |
+|       <a href="https://github.com/amemeansrain" target="_blank"><img src="https://github.com/amemeansrain.png" width="80" style="border-radius: 50%"></a>       |  **Robert Savitskas**<br>*Frontend Developer*<br>   |
+|       <a href="https://github.com/AI-AVENGER-S" target="_blank"><img src="https://github.com/AI-AVENGER-S.png" width="80" style="border-radius: 50%"></a>       |    **Artem Saveliev**<br>*Backend Developer*<br>    |
+|         <a href="https://github.com/BazhenovDM" target="_blank"><img src="https://github.com/BazhenovDM.png" width="80" style="border-radius: 50%"></a>         |   **Dmitry Bazhenov**<br>*Backend Developer*<br>    |
+|           <a href="https://github.com/ivanGMAI" target="_blank"><img src="https://github.com/ivanGMAI.png" width="80" style="border-radius: 50%"></a>           |    **Ivan Gerasimov**<br>*Backend Developer*<br>    |
+|         <a href="https://github.com/curboturbo" target="_blank"><img src="https://github.com/curboturbo.png" width="80" style="border-radius: 50%"></a>         |    **Artem Kalinin**<br>*Backend Developer*<br>     |
 
 </div>

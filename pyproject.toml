@@ -3,10 +3,13 @@ name = "oriole"
 version = "0.1.2"
 description = "Oriole is a mentor-learner platform that simplifies education beyond formal systems"
 authors = [
-    { name = "Timofey Pupykin", email = "pupykint@gmail.com" },
-    { name = "Artem Saveliev", email = "whard8y@gmail.com" },
     { name = "Mikhail Khorokhorin", email = "mikhailkhorokhorin@gmail.com" },
-    { name = "Robert Savitskas", email = "savrobartrobsav@gmail.com" }
+    { name = "Timofey Pupykin", email = "pupykint@gmail.com" },
+    { name = "Robert Savitskas", email = "savrobartrobsav@gmail.com" },
+    { name = "Artem Saveliev", email = "whard8y@gmail.com" },
+    { name = "Dmitry Bazhenov", email = "BazhenovStudy@yandex.ru" },
+    { name = "Ivan Gerasimov", email = "ivan.gerasimou@yandex.ru" },
+    { name = "Artem Kalinin", email = "arrdin32@gmail.com" },
 ]
 readme = "README.md"
 requires-python = ">=3.13,<4.0"
