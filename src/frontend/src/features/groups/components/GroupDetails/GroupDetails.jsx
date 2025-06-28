@@ -2,14 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, Divider, Typography, message } from 'antd';
 
-import { GroupHeader } from '../groups/components/GroupHeader';
-import { GroupMembers } from '../groups/components/GroupMembers';
-import { GroupModules } from '../groups/components/GroupModules';
+import { GroupHeader } from '../GroupHeader.jsx';
+import { GroupMembers } from '../GroupMembers.jsx';
+import { GroupModules } from '../GroupModules.jsx';
 
-import { InviteSettingsModal } from '../groups/components/modals/InviteSettingsModal';
-import { InviteLinkModal } from '../groups/components/modals/InviteLinkModal';
-import { EditGroupModal } from '../groups/components/modals/EditGroupModal';
-import { CreateModuleModal } from '../groups/components/modals/CreateModuleModal';
+import { InviteSettingsModal } from '../modals/InviteSettingsModal.jsx';
+import { InviteLinkModal } from '../modals/InviteLinkModal.jsx';
+import { EditGroupModal } from '../modals/EditGroupModal.jsx';
+import { CreateModuleModal } from '../modals/CreateModuleModal.jsx';
 
 
 import {
@@ -17,15 +17,15 @@ import {
   handleLeaveGroup,
   handleUpdateGroup,
   handleDeleteGroup
-} from '../groups/handlers/group';
+} from '../../handlers/group.jsx';
 
-import { handleGenerateInvite, handleCopyToClipboard } from '../groups/handlers/invite';
-import { handleCreateModule } from '../modules/handlers/module';
+import { handleGenerateInvite, handleCopyToClipboard } from '../../handlers/invite.jsx';
 import {
     handlePromoteUser,
   handleDemoteUser,
   handleKickUser
-} from '../groups/handlers/user';
+} from '../../handlers/user.jsx';
+import { handleCreateModule } from '../../../modules/handlers/module.jsx';
 
 
 const { Title } = Typography;
