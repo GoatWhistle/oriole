@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Button, Form, Input, Typography, Divider, Row, Col } from 'antd';
 import { Link, useNavigate } from 'react-router-dom';
 
-import { handleRegister } from '../../handlers/auth';
+import { handleRegister } from '../../handlers/user.jsx';
 
 import styles from './RegistrationForm.module.css';
 
