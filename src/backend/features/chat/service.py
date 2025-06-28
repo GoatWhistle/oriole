@@ -22,7 +22,9 @@ async def handle_websocket(websocket: WebSocket,
             {
                 "user_id": msg.sender_id,
                 "message": msg.text,
-                "timestamp": msg.timestamp.isoformat()
+                "timestamp": msg.timestamp.isoformat(),
+                "message_id": msg.id,
+                "reply_to": msg.reply_to,
             }
             for msg in messages
         ]
@@ -37,12 +39,14 @@ async def handle_websocket(websocket: WebSocket,
                     continue
 
                 timestamp = datetime.now(timezone.utc)
-
+                reply_to = data.get("reply_to")
+                reply_to_text = data.get("reply_to_text")
                 message = Message(
                     text=text,
                     group_id=group_id,
                     sender_id=user_id,
                     timestamp=timestamp,
+                    reply_to=reply_to,
                 )
                 session.add(message)
                 await session.commit()
@@ -51,7 +55,9 @@ async def handle_websocket(websocket: WebSocket,
                     "user_id": user_id,
                     "message": text,
                     "timestamp": timestamp.isoformat(),
-                    "connectionId": data.get("connectionId")
+                    "connectionId": data.get("connectionId"),
+                    "message_id": message.id,
+                    "reply_to": reply_to,
                 }
                 await connection_manager.broadcast(group_id, json.dumps(msg))
 
@@ -60,6 +66,7 @@ async def handle_websocket(websocket: WebSocket,
 
     except WebSocketDisconnect:
         await connection_manager.disconnect(group_id, websocket)
+
 
 """
 
