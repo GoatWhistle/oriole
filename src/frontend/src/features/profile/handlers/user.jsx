@@ -5,7 +5,7 @@ import { showUserProfile,
          deleteUserAccount
 } from '../api/user.jsx';
 
-import { fetchError } from '../../api/error'
+import { fetchError } from '../../api/error.jsx'
 
 
 export const handleShowUserProfile = async (setUser, setLoading) => {
