@@ -1,6 +1,6 @@
 import React from 'react';
 import Header from "/src/features/components/Header/Header.jsx";
-import UserProfile from "/src/features/components/UserProfile.jsx";
+import UserProfile from "/src/features/auth/components/UserProfile/UserProfile.jsx";
 
 export default function Profile() {
   return <div>
