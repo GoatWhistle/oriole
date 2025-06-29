@@ -20,8 +20,8 @@ def test_build_task_read_without_user_reply(sample_task, sample_module):
     assert result.id == sample_task.id
     assert result.title == sample_task.title
     assert result.is_correct is False
-    assert result.user_answer == ""
-    assert result.user_attempts == 0
+    assert not hasattr(result, "user_answer")
+    assert not hasattr(result, "user_attempts")
 
 
 def test_build_task_read_with_user_reply(sample_task, sample_module, sample_user_reply):

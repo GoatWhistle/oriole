@@ -6,4 +6,4 @@ class LinkRead(BaseModel):
 
 
 class LinkJoinRead(BaseModel):
-    group_id: str
+    group_id: int

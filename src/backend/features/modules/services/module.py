@@ -52,7 +52,7 @@ async def get_module_by_id(
     session: AsyncSession,
     user_id: int,
     module_id: int,
-    include: list[str],
+    include: list[str] | None = None,
 ) -> ModuleRead:
     await check_user_exists(session, user_id)
 
@@ -79,7 +79,7 @@ async def get_modules_in_group(
     session: AsyncSession,
     user_id: int,
     group_id: int,
-    include: list[str] | None,
+    include: list[str] | None = None,
     is_active: bool | None = None,
 ) -> list[ModuleRead]:
     await check_user_exists(session, user_id)
@@ -108,7 +108,7 @@ async def get_modules_in_group(
 async def get_user_modules(
     session: AsyncSession,
     user_id: int,
-    include: list[str],
+    include: list[str] | None = None,
     is_active: bool | None = None,
 ) -> list[ModuleRead]:
     await check_user_exists(session, user_id)

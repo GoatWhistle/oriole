@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, status, Query
+from fastapi import APIRouter, Depends, status, Query, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from database import db_helper
@@ -17,6 +17,7 @@ router = APIRouter()
 )
 async def get_modules_in_group(
     group_id: int,
+    request: Request,
     page: int | None = None,
     per_page: int | None = None,
     is_active: bool | None = None,
@@ -35,6 +36,6 @@ async def get_modules_in_group(
         data=data,
         page=page,
         per_page=per_page,
-        base_url=f"http://127.0.0.1:8000/api/groups/{group_id}/modules/?is_active={is_active if is_active else False}",
+        base_url=f"{str(request.base_url).rstrip("/")}/api/groups/{group_id}/modules/?is_active={is_active if is_active else False}",
         include=include,
     )

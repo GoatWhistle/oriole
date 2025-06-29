@@ -25,11 +25,21 @@ def pagination_build(
     base_url = base_url + "?" if base_url[-1] == "/" else base_url + "&"
     next_url = (
         f"{base_url}page={page + 1}&per_page={per_page}&{inc}"
-        if page < total_pages
-        else None
+        if page < total_pages and inc
+        else (
+            f"{base_url}page={page + 1}&per_page={per_page}"
+            if page < total_pages
+            else None
+        )
     )
     prev_url = (
-        f"{base_url}page={page - 1}&per_page={per_page}&{inc}" if page > 1 else None
+        f"{base_url}page={page - 1}&per_page={per_page}&{inc}"
+        if page < total_pages and inc
+        else (
+            f"{base_url}page={page - 1}&per_page={per_page}"
+            if page < total_pages
+            else None
+        )
     )
     return Pagination(
         current_page=page,

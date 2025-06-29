@@ -48,7 +48,7 @@ async def get_group_by_id(
     session: AsyncSession,
     user_id: int,
     group_id: int,
-    include: list[str] | None,
+    include: list[str] | None = None,
 ) -> (
     GroupRead
     | GroupReadWithoutModules
@@ -102,7 +102,7 @@ async def get_group_by_id(
 async def get_user_groups(
     session: AsyncSession,
     user_id: int,
-    include: list[str] | None,
+    include: list[str] | None = None,
 ) -> list[GroupRead]:
     await check_user_exists(session, user_id)
 

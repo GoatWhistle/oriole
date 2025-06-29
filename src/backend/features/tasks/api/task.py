@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, status, Query
+from fastapi import APIRouter, Depends, status, Query, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from database import db_helper
@@ -50,6 +50,7 @@ async def get_task_by_id(
     status_code=status.HTTP_200_OK,
 )
 async def get_user_tasks(
+    request: Request,
     is_active: bool | None = None,
     page: int | None = None,
     per_page: int | None = None,
@@ -62,7 +63,7 @@ async def get_user_tasks(
         data=data,
         page=page,
         per_page=per_page,
-        base_url=f"http://127.0.0.1:8000/api/tasks/?is_active={is_active if is_active else False}",
+        base_url=f"{str(request.base_url).rstrip("/")}/api/tasks/?is_active={is_active if is_active else False}",
         include=include,
     )
 
