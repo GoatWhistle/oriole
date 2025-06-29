@@ -1,6 +1,7 @@
 from typing import List, Dict
 from starlette.websockets import WebSocket
 
+
 class ConnectionManager:
     def __init__(self):
         self.group_connections: Dict[int, List[tuple[WebSocket, int]]] = {}
@@ -11,7 +12,9 @@ class ConnectionManager:
 
     async def disconnect(self, group_id: int, websocket: WebSocket):
         conns = self.group_connections.get(group_id, [])
-        self.group_connections[group_id] = [(ws, uid) for ws, uid in conns if ws != websocket]
+        self.group_connections[group_id] = [
+            (ws, uid) for ws, uid in conns if ws != websocket
+        ]
 
     async def broadcast(self, group_id: int, message: str):
         for ws, _ in self.group_connections.get(group_id, []):
@@ -19,5 +22,6 @@ class ConnectionManager:
 
     def get_connected_user_ids(self, group_id: int) -> List[int]:
         return [uid for _, uid in self.group_connections.get(group_id, [])]
+
 
 connection_manager = ConnectionManager()

@@ -1,153 +1,242 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8" />
-  <title>Oriole Чат</title>
-  <style>
-    *, *::before, *::after {
-      box-sizing: border-box;
-    }
-    html, body {
-      margin: 0; padding: 0; height: 100%;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: #f5f7fa;
-      color: #333;
-    }
+    <meta charset="UTF-8"/>
+    <title>Oriole Чат</title>
+    <style>
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
 
-    body {
-      display: flex;
-      flex-direction: column;
-      height: 100vh;
-      overflow: hidden;
-    }
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fa;
+            color: #333;
+        }
 
-    header {
-      background: #0078d4;
-      color: white;
-      padding: 1.2rem 2rem;
-      font-size: 1.8rem;
-      font-weight: 700;
-      text-align: center;
-      box-shadow: 0 3px 6px rgba(0,0,0,0.1);
-      user-select: none;
-    }
+        body {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
 
-    #status {
-      text-align: center;
-      background: #e1eaff;
-      color: #004a99;
-      font-size: 0.9rem;
-      padding: 0.5rem 0;
-      border-bottom: 1px solid #c3d3f5;
-      user-select: none;
-    }
+        header {
+            background: #0078d4;
+            color: white;
+            padding: 1.2rem 2rem;
+            font-size: 1.8rem;
+            font-weight: 700;
+            text-align: center;
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+        }
 
-    .chat-container {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      padding: 1rem 1.5rem;
-      overflow: hidden;
-      background: white;
-      box-shadow: inset 0 0 10px #d4d9df;
-      border-radius: 0 0 10px 10px;
-      max-width: 700px;
-      margin: 0 auto;
-    }
+        #status {
+            text-align: center;
+            background: #e1eaff;
+            color: #004a99;
+            font-size: 0.9rem;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #c3d3f5;
+        }
 
-    #messages {
-      flex: 1;
-      overflow-y: auto;
-      padding-right: 0.5rem;
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-    }
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 1rem 1.5rem;
+            overflow: hidden;
+            background: white;
+            max-width: 700px;
+            margin: 0 auto;
+        }
 
-    .message {
-      max-width: 85%;
-      padding: 14px 18px;
-      border-radius: 20px;
-      font-size: 1rem;
-      line-height: 1.5;
-      word-wrap: break-word;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-      user-select: text;
-      white-space: pre-wrap;
-      margin-bottom: 14px;
-      animation: fadeInUp 0.25s forwards;
-      display: flex;
-      flex-direction: column;
-    }
+        #messages {
+            flex: 1;
+            overflow-y: auto;
+            padding-right: 0.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
 
-    .message.sent {
-      align-self: flex-end;
-      background: #0078d4;
-      color: white;
-      border-bottom-right-radius: 4px;
-    }
+        .message {
+            max-width: 85%;
+            padding: 14px 18px;
+            border-radius: 20px;
+            font-size: 1rem;
+            line-height: 1.5;
+            word-wrap: break-word;
+            white-space: pre-wrap;
+            animation: fadeInUp 0.25s forwards;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
 
-    .message.received {
-      align-self: flex-start;
-      background: #f1f3f5;
-      color: #333;
-      border-bottom-left-radius: 4px;
-    }
+        .message.sent {
+            align-self: flex-end;
+            background: #0078d4;
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
 
-    .message .user-id {
-      font-size: 0.8rem;
-      color: #999;
-      margin-bottom: 4px;
-      user-select: none;
-    }
+        .message.received {
+            align-self: flex-start;
+            background: #f1f3f5;
+            color: #333;
+            border-bottom-left-radius: 4px;
+        }
 
-    .message .timestamp {
-      display: block;
-      margin-top: 6px;
-      font-size: 0.85rem;
-      color: #ffcc00;
-      font-family: monospace;
-      user-select: none;
-      text-align: right;
-    }
+        .message .user-id {
+            position: absolute;
+            top: 6px;
+            right: 14px;
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.7);
+            font-weight: 700;
+            user-select: none;
+        }
 
-    footer {
-      margin-top: 1rem;
-      display: flex;
-      gap: 0.75rem;
-    }
+        .message.received .user-id {
+            color: rgba(0, 0, 0, 0.5);
+        }
 
-    input[type="text"] {
-      flex: 1;
-      padding: 0.85rem 1rem;
-      font-size: 1rem;
-      border: 2px solid #0078d4;
-      border-radius: 30px;
-      background: white;
-    }
+        .reply-to-block {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #0078d4;
+            cursor: pointer;
+            margin-bottom: 6px;
+            user-select: none;
+            text-decoration: underline;
+        }
 
-    button {
-      background-color: #0078d4;
-      border: none;
-      border-radius: 30px;
-      color: white;
-      padding: 0 24px;
-      font-size: 1.1rem;
-      font-weight: 700;
-      cursor: pointer;
-    }
+        .reply-to-block > div {
+            margin-top: 4px;
+            padding: 6px 10px;
+            border-radius: 10px;
+            font-weight: 400;
+            user-select: text;
+        }
 
-    @keyframes fadeInUp {
-      from {
-        opacity: 0;
-        transform: translateY(12px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-  </style>
+        /* Цвет фона для reply preview в sent (свои) */
+        .message.sent .reply-to-block > div {
+            background-color: rgba(255 255 255 / 0.3);
+            color: white;
+        }
+
+        /* Цвет фона для reply preview в received (чужие) */
+        .message.received .reply-to-block > div {
+            background-color: #fff8cc;
+            color: #333;
+        }
+
+        .bottom-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 6px;
+        }
+
+        .reply-btn {
+            font-size: 0.8rem;
+            padding: 3px 8px;
+            border-radius: 14px;
+            background: #ffcc00;
+            border: none;
+            cursor: pointer;
+            color: #000;
+            transition: background-color 0.3s ease, color 0.3s ease;
+            user-select: none;
+        }
+
+        .reply-btn.active {
+            background-color: #ff9900;
+            color: white;
+            font-weight: 700;
+        }
+
+        .timestamp {
+            font-size: 0.85rem;
+            color: #ffcc00;
+            user-select: none;
+        }
+
+        footer {
+            margin-top: 1rem;
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 0.85rem 1rem;
+            font-size: 1rem;
+            border: 2px solid #0078d4;
+            border-radius: 30px;
+        }
+
+        button.send-btn {
+            background-color: #0078d4;
+            border: none;
+            border-radius: 30px;
+            color: white;
+            padding: 0 24px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .reply-preview {
+            padding: 0.5rem 1rem;
+            background: #fff8cc;
+            color: #333;
+            border-left: 3px solid #ffcc00;
+            margin-bottom: 0.5rem;
+            position: relative;
+        }
+
+        .reply-preview span {
+            font-weight: bold;
+        }
+
+        .reply-preview .cancel-reply {
+            position: absolute;
+            right: 8px;
+            top: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            user-select: none;
+        }
+
+        .message.highlighted {
+            animation: flash 1s;
+        }
+
+        @keyframes flash {
+            from {
+                background-color: yellow;
+            }
+            to {
+                background-color: inherit;
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(12px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
 </head>
 <body>
 
@@ -155,120 +244,198 @@
 <div id="status">🔌 Отключено</div>
 
 <div class="chat-container">
-  <div id="messages" aria-live="polite" aria-relevant="additions"></div>
+    <div id="messages"></div>
 
-  <footer>
-    <input type="text" id="input" placeholder="Введите сообщение..." autocomplete="off" />
-    <button id="sendBtn">➤</button>
-  </footer>
+    <div id="replyPreview" class="reply-preview" style="display:none;">
+        <span>Ответ на сообщение: <b id="replyToText"></b></span>
+        <span class="cancel-reply" onclick="cancelReply()">✖</span>
+    </div>
+
+    <footer>
+        <input type="text" id="input" placeholder="Введите сообщение..." autocomplete="off"/>
+        <button class="send-btn" id="sendBtn">➤</button>
+    </footer>
 </div>
 
 <script>
-  const params = new URLSearchParams(window.location.search);
-  const groupId = params.get("group_id");
-  const userId = params.get("user_id");
-  const connectionId = crypto.randomUUID();
-  let socket;
+    const params = new URLSearchParams(window.location.search);
+    const groupId = params.get("group_id");
+    const userId = params.get("user_id");
+    const connectionId = crypto.randomUUID();
+    let socket;
+    let replyToId = null;
+    let replyToUserId = null;
+    let replyToText = "";
 
-  function formatTimestamp(ts) {
-    if (!ts) return "";
-    const d = new Date(ts);
-    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  }
-
-  function addMessage(msg, cssClass) {
-    const messages = document.getElementById("messages");
-    const div = document.createElement("div");
-    div.className = `message ${cssClass}`;
-
-    const userIdSpan = document.createElement("div");
-    userIdSpan.className = "user-id";
-    userIdSpan.textContent = `Пользователь ${msg.user_id}`;
-    div.appendChild(userIdSpan);
-
-    const textSpan = document.createElement("div");
-    textSpan.textContent = msg.message;
-    div.appendChild(textSpan);
-
-    if (msg.timestamp) {
-      const timeSpan = document.createElement("span");
-      timeSpan.className = "timestamp";
-      timeSpan.textContent = formatTimestamp(msg.timestamp);
-      div.appendChild(timeSpan);
+    function formatTimestamp(ts) {
+        if (!ts) return "";
+        return new Date(ts).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
     }
 
-    messages.appendChild(div);
-    messages.scrollTop = messages.scrollHeight;
-  }
-
-  function updateStatus(text) {
-    document.getElementById("status").textContent = text;
-  }
-
-  function connect() {
-    if (!groupId || !userId) {
-      updateStatus("❌ Не указан group_id или user_id");
-      return;
-    }
-
-    socket = new WebSocket(`ws://127.0.0.1:8000/api/websocket/?group_id=${groupId}&user_id=${userId}`);
-
-    socket.onopen = () => {
-      updateStatus(`🟢 Подключено как пользователь ${userId} в группе ${groupId}`);
-      addMessage({ user_id: 0, message: "✅ Соединение установлено", timestamp: null }, "received");
-    };
-
-    socket.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data);
-        if (data.type === "history") {
-          data.messages.forEach(msg => {
-            const cssClass = msg.user_id == userId ? "sent" : "received";
-            addMessage(msg, cssClass);
-          });
-        } else {
-          const cssClass = data.user_id == userId ? "sent" : "received";
-          addMessage(data, cssClass);
+    function scrollToMessage(messageId) {
+        const target = document.getElementById("msg-" + messageId);
+        if (target) {
+            target.scrollIntoView({behavior: "smooth", block: "center"});
+            target.classList.add("highlighted");
+            setTimeout(() => target.classList.remove("highlighted"), 1000);
         }
-      } catch {
-        addMessage({ user_id: 0, message: "⚠️ Ошибка при получении сообщения", timestamp: null }, "received");
-      }
-    };
-
-    socket.onclose = () => {
-      updateStatus("🔴 Соединение закрыто");
-      addMessage({ user_id: 0, message: "❌ Соединение потеряно", timestamp: null }, "received");
-    };
-
-    socket.onerror = () => {
-      addMessage({ user_id: 0, message: "⚠️ Ошибка соединения", timestamp: null }, "received");
-    };
-  }
-
-  function sendMessage() {
-    const input = document.getElementById("input");
-    const text = input.value.trim();
-    if (!text || !socket || socket.readyState !== WebSocket.OPEN) return;
-
-    const message = {
-      user_id: userId,
-      connectionId,
-      message: text
-    };
-
-    socket.send(JSON.stringify(message));
-    input.value = "";
-  }
-
-  document.getElementById("sendBtn").addEventListener("click", sendMessage);
-  document.getElementById("input").addEventListener("keydown", function (e) {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      sendMessage();
     }
-  });
 
-  window.onload = connect;
+    function addMessage(msg, cssClass) {
+        const messages = document.getElementById("messages");
+        const div = document.createElement("div");
+        div.className = `message ${cssClass}`;
+        div.id = "msg-" + msg.message_id;
+
+        // User ID справа сверху
+        const userIdSpan = document.createElement("div");
+        userIdSpan.className = "user-id";
+        userIdSpan.textContent = msg.user_id;
+        div.appendChild(userIdSpan);
+
+        // Блок "ОТВЕТ ПОЛЬЗОВАТЕЛЮ Y" с текстом reply (выделенный)
+        if (msg.reply_to && msg.reply_to_text) {
+            const replyBlock = document.createElement("div");
+            replyBlock.className = "reply-to-block";
+            replyBlock.title = "Перейти к сообщению";
+            replyBlock.style.cursor = "pointer";
+
+            // Текст в блоке, с обрезкой, если длинный
+            replyBlock.textContent = `ОТВЕТ ПОЛЬЗОВАТЕЛЮ ${msg.reply_to}:`;
+            const replyText = document.createElement("div");
+            replyText.textContent = msg.reply_to_text.length > 100 ? msg.reply_to_text.slice(0, 97) + "..." : msg.reply_to_text;
+
+            replyBlock.appendChild(replyText);
+
+            replyBlock.onclick = (e) => {
+                e.stopPropagation();
+                scrollToMessage(msg.reply_to);
+            };
+
+            div.appendChild(replyBlock);
+        }
+
+        // Текст сообщения
+        const textSpan = document.createElement("div");
+        textSpan.textContent = msg.message;
+        div.appendChild(textSpan);
+
+        // Нижний ряд: кнопка "Ответить" + время
+        const bottomRow = document.createElement("div");
+        bottomRow.className = "bottom-row";
+
+        const replyBtn = document.createElement("button");
+        replyBtn.className = "reply-btn";
+        replyBtn.textContent = "Ответить";
+        replyBtn.onclick = (e) => {
+            e.stopPropagation();
+
+            // Снять класс active у всех кнопок "Ответить"
+            document.querySelectorAll('.reply-btn.active').forEach(btn => btn.classList.remove('active'));
+
+            // Добавить класс active текущей кнопке
+            replyBtn.classList.add('active');
+
+            replyToId = msg.message_id;
+            replyToUserId = msg.user_id;
+            replyToText = msg.message;
+
+            const preview = document.getElementById("replyPreview");
+            preview.style.display = "block";
+            document.getElementById("replyToText").textContent = replyToText;
+        };
+
+        const timeSpan = document.createElement("div");
+        timeSpan.className = "timestamp";
+        timeSpan.textContent = formatTimestamp(msg.timestamp);
+
+        bottomRow.appendChild(replyBtn);
+        bottomRow.appendChild(timeSpan);
+        div.appendChild(bottomRow);
+
+        messages.appendChild(div);
+        messages.scrollTop = messages.scrollHeight;
+    }
+
+    function cancelReply() {
+        replyToId = null;
+        replyToUserId = null;
+        replyToText = "";
+        document.getElementById("replyPreview").style.display = "none";
+
+        // Убрать класс active у всех кнопок "Ответить"
+        document.querySelectorAll('.reply-btn.active').forEach(btn => btn.classList.remove('active'));
+    }
+
+    function updateStatus(text) {
+        document.getElementById("status").textContent = text;
+    }
+
+    function connect() {
+        if (!groupId || !userId) {
+            updateStatus("❌ Не указан group_id или user_id");
+            return;
+        }
+
+        socket = new WebSocket(`ws://127.0.0.1:8000/api/websocket/?group_id=${groupId}&user_id=${userId}`);
+
+        socket.onopen = () => {
+            updateStatus(`🟢 Подключено как пользователь ${userId} в группе ${groupId}`);
+        };
+
+        socket.onmessage = (event) => {
+            try {
+                const data = JSON.parse(event.data);
+                if (data.type === "history") {
+                    data.messages.forEach(msg => {
+                        const cssClass = msg.user_id == userId ? "sent" : "received";
+                        addMessage(msg, cssClass);
+                    });
+                } else {
+                    const cssClass = data.user_id == userId ? "sent" : "received";
+                    addMessage(data, cssClass);
+                }
+            } catch {
+                addMessage({
+                    user_id: 0,
+                    message: "⚠️ Ошибка при получении сообщения",
+                    timestamp: null,
+                    message_id: "err"
+                }, "received");
+            }
+        };
+
+        socket.onclose = () => updateStatus("🔴 Соединение закрыто");
+        socket.onerror = () => updateStatus("⚠️ Ошибка соединения");
+    }
+
+    function sendMessage() {
+        const input = document.getElementById("input");
+        const text = input.value.trim();
+        if (!text || !socket || socket.readyState !== WebSocket.OPEN) return;
+
+        const message = {
+            user_id: userId,
+            connectionId,
+            message: text,
+            reply_to: replyToId,
+            reply_to_text: replyToText
+        };
+
+        socket.send(JSON.stringify(message));
+        input.value = "";
+        cancelReply();
+    }
+
+    document.getElementById("sendBtn").addEventListener("click", sendMessage);
+    document.getElementById("input").addEventListener("keydown", e => {
+        if (e.key === "Enter") {
+            e.preventDefault();
+            sendMessage();
+        }
+    });
+
+    window.onload = connect;
 </script>
 
 </body>

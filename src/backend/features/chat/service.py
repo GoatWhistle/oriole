@@ -7,16 +7,21 @@ from .models import Message
 import json
 
 
-async def handle_websocket(websocket: WebSocket,
-                           group_id: int,
-                           user_id: int,
-                           session: AsyncSession):
+async def handle_websocket(
+    websocket: WebSocket, group_id: int, user_id: int, session: AsyncSession
+):
     await connection_manager.connect(websocket, group_id, user_id)
 
     try:
-        history_stmt = select(Message).where(Message.group_id == group_id).order_by(Message.timestamp)
+        history_stmt = (
+            select(Message)
+            .where(Message.group_id == group_id)
+            .order_by(Message.timestamp)
+        )
         result = await session.execute(history_stmt)
         messages = result.scalars().all()
+
+        msg_dict = {msg.id: msg for msg in messages}
 
         history_payload = [
             {
@@ -25,15 +30,41 @@ async def handle_websocket(websocket: WebSocket,
                 "timestamp": msg.timestamp.isoformat(),
                 "message_id": msg.id,
                 "reply_to": msg.reply_to,
+                "reply_to_text": (
+                    msg_dict[msg.reply_to].text if msg.reply_to in msg_dict else None
+                ),
             }
             for msg in messages
         ]
-        await websocket.send_text(json.dumps({"type": "history", "messages": history_payload}))
+        await websocket.send_text(
+            json.dumps({"type": "history", "messages": history_payload})
+        )
 
         while True:
             raw_data = await websocket.receive_text()
             try:
                 data = json.loads(raw_data)
+                if data.get("type") == "edit":
+                    new_text = data.get("new_text")
+                    message_id = data.get("message_id")
+                    updated_message = await update_message(
+                        user_id=user_id,
+                        new_text=new_text,
+                        session=session,
+                        message_id=message_id,
+                    )
+                    if updated_message:
+                        upd_msg = {
+                            "user_id": user_id,
+                            "message": new_text,
+                            "timestamp": updated_message.timestamp.isoformat(),
+                            "connectionId": data.get("connectionId"),
+                            "message_id": message_id,
+                        }
+                        await connection_manager.broadcast(
+                            group_id=group_id, message=json.dumps(upd_msg)
+                        )
+                        continue
                 text = data.get("message", "")
                 if not text:
                     continue
@@ -58,6 +89,7 @@ async def handle_websocket(websocket: WebSocket,
                     "connectionId": data.get("connectionId"),
                     "message_id": message.id,
                     "reply_to": reply_to,
+                    "reply_to_text": reply_to_text,
                 }
                 await connection_manager.broadcast(group_id, json.dumps(msg))
 
@@ -66,6 +98,20 @@ async def handle_websocket(websocket: WebSocket,
 
     except WebSocketDisconnect:
         await connection_manager.disconnect(group_id, websocket)
+
+
+async def update_message(
+    user_id: int,
+    message_id: int,
+    session: AsyncSession,
+    new_text: str,
+):
+    message = await session.get(Message, message_id)
+    if message and message.sender_id == user_id:
+        message.text = new_text
+        await session.commit()
+        return message
+    return None
 
 
 """
