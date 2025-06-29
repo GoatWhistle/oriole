@@ -1,5 +1,3 @@
-from datetime import datetime
-
 from fastapi import (
     HTTPException,
     status,
@@ -11,9 +9,7 @@ from fastapi.security import (
     OAuth2PasswordBearer,
     OAuth2PasswordRequestForm,
 )
-from jwt.exceptions import InvalidTokenError
 from pydantic.v1 import EmailStr
-from pytz import utc
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped
@@ -39,17 +35,17 @@ from features.users.crud.user_profile import (
     get_user_profile_by_id,
 )
 
+from features.users.services.operations import get_valid_payload
 
 from core.celery.email_tasks import send_confirmation_email
-from features.users.validators import validate_activity_and_verification
+from features.users.validators.rules import validate_activity_and_verification
 from utils.JWT import (
-    validate_password,
     create_access_token,
     create_refresh_token,
     create_email_confirmation_token,
     create_password_confirmation_token,
-    decode_jwt,
 )
+from features.users.validators.password import validate_password
 
 
 class OAuth2PasswordBearerWithCookie(OAuth2PasswordBearer):
@@ -71,66 +67,13 @@ OAuth2_scheme = OAuth2PasswordBearerWithCookie(
 )
 
 
-async def refresh_if_needed(
-    request: Request,
-    response: Response,
-    session: AsyncSession,
-    token: str | None,
-) -> str | None:
-    try:
-        if token.startswith("Bearer "):
-            token = token[7:]
-
-        payload = decode_jwt(token=token)
-        current_time_utc = datetime.now(utc).timestamp()
-        if int(current_time_utc) < int(payload.get("exp", 0)):
-            return None
-
-        return await refresh_tokens(
-            request=request,
-            response=response,
-            session=session,
-        )
-    except HTTPException:
-        return None
-
-
-def get_current_token_payload(
-    token: str,
-) -> dict:
-    try:
-        if token.startswith("Bearer "):
-            token = token[7:]
-
-        payload = decode_jwt(token=token)
-        return payload
-
-    except InvalidTokenError as e:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=f"Invalid token error: {e}",
-        )
-
-
 async def get_non_expire_payload_token(
     request: Request,
     response: Response,
     session: AsyncSession = Depends(db_helper.dependency_session_getter),
     token: str | None = Depends(OAuth2_scheme),
-) -> str:
-    if token:
-        new_token = await refresh_if_needed(
-            request=request,
-            response=response,
-            session=session,
-            token=token,
-        )
-        if new_token:
-            token = new_token
-        return get_current_token_payload(token)
-
-    new_token = await refresh_tokens(request, response, session)
-    return get_current_token_payload(new_token)
+) -> dict:
+    return await get_valid_payload(request, response, session, token)
 
 
 async def get_current_auth_user(
@@ -151,64 +94,6 @@ def get_current_active_auth_user_id(
     return user_from_db.id
 
 
-async def refresh_tokens(
-    request: Request,
-    response: Response,
-    session: AsyncSession,
-):
-    refresh_token = request.cookies.get("refresh_token")
-    if not refresh_token:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Refresh token is missing, sign in again",
-        )
-
-    try:
-        payload = decode_jwt(refresh_token)
-        user_email = payload.get("email")
-        user_id = payload.get("sub")
-
-        if not user_email or not user_id:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid refresh token",
-            )
-
-        user_from_db = await get_user_by_email(session=session, email=user_email)
-
-        await validate_activity_and_verification(user_from_db=user_from_db)
-
-        access_token = create_access_token(user_id, user_email)
-        refresh_token = create_refresh_token(user_id, user_email)
-
-        response.set_cookie(
-            key="access_token",
-            value=access_token,
-            httponly=True,
-            secure=False,
-            samesite="lax",
-            max_age=settings.auth_jwt.access_token_lifetime_seconds,
-        )
-
-        response.set_cookie(
-            key="refresh_token",
-            value=refresh_token,
-            httponly=True,
-            secure=False,
-            samesite="strict",
-            path="/",
-            max_age=settings.auth_jwt.refresh_token_lifetime_seconds,
-        )
-
-        return f"Bearer {access_token}"
-
-    except InvalidTokenError:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid refresh token",
-        )
-
-
 async def register_user(
     request: Request,
     session: AsyncSession,
@@ -226,10 +111,15 @@ async def register_user(
         )
 
     try:
-        user = await create_user(session=session, user_data=user_data)
+        user = await create_user(
+            session=session,
+            user_data=user_data,
+        )
 
         await create_user_profile(
-            session=session, user_id=user.id, profile_data=user_data
+            session=session,
+            user_id=user.id,
+            profile_data=user_data,
         )
 
         token = create_email_confirmation_token(
@@ -440,7 +330,7 @@ async def send_confirmation_email_again(
     user_data: UserAuthRead,
 ):
 
-    token = create_password_confirmation_token(
+    token = create_email_confirmation_token(
         user_email=user_data.email,
         user_id=user_data.id,
     )

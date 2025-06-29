@@ -107,11 +107,11 @@ def hash_password(
     return hashed.decode("utf-8")
 
 
-def validate_password(
-    password: str,
-    hashed_password: str,
-) -> bool:
-    return bcrypt.checkpw(
-        password=password.encode("utf-8"),
-        hashed_password=hashed_password.encode("utf-8"),
-    )
+def get_current_token_payload(
+    token: str,
+) -> dict:
+    if token.startswith("Bearer "):
+        token = token[7:]
+
+    payload = decode_jwt(token=token)
+    return payload
