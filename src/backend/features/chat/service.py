@@ -65,6 +65,21 @@ async def handle_websocket(
                             group_id=group_id, message=json.dumps(upd_msg)
                         )
                         continue
+                if data.get("type") == "delete":
+                    deleted_message_id = data.get("message_id")
+                    deleted = await delete_message(
+                        message_id=deleted_message_id, session=session, user_id=user_id
+                    )
+                    if deleted:
+                        del_msg = {
+                            "type": "delete",
+                            "deleted_message_id": deleted_message_id,
+                            "connectionId": data.get("connectionId"),
+                        }
+                        await connection_manager.broadcast(
+                            group_id=group_id, message=json.dumps(del_msg)
+                        )
+                        continue
                 text = data.get("message", "")
                 if not text:
                     continue
@@ -109,6 +124,19 @@ async def update_message(
     message = await session.get(Message, message_id)
     if message and message.sender_id == user_id:
         message.text = new_text
+        await session.commit()
+        return message
+    return None
+
+
+async def delete_message(
+    user_id: int,
+    message_id: int,
+    session: AsyncSession,
+):
+    message = await session.get(Message, message_id)
+    if message and message.sender_id == user_id:
+        await session.delete(message)
         await session.commit()
         return message
     return None
