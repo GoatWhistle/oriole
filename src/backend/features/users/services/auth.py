@@ -1,6 +1,4 @@
 from fastapi import (
-    HTTPException,
-    status,
     Depends,
     Response,
     Request,
@@ -10,7 +8,6 @@ from fastapi.security import (
     OAuth2PasswordRequestForm,
 )
 from pydantic.v1 import EmailStr
-from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped
 
@@ -32,7 +29,6 @@ from features.users.crud.user import (
 )
 from features.users.crud.user_profile import (
     create_user_profile,
-    get_user_profile_by_id,
 )
 
 from features.users.services.operations import get_valid_payload
@@ -45,7 +41,17 @@ from utils.JWT import (
     create_email_confirmation_token,
     create_password_confirmation_token,
 )
-from features.users.validators.password import validate_password
+from features.users.validators.existence import (
+    check_user_exists_using_email,
+    get_user_profile_if_exists,
+    check_user_not_exists_using_email,
+    validate_token_presence,
+    validate_token_has_email,
+    validate_token_has_user_id,
+    is_email_entered,
+)
+from features.users.validators.password import validate_password_matching
+from features.users.services.operations import _set_auth_cookies
 
 
 class OAuth2PasswordBearerWithCookie(OAuth2PasswordBearer):
@@ -99,16 +105,9 @@ async def register_user(
     session: AsyncSession,
     user_data: RegisterUserInput,
 ) -> UserAuth:
-    access_token_cookie = request.cookies.get("access_token")
-    refresh_token_cookie = request.cookies.get("refresh_token")
+    validate_token_presence(request, mode="forbid", raise_exception=True)
 
-    auth_header = request.headers.get("Authorization")
-
-    if auth_header or access_token_cookie or refresh_token_cookie:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Authenticated users cannot register new accounts",
-        )
+    await check_user_not_exists_using_email(session, user_data.email)
 
     try:
         user = await create_user(
@@ -136,12 +135,6 @@ async def register_user(
 
         return UserAuthRead.model_validate(user)
 
-    except IntegrityError:
-        await session.rollback()
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Email '{user_data.email}' is already registered",
-        )
     except Exception as e:
         raise e
 
@@ -157,13 +150,10 @@ async def validate_registered_user(
 
     await validate_activity_and_verification(user_from_db=user_from_db)
 
-    if not validate_password(
-        password=password, hashed_password=str(user_from_db.hashed_password)
-    ):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid login or password",
-        )
+    validate_password_matching(
+        password=password,
+        hashed_password=user_from_db.hashed_password,
+    )
 
     return UserLogin.model_validate(user_data)
 
@@ -175,29 +165,17 @@ async def login_user(
 ) -> TokenResponseForOAuth2:
 
     user_by_email = await get_user_by_email(session=session, email=user_data.email)
-
     await validate_activity_and_verification(user_from_db=user_by_email)
 
     access_token = create_access_token(user_by_email.id, user_by_email.email)
     refresh_token = create_refresh_token(user_by_email.id, user_by_email.email)
 
-    response.set_cookie(
-        key="access_token",
-        value=access_token,
-        httponly=True,
-        secure=False,
-        samesite="lax",
-        max_age=settings.auth_jwt.access_token_lifetime_seconds,
-    )
-
-    response.set_cookie(
-        key="refresh_token",
-        value=refresh_token,
-        httponly=True,
-        secure=False,
-        samesite="strict",
-        path="/",
-        max_age=settings.auth_jwt.refresh_token_lifetime_seconds,
+    _set_auth_cookies(
+        response=response,
+        access_token=access_token,
+        refresh_token=refresh_token,
+        access_expires=settings.auth_jwt.access_token_lifetime_seconds,
+        refresh_expires=settings.auth_jwt.refresh_token_lifetime_seconds,
     )
 
     return TokenResponseForOAuth2(
@@ -223,11 +201,18 @@ async def login_for_token(
 async def logout(
     request: Request,
     response: Response,
-):
-    response.delete_cookie("access_token")
-    response.delete_cookie("refresh_token")
+) -> dict:
+    has_cookies, has_header = validate_token_presence(
+        request,
+        mode="require",
+        raise_exception=False,
+    )
 
-    if "authorization" in request.headers:
+    if has_cookies:
+        response.delete_cookie("access_token")
+        response.delete_cookie("refresh_token")
+
+    if has_header:
         response.headers["Authorization"] = ""
 
     return {"message": "Logout done!"}
@@ -237,26 +222,14 @@ async def check_auth(
     session: AsyncSession,
     payload: dict,
 ) -> UserRead:
-    email = payload.get("email")
-    user_id = int(payload.get("sub"))
-
-    if not email:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token invalid (email not found in payload)",
-        )
+    email = validate_token_has_email(payload)
+    user_id = validate_token_has_user_id(payload)
 
     user_from_db = await get_user_by_email(session=session, email=email)
 
     await validate_activity_and_verification(user_from_db=user_from_db)
 
-    profile_from_db = await get_user_profile_by_id(session=session, profile_id=user_id)
-
-    if not profile_from_db:
-        raise HTTPException(
-            status_code=404,
-            detail="Profile not found",
-        )
+    profile_from_db = await get_user_profile_if_exists(session, user_id)
 
     profile_and_email = UserRead(
         email=email,
@@ -295,19 +268,9 @@ async def forgot_password(
     email: EmailStr,
     session: AsyncSession,
 ):
-    if not email:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Please enter an email",
-        )
+    await is_email_entered(email)
 
-    user_from_db = await get_user_by_email(session=session, email=email)
-
-    if not user_from_db:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found",
-        )
+    user_from_db = await check_user_exists_using_email(session=session, email=email)
 
     token = create_password_confirmation_token(
         user_email=user_from_db.email,

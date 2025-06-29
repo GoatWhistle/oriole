@@ -1,3 +1,4 @@
+from pydantic import EmailStr
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -5,11 +6,11 @@ from features.users.models import UserProfile
 from features.users.schemas import RegisterUserInput
 
 
-async def get_user_profile_by_id(
+async def get_user_profile_by_email(
     session: AsyncSession,
-    profile_id: int,
+    email: EmailStr,
 ) -> UserProfile | None:
-    statement = select(UserProfile).filter_by(user_id=profile_id)
+    statement = select(UserProfile).filter_by(email=email)
     profile_from_db = await session.scalars(statement)
     profile_from_db = profile_from_db.first()
 

@@ -13,14 +13,12 @@ from features.users.crud.user import (
     get_user_by_email,
 )
 
+from features.users.validators.timing import validate_and_refresh_token
 
-from features.users.validators.timing import (
-    get_current_token_payload,
-    validate_and_refresh_token,
-)
 from features.users.validators.rules import validate_activity_and_verification
 
 from utils.JWT import (
+    get_current_token_payload,
     create_access_token,
     create_refresh_token,
     decode_jwt,
@@ -121,4 +119,4 @@ async def get_valid_payload(
             session=session,
         )
 
-    return get_current_token_payload(valid_token)
+    return get_current_token_payload(token=valid_token)

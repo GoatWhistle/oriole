@@ -1,6 +1,4 @@
 from datetime import datetime
-
-from cryptography.hazmat.backends.openssl import backend
 from pytz import utc
 
 from fastapi import (
@@ -9,27 +7,9 @@ from fastapi import (
     Response,
     Request,
 )
-from jwt.exceptions import InvalidTokenError
 from sqlalchemy.ext.asyncio import AsyncSession
-
-
-from utils.JWT import (
-    decode_jwt,
-)
+from utils.JWT import decode_jwt
 from features.users.services.operations import refresh_tokens_operation
-
-
-def get_current_token_payload(
-    token: str,
-) -> dict:
-    try:
-        return backend.utils.JWT.get_current_token_payload(token=token)
-
-    except InvalidTokenError as e:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=f"Invalid token error: {e}",
-        )
 
 
 def check_expiration_after_redirect(payload: dict):
