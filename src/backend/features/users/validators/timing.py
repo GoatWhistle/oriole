@@ -9,7 +9,7 @@ from fastapi import (
 )
 from sqlalchemy.ext.asyncio import AsyncSession
 from utils.JWT import decode_jwt
-from features.users.services.operations import refresh_tokens_operation
+from features.users.services.token_operations import refresh_tokens_operation
 
 
 def check_expiration_after_redirect(payload: dict):

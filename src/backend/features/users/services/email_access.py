@@ -1,17 +1,17 @@
-from fastapi import HTTPException, status, Request
+from fastapi import HTTPException, Request
 from fastapi.templating import Jinja2Templates
 from fastapi_mail import FastMail, MessageSchema, ConnectionConfig
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.config import settings
 from features.users.validators import check_expiration_after_redirect
-from utils.JWT import decode_jwt, validate_password
+from utils.JWT import decode_jwt
 from urllib.parse import urljoin
 from features.users.crud.user import (
     get_user_by_id,
     update_user_verification_status,
-    update_user_password,
 )
+from features.users.services.password_operations import change_password_with_token
 
 
 templates = Jinja2Templates(directory="templates/email")
@@ -77,29 +77,11 @@ async def reset_password_redirect(
     new_password: str,
     session: AsyncSession,
 ):
-    try:
-        dict_token = decode_jwt(token)
-        check_expiration_after_redirect(payload=dict_token)
-
-        user_id = int(dict_token["sub"])
-        user_from_db = await get_user_by_id(session=session, user_id=user_id)
-
-        if validate_password(
-            password=new_password, hashed_password=str(user_from_db.hashed_password)
-        ):
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="The new password must be different from the previous one.",
-            )
-        await update_user_password(
-            session=session,
-            user=user_from_db,
-            new_password=new_password,
-        )
-
-        return {"status": "success", "message": "You changed password"}
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=f"{e}")
+    return await change_password_with_token(
+        token=token,
+        new_password=new_password,
+        session=session,
+    )
 
 
 async def forgot_password_redirect(
@@ -107,27 +89,8 @@ async def forgot_password_redirect(
     new_password: str,
     session: AsyncSession,
 ):
-    try:
-        dict_token = decode_jwt(token)
-        check_expiration_after_redirect(payload=dict_token)
-
-        user_id = int(dict_token["sub"])
-        user_from_db = await get_user_by_id(session=session, user_id=user_id)
-
-        if validate_password(
-            password=new_password, hashed_password=str(user_from_db.hashed_password)
-        ):
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="The new password must be different from the previous one.",
-            )
-
-        await update_user_password(
-            session=session,
-            user=user_from_db,
-            new_password=new_password,
-        )
-
-        return {"status": "success", "message": "You changed password"}
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=f"{e}")
+    return await change_password_with_token(
+        token=token,
+        new_password=new_password,
+        session=session,
+    )

@@ -31,7 +31,7 @@ from features.users.crud.user_profile import (
     create_user_profile,
 )
 
-from features.users.services.operations import get_valid_payload
+from features.users.services.token_operations import get_valid_payload
 
 from core.celery.email_tasks import send_confirmation_email
 from features.users.validators.rules import validate_activity_and_verification
@@ -51,7 +51,7 @@ from features.users.validators.existence import (
     is_email_entered,
 )
 from features.users.validators.password import validate_password_matching
-from features.users.services.operations import _set_auth_cookies
+from features.users.services.token_operations import _set_auth_cookies
 
 
 class OAuth2PasswordBearerWithCookie(OAuth2PasswordBearer):

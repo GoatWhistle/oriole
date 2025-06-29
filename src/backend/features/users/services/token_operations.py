@@ -4,17 +4,12 @@ from fastapi import (
     Response,
     Request,
 )
+from core.config import settings
 from jwt.exceptions import InvalidTokenError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.config import settings
-
-from features.users.crud.user import (
-    get_user_by_email,
-)
-
+from features.users.crud.user import get_user_by_email
 from features.users.validators.timing import validate_and_refresh_token
-
 from features.users.validators.rules import validate_activity_and_verification
 
 from utils.JWT import (

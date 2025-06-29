@@ -13,12 +13,16 @@ from features.users.schemas import (
 )
 from features.users.crud.user import get_user_by_id
 from features.groups.services.account import leave_from_group
-from features.users.validators import check_user_exists
 from utils.JWT import create_email_confirmation_token
 
+from features.users.validators.existence import (
+    validate_token_presence,
+    check_user_exists,
+)
+
 from features.users.crud.user_profile import (
-    get_user_profile_by_id,
     update_profile,
+    get_user_profile_by_user_id,
 )
 
 
@@ -39,32 +43,20 @@ async def delete_user(
     await session.delete(user)
 
     if response is not None:
-        response.delete_cookie("access_token")
-        response.delete_cookie("refresh_token")
+        has_cookies, has_header = validate_token_presence(
+            request,
+            mode="require",
+            raise_exception=False,
+        )
 
-        if "authorization" in request.headers:
+        if has_cookies:
+            response.delete_cookie("access_token")
+            response.delete_cookie("refresh_token")
+
+        if has_header:
             response.headers["Authorization"] = ""
 
     await session.commit()
-
-
-async def update_user_profile(
-    session: AsyncSession,
-    user_data: UserProfileUpdate | UserProfileUpdatePartial,
-    user_id: int,
-    partial: bool = False,
-) -> UserProfileRead:
-    await check_user_exists(session, user_id)
-
-    profile = await get_user_profile_by_id(session=session, profile_id=user_id)
-
-    update_data = user_data.model_dump(exclude_unset=partial)
-
-    updated_profile = await update_profile(
-        session, profile=profile, update_data=update_data
-    )
-
-    return UserProfileRead.model_validate(updated_profile)
 
 
 async def update_user_email(
@@ -87,15 +79,22 @@ async def update_user_email(
 
     await send_confirmation_email(
         request=request,
-        email=user_data.email,
+        email=user_data.email,  # TODO: smth is wrong ->
         token=token,
         html_file="verified_email",
     )
 
-    response.delete_cookie("access_token")
-    response.delete_cookie("refresh_token")
+    has_cookies, has_header = validate_token_presence(
+        request,
+        mode="require",
+        raise_exception=False,
+    )
 
-    if "authorization" in request.headers:
+    if has_cookies:
+        response.delete_cookie("access_token")
+        response.delete_cookie("refresh_token")
+
+    if has_header:
         response.headers["Authorization"] = ""
 
     await session.commit()
@@ -104,15 +103,38 @@ async def update_user_email(
     return EmailUpdateRead.model_validate(user)
 
 
+async def update_user_profile(
+    session: AsyncSession,
+    user_data: UserProfileUpdate | UserProfileUpdatePartial,
+    user_id: int,
+    partial: bool = False,
+) -> UserProfileRead:
+    await check_user_exists(session, user_id)
+
+    profile = await get_user_profile_by_user_id(session=session, user_id=user_id)
+
+    update_data = user_data.model_dump(exclude_unset=partial)
+
+    updated_profile = await update_profile(
+        session,
+        profile=profile,
+        update_data=update_data,
+    )
+
+    return UserProfileRead.model_validate(updated_profile)
+
+
 async def get_int_role_in_group(
     session: AsyncSession,
     user_id: int,
     group_id: int,
 ) -> int:
     await check_user_exists(session=session, user_id=user_id)
-    _ = await get_group_or_404(session=session, group_id=group_id)
+    await get_group_or_404(session=session, group_id=group_id)
     account = await get_account_or_404(
-        session=session, user_id=user_id, group_id=group_id
+        session=session,
+        user_id=user_id,
+        group_id=group_id,
     )
 
     return account.role

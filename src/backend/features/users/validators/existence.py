@@ -52,7 +52,7 @@ async def check_user_not_exists_using_email(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Email '{email}' is already registered",
         )
-    return user
+    return not user
 
 
 async def get_user_profile_if_exists(
