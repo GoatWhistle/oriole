@@ -1,7 +1,7 @@
 from fastapi import HTTPException, status
 
 
-class InvalidTokenError(HTTPException):
+class InvalidTokenException(HTTPException):
     def __init__(self, reason: str):
         super().__init__(
             status_code=status.HTTP_401_UNAUTHORIZED, detail=f"Token invalid ({reason})"

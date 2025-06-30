@@ -11,8 +11,8 @@ __all__ = (
     "UserProfileUpdatePartial",
     "UserAuthRead",
     "EmailUpdateRead",
-    "EmailUpdate",
-    "RegisterUserInternal"
+    "EmailChangeRequest",
+    "RegisterUserInternal",
 )
 
 from .token import TokenResponseForOAuth2
@@ -25,8 +25,8 @@ from .user import (
     UserProfileUpdate,
     UserRead,
     UserProfileUpdatePartial,
-    EmailUpdate,
     EmailUpdateRead,
     RegisterUserInput,
     RegisterUserInternal,
+    EmailChangeRequest,
 )

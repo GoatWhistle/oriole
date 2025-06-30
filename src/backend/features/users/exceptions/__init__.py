@@ -6,7 +6,7 @@ __all__ = [
     "AuthenticationRequiredError",
     "UserInactiveError",
     "UserUnverifiedError",
-    "InvalidTokenError",
+    "InvalidTokenException",
     "RequestTimeoutError",
     "MissingTokenError",
     "EmailRequiredError",
@@ -28,7 +28,7 @@ from .auth import (
     UserUnverifiedError,
 )
 from .token import (
-    InvalidTokenError,
+    InvalidTokenException,
     RequestTimeoutError,
     MissingTokenError,
 )

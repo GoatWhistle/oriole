@@ -1,15 +1,11 @@
 from datetime import datetime
 from pytz import utc
 
-from fastapi import Response, Request
-from sqlalchemy.ext.asyncio import AsyncSession
 from utils.JWT import decode_jwt
-from features.users.services.token_operations import refresh_tokens_operation
 
 from features.users.exceptions import (
     RequestTimeoutError,
     InvalidTokenError,
-    MissingTokenError,
 )
 
 
@@ -30,41 +26,3 @@ def validate_token_expiration(token: str) -> bool:
 
     except Exception as ex:
         raise InvalidTokenError(reason=str(ex)) from ex
-
-
-async def refresh_if_needed(
-    request: Request,
-    response: Response,
-    session: AsyncSession,
-    token: str | None,
-) -> str | None:
-    if not token:
-        return None
-
-    is_expired = validate_token_expiration(token=token)
-    if not is_expired:
-        return None
-
-    return await refresh_tokens_operation(
-        request=request,
-        response=response,
-        session=session,
-    )
-
-
-async def validate_and_refresh_token(
-    token: str,
-    request: Request,
-    response: Response,
-    session: AsyncSession,
-) -> str:
-    if not token:
-        raise MissingTokenError()
-
-    new_token = await refresh_if_needed(
-        request=request,
-        response=response,
-        session=session,
-        token=token,
-    )
-    return new_token if new_token else token
