@@ -13,7 +13,7 @@ export const kickUser = async (groupId, userId) => {
 };
 
 export const showGroupList = async () => {
-  const response = await fetch('/api/groups/');
-  return await response.json();
+  const response = await axios.get('/api/groups/');
+  return await response.data;
 };
 
