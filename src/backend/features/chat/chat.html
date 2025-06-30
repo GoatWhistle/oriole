@@ -245,6 +245,30 @@
             background: #f0f0f0;
         }
 
+        .edited-label {
+            color: #ffcc00; /* жёлтый */
+            font-weight: 700;
+            margin-top: 6px;
+            font-size: 0.85rem;
+            user-select: none;
+        }
+
+        button.save-btn {
+            background-color: #ffcc00 !important; /* жёлтый */
+            color: #000 !important;
+            border: none !important;
+            padding: 6px 12px !important;
+            border-radius: 14px !important;
+            cursor: pointer !important;
+            font-weight: 700 !important;
+            transition: background-color 0.3s ease;
+        }
+
+        button.save-btn:hover {
+            background-color: #e6b800 !important;
+        }
+
+
     </style>
 </head>
 <body>
@@ -280,6 +304,7 @@
         if (!ts) return "";
         return new Date(ts).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
     }
+
     function scrollToMessage(messageId) {
         const target = document.getElementById("msg-" + messageId);
         if (target) {
@@ -294,7 +319,7 @@
                 }, 1500);
             }
 
-            target.scrollIntoView({ behavior: "smooth", block: "center" });
+            target.scrollIntoView({behavior: "smooth", block: "center"});
             target.classList.add("highlighted");
             setTimeout(() => target.classList.remove("highlighted"), 1000);
         }
@@ -516,7 +541,7 @@
         showContextMenu(e.pageX, e.pageY);
     });
 
-   // Действие "Ответить"
+    // Действие "Ответить"
     btnReply.addEventListener('click', () => {
         if (!currentContextMsgId) return;
         const msgDiv = document.getElementById('msg-' + currentContextMsgId);
@@ -572,16 +597,10 @@
         textarea.style.resize = 'vertical';
         textarea.rows = 3;
 
-        // Кнопки "Сохранить" и "Отмена"
         const saveBtn = document.createElement('button');
         saveBtn.textContent = 'Сохранить';
+        saveBtn.className = 'save-btn';  // применяем класс для жёлтой кнопки
         saveBtn.style.marginRight = '8px';
-        saveBtn.style.backgroundColor = '#0078d4';
-        saveBtn.style.color = 'white';
-        saveBtn.style.border = 'none';
-        saveBtn.style.padding = '6px 12px';
-        saveBtn.style.borderRadius = '14px';
-        saveBtn.style.cursor = 'pointer';
 
         const cancelBtn = document.createElement('button');
         cancelBtn.textContent = 'Отмена';
@@ -607,7 +626,6 @@
             textDiv.style.display = '';
         };
 
-        // Обработчик кнопки "Сохранить"
         saveBtn.onclick = () => {
             const newText = textarea.value.trim();
             if (!newText) {
@@ -625,8 +643,17 @@
             };
             socket.send(JSON.stringify(editMsg));
 
-            // Обновляем UI сразу (можно будет по отклику сервера доработать)
+            // Обновляем текст сообщения
             textDiv.textContent = newText;
+
+            // Проверяем, есть ли label "Изменено"
+            let editedLabel = msgDiv.querySelector('.edited-label');
+            if (!editedLabel) {
+                editedLabel = document.createElement('div');
+                editedLabel.className = 'edited-label';
+                editedLabel.textContent = 'Изменено';
+                msgDiv.appendChild(editedLabel);
+            }
 
             // Убираем textarea и кнопки
             textarea.remove();
@@ -636,8 +663,10 @@
             hideContextMenu();
         };
 
+
         hideContextMenu();
     });
+
 
     // Действие "Удалить"
     btnDelete.addEventListener('click', () => {

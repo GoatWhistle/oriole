@@ -2,6 +2,8 @@ from datetime import datetime, timezone
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from starlette.websockets import WebSocket, WebSocketDisconnect
+
+from core.redis import redis_connection
 from .manager import connection_manager
 from .models import Message
 import json
@@ -12,30 +14,50 @@ async def handle_websocket(
 ):
     await connection_manager.connect(websocket, group_id, user_id)
 
+    cache_key = f"chat:history:{group_id}"
+
     try:
-        history_stmt = (
-            select(Message)
-            .where(Message.group_id == group_id)
-            .order_by(Message.timestamp)
-        )
-        result = await session.execute(history_stmt)
-        messages = result.scalars().all()
+        cached_history = None
+        try:
+            cached_history = await redis_connection.redis.get(cache_key)
+        except Exception as e:
+            print(f"Redis get error: {e}")
 
-        msg_dict = {msg.id: msg for msg in messages}
+        if cached_history:
+            history_payload = json.loads(cached_history)
+        else:
+            history_stmt = (
+                select(Message)
+                .where(Message.group_id == group_id)
+                .order_by(Message.timestamp)
+            )
+            result = await session.execute(history_stmt)
+            messages = result.scalars().all()
+            msg_dict = {msg.id: msg for msg in messages}
 
-        history_payload = [
-            {
-                "user_id": msg.sender_id,
-                "message": msg.text,
-                "timestamp": msg.timestamp.isoformat(),
-                "message_id": msg.id,
-                "reply_to": msg.reply_to,
-                "reply_to_text": (
-                    msg_dict[msg.reply_to].text if msg.reply_to in msg_dict else None
-                ),
-            }
-            for msg in messages
-        ]
+            history_payload = [
+                {
+                    "user_id": msg.sender_id,
+                    "message": msg.text,
+                    "timestamp": msg.timestamp.isoformat(),
+                    "message_id": msg.id,
+                    "reply_to": msg.reply_to,
+                    "reply_to_text": (
+                        msg_dict[msg.reply_to].text
+                        if msg.reply_to in msg_dict
+                        else None
+                    ),
+                }
+                for msg in messages
+            ]
+
+            try:
+                await redis_connection.redis.setex(
+                    cache_key, 600, json.dumps(history_payload)
+                )
+            except Exception as e:
+                print(f"Redis setex error: {e}")
+
         await websocket.send_text(
             json.dumps({"type": "history", "messages": history_payload})
         )
@@ -44,6 +66,7 @@ async def handle_websocket(
             raw_data = await websocket.receive_text()
             try:
                 data = json.loads(raw_data)
+
                 if data.get("edit"):
                     new_text = data.get("message")
                     message_id = data.get("message_id")
@@ -62,16 +85,18 @@ async def handle_websocket(
                             "connectionId": data.get("connectionId"),
                             "message_id": message_id,
                         }
+                        try:
+                            await redis_connection.redis.delete(cache_key)
+                        except Exception as e:
+                            print(f"Redis delete error: {e}")
+
                         await connection_manager.broadcast(
                             group_id=group_id, message=json.dumps(upd_msg)
                         )
                     continue
 
                 if data.get("delete"):
-                    try:
-                        deleted_message_id = int(data.get("message_id"))
-                    except (TypeError, ValueError):
-                        continue
+                    deleted_message_id = data.get("message_id")
                     deleted = await delete_message(
                         message_id=deleted_message_id, session=session, user_id=user_id
                     )
@@ -81,11 +106,15 @@ async def handle_websocket(
                             "message_id": deleted_message_id,
                             "connectionId": data.get("connectionId"),
                         }
+                        try:
+                            await redis_connection.redis.delete(cache_key)
+                        except Exception as e:
+                            print(f"Redis delete error: {e}")
+
                         await connection_manager.broadcast(
                             group_id=group_id, message=json.dumps(del_msg)
                         )
                     continue
-
                 text = data.get("message", "")
                 if not text:
                     continue
@@ -123,6 +152,12 @@ async def handle_websocket(
                     "reply_to": reply_to,
                     "reply_to_text": reply_to_text,
                 }
+
+                try:
+                    await redis_connection.redis.delete(cache_key)
+                except Exception as e:
+                    print(f"Redis delete error: {e}")
+
                 await connection_manager.broadcast(group_id, json.dumps(msg))
 
             except json.JSONDecodeError:
@@ -157,5 +192,3 @@ async def delete_message(
         await session.commit()
         return message
     return None
-
-
