@@ -1,16 +1,27 @@
 .headerCard {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
   padding: 0;
-  display: fixed;
+  display: flex;
   align-items: center;
   background-color: #7a3ccb;
   border: 4px solid #5a2ca1;
   border-radius: 0 0 16px 16px;
+  z-index: 10;
+}
+
+body {
+  margin-top: 68px;
+  margin-bottom: 100px;
 }
 
 .cardBody {
   padding: 0;
   display: flex;
   align-items: center;
+  width: 100%;
 }
 
 .headerContainer {
@@ -32,7 +43,7 @@
   gap: 10px;
   color: #ffffff;
   text-decoration: none;
-  transition: color content 0.2s ease;
+  transition: color 0.2s ease;
 }
 
 .logoLink:hover {
@@ -40,17 +51,15 @@
 }
 
 .logoLink:hover .image {
-  content: url('../../presets/oriole-icon-hover.png');
+  content: url('../../../presets/oriole-icon-hover.png');
 }
 
 .logoText {
   font-size: 30px;
   font-weight: 600;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 .authButtonContainer {
   margin-left: auto;
   margin-right: 10px;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
