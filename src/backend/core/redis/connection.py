@@ -1,6 +1,7 @@
 import redis.asyncio as redis
 from core.config import settings
 
+
 class RedisConnection:
     def __init__(self, url: str, db: int):
         self.url = url
@@ -8,9 +9,7 @@ class RedisConnection:
         self.db = db
 
     async def connect(self):
-        print("connecting redis...")
         self.redis = await redis.from_url(self.url, db=self.db, decode_responses=True)
-        print("connected redis")
 
     async def close(self):
         if self.redis:

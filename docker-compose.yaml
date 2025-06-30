@@ -1,5 +1,6 @@
 services:
   backend:
+    container_name: backend
     build:
       dockerfile: docker_build/base_image/Dockerfile
       context: ./
@@ -10,13 +11,20 @@ services:
       redis:
         condition: service_healthy
     environment:
-      DB_URL: ${APP_CONFIG__DB__URL}
+      DB_URL: ${DB_URL}
+      IS_DEV: true
     ports:
-      - ${APP_CONFIG__RUN__PORT}:8000
+      - ${BACKEND_PORT}:8000
     volumes:
       - ./src/backend:/backend
     networks:
       - app-net
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+        tag: "{{.ImageName}}|{{.Name}}|{{.ImageFullID}}|{{.FullID}}"
 
   frontend:
     build:
@@ -39,7 +47,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       PGDATA: /var/lib/postgresql/data
     ports:
-      - "${DB_PORT}:5432"
+      - "${POSTGRES_PORT}:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -76,7 +84,7 @@ services:
   redis:
     image: redis:latest
     ports:
-      - "${APP_CONFIG_REDIS_PORT}:6379"
+      - "${REDIS_PORT}:6379"
     healthcheck:
       test: [ "CMD", "redis-cli", "ping" ]
       interval: 5s
@@ -121,7 +129,7 @@ services:
     volumes:
       - ./src/backend:/backend
     environment:
-      DB_URL: ${APP_CONFIG__DB__URL}
+      DB_URL: ${DB_URL}
       PYTHONPATH: /backend
     working_dir: /backend
     networks:
@@ -142,7 +150,7 @@ services:
     volumes:
       - ./src/backend:/backend
     environment:
-      DB_URL: ${APP_CONFIG__DB__URL}
+      DB_URL: ${DB_URL}
       PYTHONPATH: /backend
     working_dir: /backend
     networks:
@@ -160,10 +168,69 @@ services:
     networks:
       - app-net
 
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./logging/prometheus.yaml:/etc/prometheus/prometheus.yaml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yaml'
+    restart: unless-stopped
+    networks:
+      - app-net
+
+  loki:
+    image: grafana/loki:latest
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/config.yaml
+    volumes:
+      - ./logging/loki-config.yaml:/etc/loki/config.yaml
+      - loki_data:/loki
+    restart: unless-stopped
+    networks:
+      - app-net
+
+  promtail:
+    image: grafana/promtail:latest
+    ports:
+      - "9080:9080"
+    volumes:
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./logging/promtail-config.yaml:/etc/promtail/promtail-config.yaml
+    command: -config.file=/etc/promtail/promtail-config.yaml
+    privileged: true
+    networks:
+      - app-net
+
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+      - loki
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_SECURITY_ADMIN_USER=admin
+    volumes:
+      - ./logging/grafana/database.yaml:/etc/grafana/provisioing/datasources/datasources.yaml
+      - grafana_data:/var/lib/grafana
+    restart: unless-stopped
+    networks:
+      - app-net
 
 volumes:
   pgdata:
   rabbitmq-data:
+  grafana_data:
+  loki_data:
+  prometheus_data:
 
 networks:
   app-net:

@@ -6,6 +6,10 @@ from starlette.requests import Request
 from starlette.responses import Response
 
 from core.redis import redis_connection
+from logging import getLogger
+
+
+logger = getLogger("redis")
 
 
 class AutoCacheMiddleware(BaseHTTPMiddleware):
@@ -37,7 +41,9 @@ class AutoCacheMiddleware(BaseHTTPMiddleware):
             await redis_connection.redis.setex(key, self.ttl, value)
             await redis_connection.redis.sadd(tag, key)
         except Exception as e:
-            print(f"Redis get error in {inspect.currentframe().f_code.co_name}: {e}")
+            logger.error(
+                f"Redis get error in {inspect.currentframe().f_code.co_name}: {e}"
+            )
 
     async def invalidate_tag(self, tag_key: str):
         try:
@@ -46,7 +52,9 @@ class AutoCacheMiddleware(BaseHTTPMiddleware):
                 await redis_connection.redis.delete(*keys)
             await redis_connection.redis.delete(tag_key)
         except Exception as e:
-            print(f"Redis get error in {inspect.currentframe().f_code.co_name}: {e}")
+            logger.error(
+                f"Redis get error in {inspect.currentframe().f_code.co_name}: {e}"
+            )
 
     def is_excluded(self, path: str) -> bool:
         return any(
@@ -70,7 +78,9 @@ class AutoCacheMiddleware(BaseHTTPMiddleware):
             if tag_keys:
                 await redis_connection.redis.delete(*tag_keys)
         except Exception as e:
-            print(f"Redis get error in {inspect.currentframe().f_code.co_name}: {e}")
+            logger.error(
+                f"Redis get error in {inspect.currentframe().f_code.co_name}: {e}"
+            )
 
     async def dispatch(self, request: Request, call_next):
         method = request.method.upper()
@@ -89,7 +99,7 @@ class AutoCacheMiddleware(BaseHTTPMiddleware):
             try:
                 cached = await redis_connection.redis.get(cache_key)
             except Exception as e:
-                print(
+                logger.error(
                     f"Redis get error in {inspect.currentframe().f_code.co_name}: {e}"
                 )
                 cached = None

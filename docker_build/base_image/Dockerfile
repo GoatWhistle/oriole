@@ -23,9 +23,9 @@ RUN apt-get update && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-RUN chmod +x pre_start.sh
+RUN chmod +x migations_update.sh
 
-CMD ["sh", "pre_start.sh"]
+CMD ["sh", "migations_update.sh"]
 
 FROM base AS backend
 

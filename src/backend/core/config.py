@@ -6,7 +6,7 @@ from pydantic import BaseModel, EmailStr
 from pydantic import PostgresDsn
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-env_files = (".env.app_config", ".env.smtp_email", ".env.redis")
+env_files = (".env.app_config",)
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -70,6 +70,10 @@ class SMTPEmail(BaseModel):
     password: str
 
 
+class Sentry(BaseModel):
+    dsn: str
+
+
 class Redis(BaseModel):
     port: int
     url: str
@@ -110,6 +114,7 @@ class Settings(BaseSettings):
     smtp_email: SMTPEmail
     db: DbConfig
     redis: Redis
+    sentry: Sentry
     gunicorn_run: GunicornConfig = GunicornConfig()
     api: ApiPrefix = ApiPrefix()
     auth_jwt: AuthJWT = AuthJWT()
