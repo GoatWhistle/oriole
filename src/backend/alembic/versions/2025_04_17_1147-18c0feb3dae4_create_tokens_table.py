@@ -121,9 +121,7 @@ def upgrade() -> None:
         ),
         sa.PrimaryKeyConstraint("id", name=op.f("pk_assignments")),
     )
-    op.create_index(
-        op.f("ix_assignments_id"), "assignments", ["id"], unique=False
-    )
+    op.create_index(op.f("ix_assignments_id"), "assignments", ["id"], unique=False)
     op.create_table(
         "tasks",
         sa.Column("title", sa.String(length=127), nullable=False),
@@ -158,9 +156,7 @@ def downgrade() -> None:
     op.drop_index(op.f("ix_accounts_id"), table_name="accounts")
     op.drop_table("accounts")
     op.drop_index(op.f("ix_user_profiles_surname"), table_name="user_profiles")
-    op.drop_index(
-        op.f("ix_user_profiles_patronymic"), table_name="user_profiles"
-    )
+    op.drop_index(op.f("ix_user_profiles_patronymic"), table_name="user_profiles")
     op.drop_index(op.f("ix_user_profiles_name"), table_name="user_profiles")
     op.drop_table("user_profiles")
     op.drop_table("access_tokens")

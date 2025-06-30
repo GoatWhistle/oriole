@@ -8,7 +8,7 @@ class InvalidTokenException(HTTPException):
         )
 
 
-class RequestTimeoutError(HTTPException):
+class RequestTimeoutException(HTTPException):
     def __init__(self):
         super().__init__(
             status_code=status.HTTP_408_REQUEST_TIMEOUT,
@@ -16,7 +16,7 @@ class RequestTimeoutError(HTTPException):
         )
 
 
-class MissingTokenError(HTTPException):
+class MissingTokenException(HTTPException):
     def __init__(self):
         super().__init__(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Token is missing"

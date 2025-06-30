@@ -39,9 +39,7 @@ def upgrade() -> None:
     op.create_index(
         op.f("ix_group_invites_code"), "group_invites", ["code"], unique=True
     )
-    op.create_index(
-        op.f("ix_group_invites_id"), "group_invites", ["id"], unique=False
-    )
+    op.create_index(op.f("ix_group_invites_id"), "group_invites", ["id"], unique=False)
     # ### end Alembic commands ###
 
 

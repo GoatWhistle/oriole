@@ -10,10 +10,13 @@ limiter = Limiter(
     storage_uri=f"redis://{settings.redis.port}:{settings.redis.port}/0",
     enabled=settings.redis.limiter_enabled,
     strategy=settings.redis.limiter_strategy,
-    default_limits=[limit.strip() for limit in settings.redis.limiter_default.split(",")],
+    default_limits=[
+        limit.strip() for limit in settings.redis.limiter_default.split(",")
+    ],
     storage_options=settings.redis.safe_storage_options,
-    auto_check = False,
+    auto_check=False,
 )
+
 
 async def universal_rate_limit_handler(_: Request, exc: Exception):
     if isinstance(exc, RateLimitExceeded):
@@ -21,11 +24,11 @@ async def universal_rate_limit_handler(_: Request, exc: Exception):
             status_code=429,
             content={
                 "error": "Rate limit exceeded",
-                "retry_after": getattr(exc, "retry_after", 60)
+                "retry_after": getattr(exc, "retry_after", 60),
             },
-            headers={"Retry-After": str(getattr(exc, "retry_after", 60))}
+            headers={"Retry-After": str(getattr(exc, "retry_after", 60))},
         )
     return JSONResponse(
         status_code=500,
-        content={"error": "Internal server error", "type": type(exc).__name__}
+        content={"error": "Internal server error", "type": type(exc).__name__},
     )

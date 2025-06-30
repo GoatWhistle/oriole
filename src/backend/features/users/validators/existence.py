@@ -1,21 +1,21 @@
 from fastapi import Request
 from pydantic import EmailStr
-
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from features import User, UserProfile
 import features.users.crud.user as user_crud
 import features.users.crud.user_profile as user_profile_crud
-
-from features.users.exceptions.email import EmailRequiredError
+from features import User, UserProfile
 from features.users.exceptions import (
-    UserNotFoundError,
-    UserAlreadyExistsError,
-    ProfileNotFoundError,
-    AuthenticationRequiredError,
-    AuthenticatedForbiddenError,
-    InvalidTokenException,
+    UserNotFoundException,
+    UserAlreadyRegisteredException,
+    ProfileNotFoundException,
 )
+from features.users.exceptions.auth import (
+    AuthenticationRequiredExceptions,
+    AuthenticatedForbiddenException,
+)
+from features.users.exceptions.email import EmailRequiredExceptions
+from features.users.exceptions.token import InvalidTokenException
 
 
 async def check_user_exists(
@@ -25,7 +25,7 @@ async def check_user_exists(
 ) -> User:
     user = await user_crud.get_user_by_id(session, user_id)
     if not user and raise_exception:
-        raise UserNotFoundError(user_id=user_id)
+        raise UserNotFoundException()
     return user
 
 
@@ -36,7 +36,7 @@ async def check_user_exists_using_email(
 ) -> User:
     user = await user_crud.get_user_by_email(session=session, email=email)
     if not user and raise_exception:
-        raise UserNotFoundError(email=email)
+        raise UserNotFoundException()
     return user
 
 
@@ -44,10 +44,10 @@ async def check_user_not_exists_using_email(
     session: AsyncSession,
     email: EmailStr,
     raise_exception: bool = True,
-) -> User:
+) -> bool:
     user = await user_crud.get_user_by_email(session=session, email=email)
     if user and raise_exception:
-        raise UserAlreadyExistsError(email)
+        raise UserAlreadyRegisteredException()
     return not user
 
 
@@ -57,7 +57,7 @@ async def get_user_profile_if_exists(
 ) -> UserProfile:
     profile = await user_profile_crud.get_user_profile_by_user_id(session, user_id)
     if not profile:
-        raise ProfileNotFoundError(user_id=user_id)
+        raise ProfileNotFoundException()
     return profile
 
 
@@ -71,7 +71,7 @@ async def validate_user_profile_exists(
         email=email,
     )
     if not profile and raise_exception:
-        raise ProfileNotFoundError(email=email)
+        raise ProfileNotFoundException()
     return profile
 
 
@@ -87,12 +87,12 @@ def validate_token_presence(
 
     if mode == "forbid" and (has_cookie or has_header):
         if raise_exception:
-            raise AuthenticatedForbiddenError()
+            raise AuthenticatedForbiddenException()
         return has_cookie, has_header
 
     if mode == "require" and not (has_cookie or has_header):
         if raise_exception:
-            raise AuthenticationRequiredError()
+            raise AuthenticationRequiredExceptions()
         return has_cookie, has_header
 
     return None if raise_exception else (has_cookie, has_header)
@@ -113,5 +113,5 @@ def validate_token_has_user_id(payload: dict) -> int:
 
 def is_email_entered(email: str):
     if not email:
-        raise EmailRequiredError()
+        raise EmailRequiredExceptions()
     return email

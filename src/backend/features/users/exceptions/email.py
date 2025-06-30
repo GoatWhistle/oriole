@@ -1,7 +1,7 @@
 from fastapi import HTTPException, status
 
 
-class EmailRequiredError(HTTPException):
+class EmailRequiredExceptions(HTTPException):
     def __init__(self):
         super().__init__(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -9,17 +9,9 @@ class EmailRequiredError(HTTPException):
         )
 
 
-class EmailMismatchError(HTTPException):
+class EmailMismatchException(HTTPException):
     def __init__(self):
         super().__init__(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Current email does not match token",
-        )
-
-
-class EmailAlreadyExistsError(HTTPException):
-    def __init__(self, email: str):
-        super().__init__(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Email {email} is already registered",
         )

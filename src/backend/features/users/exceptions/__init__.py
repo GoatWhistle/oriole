@@ -1,43 +1,41 @@
 __all__ = [
-    "UserNotFoundError",
-    "UserAlreadyExistsError",
-    "ProfileNotFoundError",
-    "AuthenticatedForbiddenError",
-    "AuthenticationRequiredError",
-    "UserInactiveError",
-    "UserUnverifiedError",
+    "UserNotFoundException",
+    "UserAlreadyRegisteredException",
+    "ProfileNotFoundException",
+    "AuthenticatedForbiddenException",
+    "AuthenticationRequiredExceptions",
+    "UserInactiveException",
+    "UserUnverifiedException",
     "InvalidTokenException",
-    "RequestTimeoutError",
-    "MissingTokenError",
-    "EmailRequiredError",
-    "InvalidCredentialsError",
-    "PasswordMatchError",
-    "EmailMismatchError",
-    "EmailAlreadyExistsError",
+    "RequestTimeoutException",
+    "MissingTokenException",
+    "EmailRequiredExceptions",
+    "InvalidCredentialsException",
+    "PasswordMatchException",
+    "EmailMismatchException",
+    "EmailAlreadyRegisteredException",
 ]
 
-from .existence import (
-    UserNotFoundError,
-    UserAlreadyExistsError,
-    ProfileNotFoundError,
-)
 from .auth import (
-    AuthenticatedForbiddenError,
-    AuthenticationRequiredError,
-    UserInactiveError,
-    UserUnverifiedError,
+    AuthenticatedForbiddenException,
+    AuthenticationRequiredExceptions,
+    UserInactiveException,
+    UserUnverifiedException,
+)
+from .email import EmailRequiredExceptions, EmailMismatchException
+from .existence import (
+    UserNotFoundException,
+    ProfileNotFoundException,
+)
+
+from .rules import (
+    UserAlreadyRegisteredException,
+    InvalidCredentialsException,
+    PasswordMatchException,
+    EmailAlreadyRegisteredException,
 )
 from .token import (
     InvalidTokenException,
-    RequestTimeoutError,
-    MissingTokenError,
-)
-from .email import (
-    EmailRequiredError,
-    EmailMismatchError,
-    EmailAlreadyExistsError,
-)
-from .password import (
-    InvalidCredentialsError,
-    PasswordMatchError,
+    RequestTimeoutException,
+    MissingTokenException,
 )
