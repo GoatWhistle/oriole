@@ -5,7 +5,7 @@ from utils.JWT import decode_jwt
 
 from features.users.exceptions import (
     RequestTimeoutError,
-    InvalidTokenError,
+    InvalidTokenException,
 )
 
 
@@ -25,4 +25,4 @@ def validate_token_expiration(token: str) -> bool:
         return int(current_time_utc) >= int(payload.get("exp", 0))
 
     except Exception as ex:
-        raise InvalidTokenError(reason=str(ex)) from ex
+        raise InvalidTokenException(reason=str(ex)) from ex

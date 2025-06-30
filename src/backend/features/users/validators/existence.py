@@ -7,17 +7,14 @@ from features import User, UserProfile
 import features.users.crud.user as user_crud
 import features.users.crud.user_profile as user_profile_crud
 
-from features.users.exceptions.token import InvalidTokenError
 from features.users.exceptions.email import EmailRequiredError
-from features.users.exceptions.existence import (
+from features.users.exceptions import (
     UserNotFoundError,
     UserAlreadyExistsError,
     ProfileNotFoundError,
-)
-
-from features.users.exceptions.auth import (
     AuthenticationRequiredError,
     AuthenticatedForbiddenError,
+    InvalidTokenException,
 )
 
 
@@ -103,7 +100,7 @@ def validate_token_presence(
 
 def validate_token_has_email(payload: dict) -> str:
     if not (email := payload.get("email")):
-        raise InvalidTokenError("email not found in payload")
+        raise InvalidTokenException("email not found in payload")
     return email
 
 
@@ -111,7 +108,7 @@ def validate_token_has_user_id(payload: dict) -> int:
     try:
         return int(payload["sub"])
     except (KeyError, TypeError, ValueError):
-        raise InvalidTokenError("invalid user ID")
+        raise InvalidTokenException("invalid user ID")
 
 
 def is_email_entered(email: str):
