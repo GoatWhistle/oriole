@@ -14,7 +14,7 @@ from features.users.services.password_operations import change_password_with_tok
 from features.users.validators import check_expiration_after_redirect
 from utils.JWT import decode_jwt
 
-templates = Jinja2Templates(directory="templates/email")
+templates = Jinja2Templates(directory="src/frontend/src/templates/email")
 
 
 async def send_confirmation_email_base(

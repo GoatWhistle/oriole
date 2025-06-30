@@ -1,7 +1,7 @@
 .container {
   max-width: 800px;
   margin: 0 auto;
-  padding: 24px;
+  padding: 100px;
 }
 
 .card {
@@ -9,7 +9,7 @@
 }
 
 .title {
-  margin-bottom: 0 !important;
+  margin-bottom: 0
 }
 
 .loadingContainer {

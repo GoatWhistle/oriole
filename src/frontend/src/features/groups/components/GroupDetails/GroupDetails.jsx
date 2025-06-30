@@ -164,7 +164,7 @@ const createModule = async (values) => {
   if (!state.group) return <div>Группа не найдена</div>;
 
   return (
-    <div style={{ padding: '24px' }}>
+    <div style={{ padding: '100px'}}>
       <Card>
         <GroupHeader
           group={state.group}
