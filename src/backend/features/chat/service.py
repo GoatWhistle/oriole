@@ -70,6 +70,7 @@ async def handle_websocket(
                 if data.get("edit"):
                     new_text = data.get("message")
                     message_id = data.get("message_id")
+
                     updated_message = await update_message(
                         user_id=user_id,
                         new_text=new_text,
@@ -97,8 +98,11 @@ async def handle_websocket(
 
                 if data.get("delete"):
                     deleted_message_id = data.get("message_id")
+
                     deleted = await delete_message(
-                        message_id=deleted_message_id, session=session, user_id=user_id
+                        message_id=deleted_message_id,
+                        session=session,
+                        user_id=user_id,
                     )
                     if deleted:
                         del_msg = {
@@ -115,20 +119,18 @@ async def handle_websocket(
                             group_id=group_id, message=json.dumps(del_msg)
                         )
                     continue
+
                 text = data.get("message", "")
                 if not text:
                     continue
 
                 timestamp = datetime.now(timezone.utc)
 
-                reply_to_raw = data.get("reply_to")
-                if reply_to_raw is None:
+                # Обработка reply_to
+                try:
+                    reply_to = int(data.get("reply_to"))
+                except (ValueError, TypeError):
                     reply_to = None
-                else:
-                    try:
-                        reply_to = int(reply_to_raw)
-                    except (ValueError, TypeError):
-                        reply_to = None
 
                 reply_to_text = data.get("reply_to_text")
 
@@ -173,6 +175,11 @@ async def update_message(
     session: AsyncSession,
     new_text: str,
 ):
+    try:
+        message_id = int(message_id)
+    except (ValueError, TypeError):
+        return None
+
     message = await session.get(Message, message_id)
     if message and message.sender_id == user_id:
         message.text = new_text
@@ -186,6 +193,11 @@ async def delete_message(
     message_id: int,
     session: AsyncSession,
 ):
+    try:
+        message_id = int(message_id)
+    except (ValueError, TypeError):
+        return None
+
     message = await session.get(Message, message_id)
     if message and message.sender_id == user_id:
         await session.delete(message)
