@@ -1,0 +1,168 @@
+.container {
+  padding: 100px;
+}
+
+.loadingContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.errorContainer, .notFoundContainer {
+  display: flex;
+  justify-content: center;
+  padding: 24px;
+}
+
+.errorCard, .notFoundCard {
+  max-width: 500px;
+  text-align: center;
+}
+
+.errorTitle {
+  color: #ff4d4f;
+  margin-bottom: 16px;
+}
+
+.errorText {
+  display: block;
+  margin-bottom: 16px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.moduleTitle {
+  margin: 0 !important;
+  word-break: break-word;
+}
+
+.actions {
+  margin-left: auto;
+}
+
+.createButton {
+  background-color: #1890ff;
+}
+
+.editButton {
+  border-color: #1890ff;
+  color: #1890ff;
+}
+
+.deleteButton {
+  background-color: #ff4d4f;
+  border-color: #ff4d4f;
+}
+
+.card {
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.description {
+  white-space: pre-wrap;
+  margin-bottom: 16px;
+}
+
+.tagsContainer {
+  margin-bottom: 16px;
+}
+
+.statusTag, .contestTag {
+  margin-right: 8px;
+  font-weight: 500;
+}
+
+.divider {
+  margin: 16px 0;
+}
+
+.datesContainer {
+  margin-bottom: 16px;
+}
+
+.datesTitle {
+  display: block;
+  margin-bottom: 8px;
+}
+
+.dateItem {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.progressContainer {
+  margin-bottom: 16px;
+}
+
+.progressTitle {
+  display: block;
+  margin-bottom: 8px;
+}
+
+.progressBar {
+  margin-bottom: 8px;
+}
+
+.progressText {
+  display: block;
+}
+
+.tasksTitle {
+  margin-bottom: 16px !important;
+}
+
+.taskItem {
+  margin-bottom: 16px;
+}
+
+.taskCard {
+  width: 100%;
+}
+
+.taskTags {
+  margin-left: 16px;
+}
+
+.completedTag, .notCompletedTag, .taskStatusTag {
+  font-weight: 500;
+}
+
+.taskDescription {
+  margin-bottom: 16px;
+}
+
+.taskButton {
+  background-color: #1890ff;
+}
+
+.noTasksCard {
+  text-align: center;
+  padding: 24px;
+}
+
+@media (max-width: 768px) {
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .actions {
+    margin-left: 0;
+    margin-top: 16px;
+    width: 100%;
+  }
+
+  .createButton, .editButton, .deleteButton {
+    width: 100%;
+    margin-bottom: 8px;
+  }
+}

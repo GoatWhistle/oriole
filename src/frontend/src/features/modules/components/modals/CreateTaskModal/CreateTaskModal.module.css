@@ -1,0 +1,51 @@
+.modal {
+  border-radius: 8px;
+}
+
+.modal .ant-modal-header {
+  border-radius: 8px 8px 0 0;
+  padding: 16px 24px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.modal .ant-modal-title {
+  font-size: 18px;
+  font-weight: 500;
+}
+
+.modal .ant-modal-body {
+  padding: 24px;
+}
+
+.modal .ant-modal-footer {
+  border-top: none;
+  padding: 16px 24px;
+  text-align: right;
+}
+
+.modal .ant-modal-footer button + button {
+  margin-left: 8px;
+}
+
+.form .ant-form-item {
+  margin-bottom: 16px;
+}
+
+.form .ant-form-item-label {
+  padding-bottom: 4px;
+}
+
+.form .ant-form-item-label label {
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.85);
+}
+
+.form .ant-input,
+.form .ant-input-number,
+.form .ant-picker {
+  border-radius: 4px;
+}
+
+.form .ant-input-textarea {
+  resize: vertical;
+}
