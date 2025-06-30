@@ -18,18 +18,18 @@ technical stack.
 
 **Oriole** bridges mentors and learners through:
 
-✔ **Group Management** - Create and organize learning groups with custom roles
-✔ **Modular Content** - Build structured learning modules with sequenced tasks
-✔ **Task Assignment** - Distribute exercises and projects to participants
-✔ **Participant Invitation** - Easy member onboarding with referral links
-✔ **Solution Submission** - Complete tasks with multi-format responses
-✔ **Moderation Tools** - Review and evaluate submitted work
+- **Group Management** - Create and organize learning groups with custom roles
+- **Modular Content** - Build structured learning modules with sequenced tasks
+- **Task Assignment** - Distribute exercises and projects to participants
+- **Participant Invitation** - Easy member onboarding with referral links
+- **Solution Submission** - Complete tasks with multi-format responses
+- **Moderation Tools** - Review and evaluate submitted work
 
 ### 🚀 Coming Soon:
 
-• Automated task verification
-• Peer review system
-• Integration with e-learning standards (SCORM/xAPI)
+- Automated task verification
+- Peer review system
+- Integration with e-learning standards (SCORM/xAPI)
 
 #
 
