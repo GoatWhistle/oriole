@@ -221,6 +221,9 @@ services:
     volumes:
       - ./logging/grafana/database.yaml:/etc/grafana/provisioing/datasources/datasources.yaml
       - grafana_data:/var/lib/grafana
+      - ./logging/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards
+      - ./logging/grafana/dashboards:/var/lib/grafana/dashboards
+
     restart: unless-stopped
     networks:
       - app-net
