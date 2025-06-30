@@ -41,7 +41,6 @@ from features.users.crud.user_profile import (
 
 
 from core.celery.email_tasks import send_confirmation_email
-from features.users.schemas.token import SuccessAuthAction
 from features.users.validators import validate_activity_and_verification
 from utils.JWT import (
     validate_password,
@@ -341,7 +340,7 @@ async def logout(
     if "authorization" in request.headers:
         response.headers["Authorization"] = ""
 
-    return SuccessAuthAction(message="Logout done!")
+    return {"message": "Logout done!"}
 
 
 async def check_auth(
@@ -398,7 +397,7 @@ async def reset_password(
         html_file="password_reset_warning.html",
         address_type="reset_password",
     )
-    return SuccessAuthAction(message="Password reset link has been sent to your email")
+    return {"message": "Password reset link has been sent to your email"}
 
 
 async def forgot_password(
@@ -433,7 +432,7 @@ async def forgot_password(
         address_type="forgot_password",
     )
 
-    return SuccessAuthAction(message="Password reset link has been sent to your email")
+    return {"message": "Password reset link has been sent to your email"}
 
 
 async def send_confirmation_email_again(
