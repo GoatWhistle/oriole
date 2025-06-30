@@ -1,6 +1,7 @@
 from fastapi import HTTPException, Request
 from fastapi.templating import Jinja2Templates
 from fastapi_mail import FastMail, MessageSchema, ConnectionConfig
+from pydantic import EmailStr
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.config import settings
@@ -12,7 +13,7 @@ from features.users.crud.user import (
     update_user_verification_status,
 )
 from features.users.services.password_operations import change_password_with_token
-
+from features.users.services.email_operations import change_email_with_token
 
 templates = Jinja2Templates(directory="templates/email")
 
@@ -92,5 +93,17 @@ async def forgot_password_redirect(
     return await change_password_with_token(
         token=token,
         new_password=new_password,
+        session=session,
+    )
+
+
+async def change_email_redirect(
+    token: str,
+    new_email: EmailStr,
+    session: AsyncSession,
+):
+    return await change_email_with_token(
+        token=token,
+        new_email=new_email,
         session=session,
     )

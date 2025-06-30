@@ -8,7 +8,7 @@ import features.users.crud.user as user_crud
 import features.users.crud.user_profile as user_profile_crud
 
 from features.users.exceptions.token import InvalidTokenError
-from features.users.exceptions.requirements import EmailRequiredError
+from features.users.exceptions.email import EmailRequiredError
 from features.users.exceptions.existence import (
     UserNotFoundError,
     UserAlreadyExistsError,

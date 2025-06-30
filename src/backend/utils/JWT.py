@@ -32,8 +32,30 @@ def create_email_confirmation_token(
         "email": user_email,
         "exp": expire,
         "iat": current_time_utc,
+        "purpose": "email_confirmation",
     }
     return encode_jwt(payload=jwt_payload)
+
+
+def create_email_update_token(
+    user_id: int,
+    old_email: str,
+    new_email: str,
+    lifetime_seconds: int = settings.auth_jwt.email_token_lifetime_seconds,
+) -> str:
+    current_time = datetime.now(utc)
+    expire = current_time + timedelta(seconds=lifetime_seconds)
+
+    payload = {
+        "sub": str(user_id),
+        "old_email": old_email,
+        "new_email": new_email,
+        "exp": expire.timestamp(),
+        "iat": current_time.timestamp(),
+        "purpose": "email_update",
+    }
+
+    return encode_jwt(payload=payload)
 
 
 def create_password_confirmation_token(

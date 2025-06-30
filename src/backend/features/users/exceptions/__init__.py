@@ -12,6 +12,8 @@ __all__ = [
     "EmailRequiredError",
     "InvalidCredentialsError",
     "PasswordMatchError",
+    "EmailMismatchError",
+    "EmailAlreadyExistsError",
 ]
 
 from .existence import (
@@ -30,8 +32,10 @@ from .token import (
     RequestTimeoutError,
     MissingTokenError,
 )
-from .requirements import (
+from .email import (
     EmailRequiredError,
+    EmailMismatchError,
+    EmailAlreadyExistsError,
 )
 from .password import (
     InvalidCredentialsError,

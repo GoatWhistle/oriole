@@ -1,23 +1,23 @@
 from fastapi import Response, Request
 from sqlalchemy.ext.asyncio import AsyncSession
+from pydantic import EmailStr
 
 from core.celery.email_tasks import send_confirmation_email
 from features.groups.services.group import get_user_groups
 from features.groups.validators import get_group_or_404, get_account_or_404
 from features.users.schemas import (
-    EmailUpdate,
-    EmailUpdateRead,
     UserProfileUpdate,
     UserProfileRead,
     UserProfileUpdatePartial,
 )
 from features.users.crud.user import get_user_by_id
 from features.groups.services.account import leave_from_group
-from utils.JWT import create_email_confirmation_token
+from utils.JWT import create_email_update_token
 
 from features.users.validators.existence import (
     validate_token_presence,
     check_user_exists,
+    check_user_exists_using_email,
 )
 
 from features.users.crud.user_profile import (
@@ -32,7 +32,6 @@ async def delete_user(
     request: Request,
     response: Response | None = None,
 ) -> None:
-
     user = await get_user_by_id(session=session, user_id=user_id)
 
     groups = await get_user_groups(session=session, user_id=user_id)
@@ -42,7 +41,7 @@ async def delete_user(
 
     await session.delete(user)
 
-    if response is not None:
+    if response:
         has_cookies, has_header = validate_token_presence(
             request,
             mode="require",
@@ -59,48 +58,29 @@ async def delete_user(
     await session.commit()
 
 
-async def update_user_email(
-    session: AsyncSession,
-    user_data: EmailUpdate,
-    user_id: int,
+async def change_user_email(
     request: Request,
-    response: Response | None = None,
-) -> EmailUpdateRead:
-    await check_user_exists(session=session, user_id=user_id)
+    email: EmailStr,
+    new_email: EmailStr,
+    session: AsyncSession,
+) -> dict:
+    user = await check_user_exists_using_email(session=session, email=email)
 
-    user = await get_user_by_id(session=session, user_id=user_id)
-    user.email = user_data.email
-
-    user.is_verified = False
-    token = create_email_confirmation_token(
+    token = create_email_update_token(
         user_id=user.id,
-        user_email=user_data.email,
+        old_email=user.email,
+        new_email=new_email,
     )
 
     await send_confirmation_email(
         request=request,
-        email=user_data.email,  # TODO: smth is wrong ->
+        email=new_email,
         token=token,
-        html_file="verified_email",
+        html_file="email_update_warning.html",
+        address_type="change_email",
     )
 
-    has_cookies, has_header = validate_token_presence(
-        request,
-        mode="require",
-        raise_exception=False,
-    )
-
-    if has_cookies:
-        response.delete_cookie("access_token")
-        response.delete_cookie("refresh_token")
-
-    if has_header:
-        response.headers["Authorization"] = ""
-
-    await session.commit()
-    await session.refresh(user)
-
-    return EmailUpdateRead.model_validate(user)
+    return {"message": "Email change link has been sent to your new email"}
 
 
 async def update_user_profile(

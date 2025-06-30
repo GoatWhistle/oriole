@@ -1,5 +1,4 @@
 from typing import Annotated
-
 from fastapi import (
     APIRouter,
     Depends,
@@ -21,6 +20,7 @@ from features.users.schemas.user import (
     UserRead,
 )
 from features.users.services import auth as service
+from features.users.services import token_operations as token_service
 
 router = APIRouter()
 limiter = Limiter(key_func=get_remote_address)
@@ -84,7 +84,7 @@ async def refresh_tokens(
         response: Response,
         session: AsyncSession = Depends(db_helper.dependency_session_getter),
 ):
-    return await service.refresh_tokens(
+    return await token_service.refresh_tokens_operation(
         request=request,
         response=response,
         session=session,

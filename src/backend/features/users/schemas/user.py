@@ -65,16 +65,15 @@ class UserRead(BaseModel):
     )
 
 
-class EmailUpdate(BaseModel):
-    email: Annotated[Optional[EmailStr], Field(max_length=get_num_opt(50))]
+class EmailChangeRequest(BaseModel):
+    current_email: EmailStr
+    new_email: EmailStr
 
 
-class EmailUpdateRead(EmailUpdate):
-    user_id: int
-
-    model_config = ConfigDict(
-        from_attributes=True,
-    )
+class EmailUpdateRead(BaseModel):
+    status: str
+    message: str
+    new_email: EmailStr
 
 
 class UserProfileUpdate(BaseModel):

@@ -6,7 +6,7 @@ from features.modules.api import router as moduls_router
 from features.tasks.api import router as tasks_router
 from features.users.api.auth import router as auth_router
 from features.users.api.email_access import router as email_access_router
-from features.users.api.users import router as users_router
+from features.users.api.user import router as users_router
 
 router = APIRouter(prefix=settings.api.prefix)
 
