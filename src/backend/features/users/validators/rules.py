@@ -1,26 +1,18 @@
-from fastapi import HTTPException, status
-
-
 from features.users.schemas import UserAuthRead
 
+from features.users.exceptions import (
+    UserNotFoundError,
+    UserInactiveError,
+    UserUnverifiedError,
+)
 
-async def validate_activity_and_verification(
-    user_from_db: UserAuthRead,
-):
+
+async def validate_activity_and_verification(user_from_db: UserAuthRead):
     if not user_from_db:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid login or password",
-        )
+        raise UserNotFoundError()
 
     if not user_from_db.is_active:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="User is inactive",
-        )
+        raise UserInactiveError()
 
     if not user_from_db.is_verified:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="User is unverified",
-        )
+        raise UserUnverifiedError()

@@ -1,13 +1,24 @@
-from fastapi import HTTPException, status, Request
+from fastapi import Request
 from pydantic import EmailStr
-
-from features import UserProfile
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from features import User
+from features import User, UserProfile
 import features.users.crud.user as user_crud
 import features.users.crud.user_profile as user_profile_crud
+
+from features.users.exceptions.token import InvalidTokenError
+from features.users.exceptions.requirements import EmailRequiredError
+from features.users.exceptions.existence import (
+    UserNotFoundError,
+    UserAlreadyExistsError,
+    ProfileNotFoundError,
+)
+
+from features.users.exceptions.auth import (
+    AuthenticationRequiredError,
+    AuthenticatedForbiddenError,
+)
 
 
 async def check_user_exists(
@@ -16,12 +27,8 @@ async def check_user_exists(
     raise_exception: bool = True,
 ) -> User:
     user = await user_crud.get_user_by_id(session, user_id)
-
     if not user and raise_exception:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"User {user_id} does not exist",
-        )
+        raise UserNotFoundError(user_id=user_id)
     return user
 
 
@@ -31,12 +38,8 @@ async def check_user_exists_using_email(
     raise_exception: bool = True,
 ) -> User:
     user = await user_crud.get_user_by_email(session=session, email=email)
-
     if not user and raise_exception:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"User with {email} not found",
-        )
+        raise UserNotFoundError(email=email)
     return user
 
 
@@ -46,12 +49,8 @@ async def check_user_not_exists_using_email(
     raise_exception: bool = True,
 ) -> User:
     user = await user_crud.get_user_by_email(session=session, email=email)
-
     if user and raise_exception:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Email '{email}' is already registered",
-        )
+        raise UserAlreadyExistsError(email)
     return not user
 
 
@@ -60,12 +59,8 @@ async def get_user_profile_if_exists(
     user_id: int,
 ) -> UserProfile:
     profile = await user_profile_crud.get_user_profile_by_user_id(session, user_id)
-
     if not profile:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"UserProfile for user {user_id} does not exist",
-        )
+        raise ProfileNotFoundError(user_id=user_id)
     return profile
 
 
@@ -78,12 +73,8 @@ async def validate_user_profile_exists(
         session=session,
         email=email,
     )
-
     if not profile and raise_exception:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User profile not found",
-        )
+        raise ProfileNotFoundError(email=email)
     return profile
 
 
@@ -99,18 +90,12 @@ def validate_token_presence(
 
     if mode == "forbid" and (has_cookie or has_header):
         if raise_exception:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Authenticated users cannot perform this action",
-            )
+            raise AuthenticatedForbiddenError()
         return has_cookie, has_header
 
     if mode == "require" and not (has_cookie or has_header):
         if raise_exception:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Authentication required",
-            )
+            raise AuthenticationRequiredError()
         return has_cookie, has_header
 
     return None if raise_exception else (has_cookie, has_header)
@@ -118,10 +103,7 @@ def validate_token_presence(
 
 def validate_token_has_email(payload: dict) -> str:
     if not (email := payload.get("email")):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token invalid (email not found in payload)",
-        )
+        raise InvalidTokenError("email not found in payload")
     return email
 
 
@@ -129,16 +111,10 @@ def validate_token_has_user_id(payload: dict) -> int:
     try:
         return int(payload["sub"])
     except (KeyError, TypeError, ValueError):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token invalid (invalid user ID)",
-        )
+        raise InvalidTokenError("invalid user ID")
 
 
 def is_email_entered(email: str):
     if not email:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Please enter an email",
-        )
+        raise EmailRequiredError()
     return email

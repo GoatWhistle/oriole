@@ -1,24 +1,22 @@
 from datetime import datetime
 from pytz import utc
 
-from fastapi import (
-    HTTPException,
-    status,
-    Response,
-    Request,
-)
+from fastapi import Response, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from utils.JWT import decode_jwt
 from features.users.services.token_operations import refresh_tokens_operation
+
+from features.users.exceptions import (
+    RequestTimeoutError,
+    InvalidTokenError,
+    MissingTokenError,
+)
 
 
 def check_expiration_after_redirect(payload: dict):
     current_time_utc = datetime.now(utc).timestamp()
     if not (int(current_time_utc) < int(payload.get("exp", 0))):
-        raise HTTPException(
-            status_code=status.HTTP_408_REQUEST_TIMEOUT,
-            detail="The request time has expired",
-        )
+        raise RequestTimeoutError()
 
 
 def validate_token_expiration(token: str) -> bool:
@@ -31,10 +29,7 @@ def validate_token_expiration(token: str) -> bool:
         return int(current_time_utc) >= int(payload.get("exp", 0))
 
     except Exception as ex:
-        raise HTTPException(
-            status_code=401,
-            detail="Invalid or expired token",
-        ) from ex
+        raise InvalidTokenError(reason=str(ex)) from ex
 
 
 async def refresh_if_needed(
@@ -64,7 +59,7 @@ async def validate_and_refresh_token(
     session: AsyncSession,
 ) -> str:
     if not token:
-        raise HTTPException(status_code=401, detail="Token is missing")
+        raise MissingTokenError()
 
     new_token = await refresh_if_needed(
         request=request,
