@@ -14,7 +14,7 @@ export default function Home() {
       <div style={{
         maxWidth: 1200,
         margin: '0 auto',
-        padding: '20px'
+        padding: '100px'
       }}>
         <div style={{
           display: 'flex',
