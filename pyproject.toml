@@ -11,6 +11,7 @@ authors = [
     { name = "Ivan Gerasimov", email = "ivan.gerasimou@yandex.ru" },
     { name = "Artem Kalinin", email = "arrdin32@gmail.com" },
 ]
+license = { text = "GPL v3" }
 readme = "README.md"
 requires-python = ">=3.13,<4.0"
 dependencies = [
