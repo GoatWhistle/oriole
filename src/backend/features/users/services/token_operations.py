@@ -7,8 +7,8 @@ from jwt.exceptions import InvalidTokenError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from features.users.crud.user import get_user_by_email
-from features.users.validators.timing import validate_and_refresh_token
 from features.users.validators.rules import validate_activity_and_verification
+from features.users.validators.timing import validate_token_expiration
 from shared.exceptions import InvalidTokenException, MissingTokenException
 from utils.JWT import (
     get_current_token_payload,
@@ -80,6 +80,44 @@ async def refresh_tokens_operation(
 
     except InvalidTokenError:
         raise InvalidTokenException()
+
+
+async def refresh_if_needed(
+    request: Request,
+    response: Response,
+    session: AsyncSession,
+    token: str | None,
+) -> str | None:
+    if not token:
+        return None
+
+    is_expired = validate_token_expiration(token=token)
+    if not is_expired:
+        return None
+
+    return await refresh_tokens_operation(
+        request=request,
+        response=response,
+        session=session,
+    )
+
+
+async def validate_and_refresh_token(
+    token: str,
+    request: Request,
+    response: Response,
+    session: AsyncSession,
+) -> str:
+    if not token:
+        raise MissingTokenException()
+
+    new_token = await refresh_if_needed(
+        request=request,
+        response=response,
+        session=session,
+        token=token,
+    )
+    return new_token if new_token else token
 
 
 def clear_auth_tokens(request: Request, response: Response) -> None:
