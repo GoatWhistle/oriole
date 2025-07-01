@@ -9,10 +9,10 @@ from features.users.crud.user import (
     get_user_by_id,
 )
 from features.users.exceptions import (
-    RequestTimeoutException,
     EmailMismatchException,
     EmailAlreadyRegisteredException,
 )
+from shared.exceptions.timing import RequestTimeoutException
 from utils.JWT import decode_jwt
 
 

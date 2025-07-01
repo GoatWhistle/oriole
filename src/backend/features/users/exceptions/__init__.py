@@ -3,26 +3,24 @@ __all__ = [
     "UserAlreadyRegisteredException",
     "ProfileNotFoundException",
     "AuthenticatedForbiddenException",
-    "AuthenticationRequiredExceptions",
-    "UserInactiveException",
-    "UserUnverifiedException",
-    "InvalidTokenException",
-    "RequestTimeoutException",
-    "MissingTokenException",
     "EmailRequiredExceptions",
     "InvalidCredentialsException",
     "PasswordMatchException",
     "EmailMismatchException",
     "EmailAlreadyRegisteredException",
+    "AuthenticationRequiredException",
+    "UserUnverifiedException",
+    "UserInactiveException",
 ]
 
 from .auth import (
     AuthenticatedForbiddenException,
-    AuthenticationRequiredExceptions,
-    UserInactiveException,
-    UserUnverifiedException,
+    AuthenticationRequiredException,
 )
-from .email import EmailRequiredExceptions, EmailMismatchException
+from .email import (
+    EmailRequiredExceptions,
+    EmailMismatchException,
+)
 from .existence import (
     UserNotFoundException,
     ProfileNotFoundException,
@@ -33,9 +31,6 @@ from .rules import (
     InvalidCredentialsException,
     PasswordMatchException,
     EmailAlreadyRegisteredException,
-)
-from .token import (
-    InvalidTokenException,
-    RequestTimeoutException,
-    MissingTokenException,
+    UserUnverifiedException,
+    UserInactiveException,
 )

@@ -15,3 +15,11 @@ class InvalidCredentialsException(RuleException):
 
 class PasswordMatchException(RuleException):
     detail = "The new password must be different from the previous one"
+
+
+class UserInactiveException(RuleException):
+    detail = "User is inactive"
+
+
+class UserUnverifiedException(RuleException):
+    detail = "User is unverified"

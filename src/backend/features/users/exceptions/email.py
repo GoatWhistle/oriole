@@ -1,17 +1,9 @@
-from fastapi import HTTPException, status
+from shared.exceptions import RuleException
 
 
-class EmailRequiredExceptions(HTTPException):
-    def __init__(self):
-        super().__init__(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Please enter an email",
-        )
+class EmailRequiredExceptions(RuleException):
+    detail = "Email in the field required"
 
 
-class EmailMismatchException(HTTPException):
-    def __init__(self):
-        super().__init__(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Current email does not match token",
-        )
+class EmailMismatchException(RuleException):
+    detail = "Current email does not match token"

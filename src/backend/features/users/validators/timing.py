@@ -4,7 +4,7 @@ from fastapi import Response, Request
 from pytz import utc
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from features.users.exceptions import (
+from shared.exceptions import (
     RequestTimeoutException,
     InvalidTokenException,
     MissingTokenException,
@@ -29,7 +29,7 @@ def validate_token_expiration(token: str) -> bool:
         return int(current_time_utc) >= int(payload.get("exp", 0))
 
     except Exception as ex:
-        raise InvalidTokenException(reason=str(ex)) from ex
+        raise InvalidTokenException() from ex
 
 
 async def refresh_if_needed(

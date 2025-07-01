@@ -15,3 +15,7 @@ class EndTimeInPastException(TimingException):
 
 class EndTimeBeforeStartTimeException(TimingException):
     detail: str = "End time must be after start time."
+
+
+class RequestTimeoutException(TimingException):
+    detail = "The request time has expired"

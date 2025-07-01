@@ -10,12 +10,12 @@ from features.users.exceptions import (
     UserAlreadyRegisteredException,
     ProfileNotFoundException,
 )
-from features.users.exceptions.auth import (
-    AuthenticationRequiredExceptions,
+from features.users.exceptions import (
+    AuthenticationRequiredException,
     AuthenticatedForbiddenException,
+    EmailRequiredExceptions,
 )
-from features.users.exceptions.email import EmailRequiredExceptions
-from features.users.exceptions.token import InvalidTokenException
+from shared.exceptions.token import InvalidTokenException
 
 
 async def check_user_exists(
@@ -92,7 +92,7 @@ def validate_token_presence(
 
     if mode == "require" and not (has_cookie or has_header):
         if raise_exception:
-            raise AuthenticationRequiredExceptions()
+            raise AuthenticationRequiredException()
         return has_cookie, has_header
 
     return None if raise_exception else (has_cookie, has_header)
