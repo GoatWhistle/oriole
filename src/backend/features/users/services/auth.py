@@ -31,7 +31,10 @@ from features.users.crud.user_profile import (
     create_user_profile,
 )
 
-from features.users.services.token_operations import get_valid_payload
+from features.users.services.token_operations import (
+    get_valid_payload,
+    clear_auth_tokens,
+)
 
 from core.celery.email_tasks import send_confirmation_email
 from features.users.validators.rules import validate_activity_and_verification
@@ -42,13 +45,14 @@ from utils.JWT import (
     create_password_confirmation_token,
 )
 from features.users.validators.existence import (
-    check_user_exists_using_email,
+    ensure_user_not_exists_by_email,
     get_user_profile_if_exists,
-    check_user_not_exists_using_email,
-    validate_token_presence,
     validate_token_has_email,
     validate_token_has_user_id,
     is_email_entered,
+    ensure_no_tokens,
+    ensure_user_exists_by_email,
+    has_any_token,
 )
 from features.users.validators.password import validate_password_matching
 from features.users.services.token_operations import _set_auth_cookies
@@ -105,9 +109,8 @@ async def register_user(
     session: AsyncSession,
     user_data: RegisterUserInput,
 ) -> UserAuth:
-    validate_token_presence(request, mode="forbid", raise_exception=True)
-
-    await check_user_not_exists_using_email(session, user_data.email)
+    ensure_no_tokens(request)
+    await ensure_user_not_exists_by_email(session, user_data.email)
 
     try:
         user = await create_user(
@@ -202,18 +205,8 @@ async def logout(
     request: Request,
     response: Response,
 ) -> dict:
-    has_cookies, has_header = validate_token_presence(
-        request,
-        mode="require",
-        raise_exception=False,
-    )
-
-    if has_cookies:
-        response.delete_cookie("access_token")
-        response.delete_cookie("refresh_token")
-
-    if has_header:
-        response.headers["Authorization"] = ""
+    if has_any_token(request):
+        clear_auth_tokens(request, response)
 
     return {"message": "Logout done!"}
 
@@ -270,7 +263,7 @@ async def forgot_password(
 ):
     await is_email_entered(email)
 
-    user_from_db = await check_user_exists_using_email(session=session, email=email)
+    user_from_db = await ensure_user_exists_by_email(session=session, email=email)
 
     token = create_password_confirmation_token(
         user_email=user_from_db.email,

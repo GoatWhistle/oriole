@@ -10,15 +10,15 @@ from features.users.schemas import (
     UserProfileRead,
     UserProfileUpdatePartial,
 )
-from features.users.crud.user import get_user_by_id
 from features.groups.services.account import leave_from_group
 from utils.JWT import create_email_update_token
 
 from features.users.validators.existence import (
-    validate_token_presence,
-    check_user_exists,
-    check_user_exists_using_email,
+    has_any_token,
+    ensure_user_exists,
+    ensure_user_exists_by_email,
 )
+from features.users.services.token_operations import clear_auth_tokens
 
 from features.users.crud.user_profile import (
     update_profile,
@@ -32,7 +32,7 @@ async def delete_user(
     request: Request,
     response: Response | None = None,
 ) -> None:
-    user = await get_user_by_id(session=session, user_id=user_id)
+    user = await ensure_user_exists(session=session, user_id=user_id)
 
     groups = await get_user_groups(session=session, user_id=user_id)
 
@@ -41,19 +41,8 @@ async def delete_user(
 
     await session.delete(user)
 
-    if response:
-        has_cookies, has_header = validate_token_presence(
-            request,
-            mode="require",
-            raise_exception=False,
-        )
-
-        if has_cookies:
-            response.delete_cookie("access_token")
-            response.delete_cookie("refresh_token")
-
-        if has_header:
-            response.headers["Authorization"] = ""
+    if response and has_any_token(request):
+        clear_auth_tokens(request, response)
 
     await session.commit()
 
@@ -64,7 +53,7 @@ async def change_user_email(
     new_email: EmailStr,
     session: AsyncSession,
 ) -> dict:
-    user = await check_user_exists_using_email(session=session, email=email)
+    user = await ensure_user_exists_by_email(session=session, email=email)
 
     token = create_email_update_token(
         user_id=user.id,
@@ -89,7 +78,7 @@ async def update_user_profile(
     user_id: int,
     partial: bool = False,
 ) -> UserProfileRead:
-    await check_user_exists(session, user_id)
+    await ensure_user_exists(session, user_id)
 
     profile = await get_user_profile_by_user_id(session=session, user_id=user_id)
 
@@ -109,7 +98,7 @@ async def get_int_role_in_group(
     user_id: int,
     group_id: int,
 ) -> int:
-    await check_user_exists(session=session, user_id=user_id)
+    await ensure_user_exists(session=session, user_id=user_id)
     await get_group_or_404(session=session, group_id=group_id)
     account = await get_account_or_404(
         session=session,

@@ -9,7 +9,8 @@ from features.users.validators.email import (
     validate_user_email_match,
     validate_email_change_token,
 )
-from features.users.validators.existence import validate_token_presence
+from features.users.validators.existence import has_any_token
+from features.users.services.token_operations import clear_auth_tokens
 
 
 async def change_email_with_token(
@@ -32,19 +33,8 @@ async def change_email_with_token(
 
         user.email = new_email
 
-        if response:
-            has_cookies, has_header = validate_token_presence(
-                request,
-                mode="require",
-                raise_exception=False,
-            )
-
-            if has_cookies:
-                response.delete_cookie("access_token")
-                response.delete_cookie("refresh_token")
-
-            if has_header:
-                response.headers["Authorization"] = ""
+        if response and has_any_token(request):
+            clear_auth_tokens(request, response)
 
         await session.commit()
 
