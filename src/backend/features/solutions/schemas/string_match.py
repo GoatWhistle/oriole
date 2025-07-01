@@ -1,5 +1,11 @@
 from pydantic import BaseModel, ConfigDict
 
+from features.solutions.schemas import BaseSolutionModel
+
+
+class StringMatchSolutionModel(BaseSolutionModel):
+    pass
+
 
 class UserReplyBase(BaseModel):
     account_id: int

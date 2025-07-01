@@ -2,8 +2,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 import features.groups.crud.account as account_crud
 import features.modules.crud.module as module_crud
-import features.tasks.crud.task as task_crud
-import features.tasks.crud.user_reply as user_reply_crud
+import features.solutions.crud.string_match as user_reply_crud
+import features.tasks.crud.string_match as task_crud
 import features.tasks.mappers as mapper
 from features.groups.validators import (
     get_group_or_404,
@@ -17,7 +17,7 @@ from features.tasks.schemas import (
     TaskUpdate,
     TaskUpdatePartial,
 )
-from features.tasks.schemas.task import TaskReadWithoutReplies
+from features.tasks.schemas.string_match import TaskReadWithoutReplies
 from features.tasks.validators import (
     get_task_or_404,
     check_task_start_deadline_after_module_start,
@@ -52,7 +52,7 @@ async def create_task(
     )
     check_task_end_deadline_before_module_end(task_in.end_datetime, module.end_datetime)
 
-    task = await task_crud.create_task(session, task_in)
+    task = await task_crud.create_string_match_task(session, task_in)
     await module_crud.increment_module_tasks_count(session, module.id)
 
     return mapper.build_task_read(task, module)
@@ -177,7 +177,7 @@ async def update_task(
     )
     check_task_end_deadline_before_module_end(task.end_datetime, module.end_datetime)
 
-    task = await task_crud.update_task(session, task, update_data)
+    task = await task_crud.update_string_match_task(session, task, update_data)
 
     return mapper.build_task_read(task, module)
 

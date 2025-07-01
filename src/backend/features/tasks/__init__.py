@@ -1,6 +1,6 @@
 __all__ = [
-    "Task",
+    "StringMatchTask",
     "UserReply",
 ]
 
-from .models import Task, UserReply
+from .models import StringMatchTask, UserReply

@@ -1,7 +1,7 @@
 __all__ = [
-    "Task",
-    "UserReply",
+    "BaseTask",
+    "StringMatchTask",
 ]
 
-from .task import Task
-from .user_reply import UserReply
+from .base import BaseTask
+from .string_match import StringMatchTask

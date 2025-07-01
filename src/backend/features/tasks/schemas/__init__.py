@@ -3,13 +3,15 @@ __all__ = [
     "TaskRead",
     "TaskUpdate",
     "TaskUpdatePartial",
-    "UserReplyRead",
+    "BaseTaskModel",
+    "StringMatchTaskModel",
 ]
 
-from .task import (
+from .base import BaseTaskModel
+from .string_match import (
     TaskCreate,
     TaskRead,
     TaskUpdate,
     TaskUpdatePartial,
+    StringMatchTaskModel,
 )
-from .user_reply import UserReplyRead

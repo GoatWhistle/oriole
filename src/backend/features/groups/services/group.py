@@ -5,8 +5,8 @@ import features.groups.crud.group as group_crud
 import features.groups.crud.invite as group_invite_crud
 import features.groups.mappers as mapper
 import features.modules.crud.module as module_crud
-import features.tasks.crud.task as task_crud
-import features.tasks.crud.user_reply as user_reply_crud
+import features.solutions.crud.string_match as user_reply_crud
+import features.tasks.crud.string_match as task_crud
 import features.users.crud.user_profile as user_profile_crud
 from features.groups.schemas import AccountRead, AccountRole
 from features.groups.schemas import (

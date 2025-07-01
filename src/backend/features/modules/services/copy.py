@@ -2,7 +2,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 import features.modules.crud.module as module_crud
 import features.modules.mappers as mapper
-import features.tasks.crud.task as task_crud
+import features.tasks.crud.string_match as task_crud
 from features.groups.validators import (
     get_group_or_404,
     get_account_or_404,

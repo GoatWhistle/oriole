@@ -1,6 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
-import features.tasks.crud.user_reply as user_reply_crud
+import features.solutions.crud.string_match as user_reply_crud
 import features.tasks.mappers as mapper
 from features.groups.validators import get_group_or_404, get_account_or_404
 from features.modules.validators import get_module_or_404

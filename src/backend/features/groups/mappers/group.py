@@ -8,7 +8,7 @@ from features.groups.schemas.group import (
 )
 from features.modules.mappers import build_module_read_list
 from features.modules.models import Module
-from features.tasks.models import Task, UserReply
+from features.tasks.models import StringMatchTask, UserReply
 from features.users.models import UserProfile
 
 
@@ -17,7 +17,7 @@ def build_group_read(
     accounts: list[Account] | None = None,
     user_profiles: list[UserProfile] | None = None,
     modules: list[Module] | None = None,
-    tasks: list[Task] | None = None,
+    tasks: list[StringMatchTask] | None = None,
     user_replies: list[UserReply] | None = None,
 ) -> (
     GroupRead
@@ -63,7 +63,7 @@ def build_group_read_list(
     accounts: list[Account] | None = None,
     user_profiles: list[UserProfile] | None = None,
     modules: list[Module] | None = None,
-    tasks: list[Task] | None = None,
+    tasks: list[StringMatchTask] | None = None,
     user_replies: list[UserReply] | None = None,
 ) -> list:
     accounts_by_group_id: dict[int, list[Account]] = {}
@@ -79,7 +79,7 @@ def build_group_read_list(
     for module in modules:
         modules_by_group_id.setdefault(module.group_id, []).append(module)
 
-    tasks_by_module_id: dict[int, list[Task]] = {}
+    tasks_by_module_id: dict[int, list[StringMatchTask]] = {}
     for task in tasks:
         tasks_by_module_id.setdefault(task.module_id, []).append(task)
 

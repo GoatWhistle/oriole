@@ -4,8 +4,8 @@ import features.groups.crud.account as account_crud
 import features.groups.crud.group as group_crud
 import features.modules.crud.module as module_crud
 import features.modules.mappers as mapper
-import features.tasks.crud.task as task_crud
-import features.tasks.crud.user_reply as user_reply_crud
+import features.solutions.crud.string_match as user_reply_crud
+import features.tasks.crud.string_match as task_crud
 from features.groups.validators import (
     get_group_or_404,
     get_account_or_404,

@@ -1,11 +1,11 @@
 from features.modules.models import Module
-from features.tasks.models import Task, UserReply
+from features.tasks.models import StringMatchTask, UserReply
 from features.tasks.schemas import TaskRead
-from features.tasks.schemas.task import TaskReadWithoutReplies
+from features.tasks.schemas.string_match import TaskReadWithoutReplies
 
 
 def build_task_read(
-    task: Task,
+    task: StringMatchTask,
     module: Module,
     user_reply: UserReply | None = None,
 ) -> TaskRead | TaskReadWithoutReplies:
@@ -40,7 +40,7 @@ def build_task_read(
 
 def build_task_read_list(
     modules: list[Module],
-    tasks: list[Task],
+    tasks: list[StringMatchTask],
     user_replies: list[UserReply],
 ) -> list[TaskRead]:
     module_by_id = {module.id: module for module in modules}
