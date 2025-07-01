@@ -5,12 +5,12 @@ from features.modules.schemas.module import (
     ModuleReadWithoutReplies,
     ModuleReadWithoutTasks,
 )
-from features.tasks.models import Task, UserReply
+from features.tasks.models import StringMatchTask, UserReply
 
 
 def build_module_read(
     module: Module,
-    tasks: list[Task] | None = None,
+    tasks: list[StringMatchTask] | None = None,
     user_replies: list[UserReply] | None = None,
 ) -> ModuleRead | ModuleReadWithoutReplies | ModuleReadWithoutTasks:
     tasks = tasks or []
@@ -54,7 +54,7 @@ def build_module_read(
 
 def build_module_read_list(
     modules: list[Module],
-    tasks: list[Task] | None,
+    tasks: list[StringMatchTask] | None,
     user_replies: list[UserReply] | None,
 ) -> list[ModuleRead]:
     return [

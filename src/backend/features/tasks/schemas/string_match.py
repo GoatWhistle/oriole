@@ -2,7 +2,12 @@ from datetime import datetime
 
 from pydantic import BaseModel, Field, ConfigDict
 
+from features.tasks.schemas import BaseTaskModel
 from utils import get_number_one_bit_less as get_num_opt
+
+
+class StringMatchTaskModel(BaseTaskModel):
+    pass
 
 
 class TaskBase(BaseModel):

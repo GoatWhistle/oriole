@@ -10,7 +10,7 @@ from utils import get_number_one_bit_less as get_num_opt
 
 if TYPE_CHECKING:
     from features.groups.models import Group
-    from features.tasks.models import Task
+    from features.tasks.models import StringMatchTask
     from features.users.models import UserProfile
 
 
@@ -26,7 +26,7 @@ class Module(Base, IdIntPkMixin):
     group_id: Mapped[int] = mapped_column(ForeignKey("groups.id"))
     group: Mapped["Group"] = relationship(back_populates="modules")
 
-    tasks: Mapped[list["Task"]] = relationship(back_populates="module")
+    tasks: Mapped[list["StringMatchTask"]] = relationship(back_populates="module")
     tasks_count: Mapped[int] = mapped_column(Integer, default=0)
 
     start_datetime: Mapped[datetime] = mapped_column(

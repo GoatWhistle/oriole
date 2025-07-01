@@ -1,4 +1,4 @@
-import features.tasks.crud.task as task_crud
+import features.tasks.crud.string_match as task_crud
 from core.config import settings
 from database import DbHelper
 from utils import get_current_utc

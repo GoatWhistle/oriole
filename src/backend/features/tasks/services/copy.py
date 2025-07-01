@@ -1,6 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
-import features.tasks.crud.task as task_crud
+import features.tasks.crud.string_match as task_crud
 import features.tasks.mappers as mapper
 from features.groups.validators import (
     get_group_or_404,
@@ -52,6 +52,6 @@ async def copy_task_to_module(
         start_datetime=task.start_datetime,
         end_datetime=task.end_datetime,
     )
-    new_task = await task_crud.create_task(session, task_create)
+    new_task = await task_crud.create_string_match_task(session, task_create)
 
     return mapper.build_task_read(new_task, target_module)

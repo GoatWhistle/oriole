@@ -1,7 +1,7 @@
 __all__ = (
     "User",
     "UserProfile",
-    "Task",
+    "StringMatchTask",
     "UserReply",
     "Module",
     "Group",
@@ -14,7 +14,7 @@ __all__ = (
 
 from .groups import Account, Group, GroupInvite
 from .modules import Module
-from .tasks import Task, UserReply
+from .tasks import StringMatchTask, UserReply
 from .users import User, UserProfile
 from .chat.models.message import Message
 from .chat.models.chat import Chat
