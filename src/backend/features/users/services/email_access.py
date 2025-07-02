@@ -1,17 +1,18 @@
+from urllib.parse import urljoin
+
 from fastapi import HTTPException
 from fastapi.templating import Jinja2Templates
 from fastapi_mail import FastMail, MessageSchema, ConnectionConfig
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.config import settings
-from features.users.validators import check_expiration_after_redirect
-from utils.JWT import decode_jwt
-from urllib.parse import urljoin
 from features.users.crud.user import (
     get_user_by_id,
     update_user_verification_status,
 )
 from features.users.services.password_operations import change_password_with_token
+from features.users.validators import check_expiration_after_redirect
+from utils.JWT import decode_jwt
 
 templates = Jinja2Templates(directory="templates/email")
 
