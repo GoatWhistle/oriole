@@ -3,11 +3,11 @@ from sqlalchemy import ForeignKey, Text, DateTime, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime
 
-from database import Base
+from src.backend.database import Base
 
 if TYPE_CHECKING:
-    from ..groups.models import Group
-    from ..users.models import User
+    from src.backend.features.groups.models import Group
+    from src.backend.features.users.models import User
 
 
 class Message(Base):

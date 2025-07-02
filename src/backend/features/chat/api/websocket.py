@@ -2,8 +2,8 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.websockets import WebSocket
 
-from database import db_helper
-from . import service
+from src.backend.database import db_helper
+from ..services import chat as service
 
 router = APIRouter()
 
