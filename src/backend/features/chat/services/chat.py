@@ -1,12 +1,14 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.websockets import WebSocket, WebSocketDisconnect
-from src.backend.core.redis import redis_connection
-from src.backend.features.chat.connections.manager import connection_manager
+from core.redis import redis_connection
+from ..connections.manager import connection_manager
 import json
 from ..crud import message as crud
 
 
-async def handle_websocket(websocket: WebSocket, group_id: int, user_id: int, session: AsyncSession):
+async def handle_websocket(
+    websocket: WebSocket, group_id: int, user_id: int, session: AsyncSession
+):
     await connection_manager.connect(websocket, group_id, user_id)
     cache_key = f"chat:history:{group_id}"
 
@@ -28,14 +30,19 @@ async def handle_websocket(websocket: WebSocket, group_id: int, user_id: int, se
                 )
                 if updated:
                     await redis_connection.redis.delete(cache_key)
-                    await connection_manager.broadcast(group_id, json.dumps({
-                        "edit": True,
-                        "user_id": user_id,
-                        "message": data.get("message"),
-                        "timestamp": updated.timestamp.isoformat(),
-                        "connectionId": data.get("connectionId"),
-                        "message_id": data.get("message_id"),
-                    }))
+                    await connection_manager.broadcast(
+                        group_id,
+                        json.dumps(
+                            {
+                                "edit": True,
+                                "user_id": user_id,
+                                "message": data.get("message"),
+                                "timestamp": updated.timestamp.isoformat(),
+                                "connectionId": data.get("connectionId"),
+                                "message_id": data.get("message_id"),
+                            }
+                        ),
+                    )
                 continue
 
             if data.get("delete"):
@@ -44,17 +51,26 @@ async def handle_websocket(websocket: WebSocket, group_id: int, user_id: int, se
                 )
                 if deleted:
                     await redis_connection.redis.delete(cache_key)
-                    await connection_manager.broadcast(group_id, json.dumps({
-                        "delete": True,
-                        "message_id": data.get("message_id"),
-                        "connectionId": data.get("connectionId"),
-                    }))
+                    await connection_manager.broadcast(
+                        group_id,
+                        json.dumps(
+                            {
+                                "delete": True,
+                                "message_id": data.get("message_id"),
+                                "connectionId": data.get("connectionId"),
+                            }
+                        ),
+                    )
                 continue
 
             if data.get("message"):
-                message_payload = await crud.save_new_message(data, group_id, user_id, session)
+                message_payload = await crud.save_new_message(
+                    data, group_id, user_id, session
+                )
                 await redis_connection.redis.delete(cache_key)
-                await connection_manager.broadcast(group_id, json.dumps(message_payload))
+                await connection_manager.broadcast(
+                    group_id, json.dumps(message_payload)
+                )
 
     except WebSocketDisconnect:
         await connection_manager.disconnect(group_id, websocket)

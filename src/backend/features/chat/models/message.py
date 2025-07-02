@@ -3,7 +3,7 @@ from sqlalchemy import ForeignKey, Text, DateTime, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime
 
-from src.backend.database import Base
+from database import Base
 
 if TYPE_CHECKING:
     from src.backend.features.groups.models import Group

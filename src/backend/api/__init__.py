@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 
 from core.config import settings
-from features.chat.api import router as chat_router
+from features.chat.api.websocket import router as chat_router
 from features.groups.api import router as groups_router
 from features.modules.api import router as moduls_router
 from features.tasks.api import router as tasks_router

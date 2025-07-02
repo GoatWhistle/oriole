@@ -5,8 +5,8 @@ import json
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.backend.core.redis import redis_connection
-from src.backend.features.chat.models.message import Message
+from core.redis import redis_connection
+from ..models.message import Message
 
 
 async def update_message(
@@ -45,6 +45,7 @@ async def delete_message(
         return message
     return None
 
+
 async def get_message_history(group_id: int, session: AsyncSession):
     cache_key = f"chat:history:{group_id}"
     cached = await redis_connection.redis.get(cache_key)
@@ -53,9 +54,7 @@ async def get_message_history(group_id: int, session: AsyncSession):
         return json.loads(cached)
 
     stmt = (
-        select(Message)
-        .where(Message.group_id == group_id)
-        .order_by(Message.timestamp)
+        select(Message).where(Message.group_id == group_id).order_by(Message.timestamp)
     )
     result = await session.execute(stmt)
     messages = result.scalars().all()
@@ -68,7 +67,9 @@ async def get_message_history(group_id: int, session: AsyncSession):
             "timestamp": msg.timestamp.isoformat(),
             "message_id": msg.id,
             "reply_to": msg.reply_to,
-            "reply_to_text": msg_dict[msg.reply_to].text if msg.reply_to in msg_dict else None,
+            "reply_to_text": (
+                msg_dict[msg.reply_to].text if msg.reply_to in msg_dict else None
+            ),
         }
         for msg in messages
     ]
@@ -103,4 +104,3 @@ async def save_new_message(data, group_id: int, user_id: int, session: AsyncSess
         "reply_to": reply_to,
         "reply_to_text": data.get("reply_to_text"),
     }
-
