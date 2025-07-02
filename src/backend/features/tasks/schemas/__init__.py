@@ -5,7 +5,6 @@ __all__ = [
     "BaseTaskUpdatePartial",
     "StringMatchTaskCreate",
     "StringMatchTaskRead",
-    "StringMatchTaskReadWithSolutions",
     "StringMatchTaskUpdate",
     "StringMatchTaskUpdatePartial",
 ]
@@ -14,7 +13,6 @@ from .base import BaseTaskModel, BaseTaskCreate, BaseTaskRead, BaseTaskUpdatePar
 from .string_match import (
     StringMatchTaskCreate,
     StringMatchTaskRead,
-    StringMatchTaskReadWithSolutions,
     StringMatchTaskUpdate,
     StringMatchTaskUpdatePartial,
 )

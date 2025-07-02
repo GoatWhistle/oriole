@@ -36,6 +36,7 @@ class BaseTask(Base, IdIntPkMixin):
         back_populates="task", cascade="all, delete-orphan"
     )
 
+    can_attempt: Mapped[bool] = mapped_column(default=False)
     manual_grading: Mapped[bool] = mapped_column(default=False)
     max_attempts: Mapped[int] = mapped_column(Integer, default=0)
 
