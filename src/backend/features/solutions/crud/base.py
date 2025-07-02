@@ -1,5 +1,3 @@
-from typing import List
-
 from sqlalchemy import delete
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -11,7 +9,7 @@ async def get_solutions(
     session: AsyncSession,
     account_ids: list[int] | None = None,
     task_ids: list[int] | None = None,
-) -> List[BaseSolution]:
+) -> list[BaseSolution]:
     statement = select(BaseSolution)
     conditions = []
 
@@ -31,7 +29,7 @@ async def get_solutions_by_account_id_and_task_id(
     session: AsyncSession,
     account_id: int,
     task_id: int,
-) -> BaseSolution | None:
+) -> list[BaseSolution] | None:
     solutions = await get_solutions(session, [account_id], [task_id])
     return solutions if solutions else None
 
@@ -40,7 +38,7 @@ async def get_solutions_by_account_ids_and_task_ids(
     session: AsyncSession,
     account_ids: list[int],
     task_ids: list[int],
-) -> List[BaseSolution]:
+) -> list[BaseSolution]:
     return await get_solutions(session, account_ids, task_ids)
 
 
@@ -48,7 +46,7 @@ async def get_solutions_by_account_id_and_task_ids(
     session: AsyncSession,
     account_id: int,
     task_ids: list[int],
-) -> List[BaseSolution]:
+) -> list[BaseSolution]:
     return await get_solutions(session, [account_id], task_ids)
 
 

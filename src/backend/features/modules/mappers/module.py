@@ -1,24 +1,25 @@
 import features.tasks.mappers as mapper
+from features import StringMatchSolution
 from features.modules.models import Module
 from features.modules.schemas import ModuleRead
 from features.modules.schemas.module import (
     ModuleReadWithoutReplies,
     ModuleReadWithoutTasks,
 )
-from features.tasks.models import StringMatchTask, UserReply
+from features.tasks.models import StringMatchTask
 
 
 def build_module_read(
     module: Module,
     tasks: list[StringMatchTask] | None = None,
-    user_replies: list[UserReply] | None = None,
+    solutions: list[StringMatchSolution] | None = None,
 ) -> ModuleRead | ModuleReadWithoutReplies | ModuleReadWithoutTasks:
     tasks = tasks or []
-    user_replies = user_replies or []
+    solutions = solutions or []
 
-    task_reads = mapper.build_task_read_list([module], tasks, user_replies)
+    task_reads = mapper.build_task_read_list([module], tasks, solutions)
     user_completed_tasks_count = (
-        sum(task.is_correct for task in task_reads) if user_replies else None
+        sum(task.is_correct for task in task_reads) if solutions else None
     )
 
     base_data = {
@@ -35,7 +36,7 @@ def build_module_read(
     }
     model_class: type[ModuleRead | ModuleReadWithoutReplies | ModuleReadWithoutTasks]
 
-    match (bool(tasks), bool(user_replies)):
+    match (bool(tasks), bool(solutions)):
         case (True, True):
             model_class = ModuleRead
             extra_data = {
@@ -55,13 +56,13 @@ def build_module_read(
 def build_module_read_list(
     modules: list[Module],
     tasks: list[StringMatchTask] | None,
-    user_replies: list[UserReply] | None,
+    solutions: list[StringMatchSolution] | None,
 ) -> list[ModuleRead]:
     return [
         build_module_read(
             module=module,
             tasks=tasks,
-            user_replies=user_replies,
+            solutions=solutions,
         )
         for module in modules
     ]

@@ -1,10 +1,8 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
-import features.accounts.crud.account as account_crud
 import features.modules.crud.module as module_crud
-import features.solutions.crud.string_match as user_reply_crud
+import features.tasks.crud.base as base_task_crud
 import features.tasks.crud.string_match as task_crud
-import features.tasks.mappers as mapper
 from features.groups.validators import (
     get_group_or_404,
     get_account_or_404,
@@ -13,8 +11,10 @@ from features.groups.validators import (
 from features.modules.validators import get_module_or_404
 from features.tasks.schemas import (
     StringMatchTaskCreate,
+    StringMatchTaskRead,
+    StringMatchTaskUpdate,
+    StringMatchTaskUpdatePartial,
 )
-from features.tasks.schemas.string_match import StringMatchTaskRead
 from features.tasks.validators import (
     get_task_or_404,
     check_task_start_deadline_after_module_start,
@@ -52,77 +52,17 @@ async def create_string_match_task(
     return task.get_validation_schema()
 
 
-async def get_tasks_in_module(
-    session: AsyncSession,
-    user_id: int,
-    module_id: int,
-    is_active: bool | None,
-    include: list[str] | None = None,
-) -> list[TaskRead]:
-    module = await get_module_or_404(session, module_id)
-    _ = await get_group_or_404(session, module.group_id)
-    account = await get_account_or_404(session, user_id, module.group_id)
-
-    tasks = await task_crud.get_tasks_by_module_id(session, module_id, is_active)
-    if not tasks:
-        return []
-
-    user_replies = (
-        await user_reply_crud.get_user_replies_by_account_ids_and_task_ids(
-            session, [account.id], [task.id for task in tasks]
-        )
-        if include and "user_replies" in include
-        else []
-    )
-
-    return mapper.build_task_read_list([module], tasks, user_replies)
-
-
-async def get_user_tasks(
-    session: AsyncSession,
-    user_id: int,
-    is_active: bool | None,
-    include: list[str] | None = None,
-) -> list[TaskRead | StringMatchTaskRead]:
-    accounts = await account_crud.get_accounts_by_user_id(session, user_id)
-    if not accounts:
-        return []
-
-    modules = await module_crud.get_modules_by_group_ids(
-        session, [account.group_id for account in accounts], is_active
-    )
-    if not modules:
-        return []
-
-    tasks = await task_crud.get_tasks_by_module_ids(
-        session, [module.id for module in modules], is_active
-    )
-    if not tasks:
-        return []
-
-    user_replies = (
-        await user_reply_crud.get_user_replies_by_account_ids_and_task_ids(
-            session, [account.id for account in accounts], [task.id for task in tasks]
-        )
-        if include and "user_replies" in include
-        else []
-    )
-
-    return mapper.build_task_read_list(modules, tasks, user_replies)
-
-
-async def update_task(
+async def update_string_match_task(
     session: AsyncSession,
     user_id: int,
     task_id: int,
-    task_update: TaskUpdate | TaskUpdatePartial,
+    task_update: StringMatchTaskUpdate | StringMatchTaskUpdatePartial,
     is_partial: bool = False,
-) -> TaskRead:
-
+) -> StringMatchTaskRead:
     task = await get_task_or_404(session, task_id)
     module = await get_module_or_404(session, task.module_id)
-    _ = await get_group_or_404(session, module.group_id)
-    account = await get_account_or_404(session, user_id, module.group_id)
+    _ = await get_group_or_404(session, module.space_id)
+    account = await get_account_or_404(session, user_id, module.space_id)
 
     check_user_is_admin_or_owner(account.role)
 
@@ -143,6 +83,6 @@ async def update_task(
     )
     check_task_end_deadline_before_module_end(task.end_datetime, module.end_datetime)
 
-    task = await task_crud.update_string_match_task(session, task, update_data)
+    task = await base_task_crud.update_task(session, task, update_data)
 
-    return mapper.build_task_read(task, module)
+    return task.get_validation_schema()

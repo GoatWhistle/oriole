@@ -7,6 +7,7 @@ class BaseTaskModel(BaseModel):
     title: str = Field(max_length=100)
     description: str = Field(max_length=500)
 
+    can_attempt: bool
     manual_grading: bool
     max_attempts: int
 
@@ -36,8 +37,9 @@ class BaseTaskUpdatePartial(BaseTaskModel):
     title: str | None = Field(default=None, max_length=100)
     description: str | None = Field(default=None, max_length=500)
 
-    max_attempts: str | None = None
+    can_attempt: bool | None = None
     manual_grading: bool | None = None
+    max_attempts: str | None = None
 
     start_datetime: datetime | None = None
     end_datetime: datetime | None = None
