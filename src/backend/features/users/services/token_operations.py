@@ -114,7 +114,7 @@ async def refresh_tokens_operation(
 ) -> str:
     refresh_token = request.cookies.get("refresh_token")
     if not refresh_token:
-        raise
+        raise MissingTokenError()
 
     try:
         payload = decode_jwt(refresh_token)
