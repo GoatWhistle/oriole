@@ -152,7 +152,7 @@
         if (!groupsRes.ok) throw new Error("Ошибка получения групп");
 
         const groups = await groupsRes.json();
-        showGroups(groups, user.id);
+        showGroups(groups.data, user.id);
       } catch (e) {
         console.error(e);
         error.textContent = e.message;
