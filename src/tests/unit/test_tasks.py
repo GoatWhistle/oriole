@@ -4,8 +4,8 @@ from src.backend.features.tasks.mappers.task import (
     build_task_read,
     build_task_read_list,
 )
-from src.backend.features.tasks.services.task import (
-    create_task,
+from src.backend.features.tasks.services.string_match import (
+    create_string_match_task,
     get_task_by_id,
     get_tasks_in_module,
     get_user_tasks,
@@ -59,7 +59,9 @@ async def test_create_task_success(
     mock_get_account_or_404,
     mock_task_crud_create_task,
 ):
-    result = await create_task(session=mock_session, user_id=1, task_in=valid_task_data)
+    result = await create_string_match_task(
+        session=mock_session, user_id=1, task_in=valid_task_data
+    )
 
     assert result.id == 1
     assert result.title == valid_task_data.title

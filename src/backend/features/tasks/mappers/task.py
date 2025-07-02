@@ -1,14 +1,14 @@
 from features.modules.models import Module
 from features.tasks.models import StringMatchTask, UserReply
 from features.tasks.schemas import TaskRead
-from features.tasks.schemas.string_match import TaskReadWithoutReplies
+from features.tasks.schemas.string_match import StringMatchTaskRead
 
 
 def build_task_read(
     task: StringMatchTask,
     module: Module,
     user_reply: UserReply | None = None,
-) -> TaskRead | TaskReadWithoutReplies:
+) -> TaskRead | StringMatchTaskRead:
     if user_reply:
         return TaskRead(
             title=task.title,
@@ -24,7 +24,7 @@ def build_task_read(
             user_answer=user_reply.user_answer if user_reply else "",
             user_attempts=user_reply.user_attempts if user_reply else 0,
         )
-    return TaskReadWithoutReplies(
+    return StringMatchTaskRead(
         title=task.title,
         description=task.description,
         start_datetime=task.start_datetime,

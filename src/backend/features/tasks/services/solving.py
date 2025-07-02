@@ -1,6 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
-import features.solutions.crud.string_match as user_reply_crud
+import features.solutions.crud.base as base_solution_crud
+import features.solutions.crud.string_match as string_match_solution_crud
 import features.tasks.mappers as mapper
 from features.groups.validators import get_group_or_404, get_account_or_404
 from features.modules.validators import get_module_or_404
@@ -24,22 +25,22 @@ async def try_to_complete_task(
 
     task = await get_task_or_404(session, task_id)
     module = await get_module_or_404(session, task.module_id)
-    _ = await get_group_or_404(session, module.group_id)
-    account = await get_account_or_404(session, user_id, module.group_id)
+    _ = await get_group_or_404(session, module.space_id)
+    account = await get_account_or_404(session, user_id, module.space_id)
 
     check_is_active(task.is_active)
 
-    user_reply = await user_reply_crud.get_user_reply_by_account_id_and_task_id(
+    user_reply = await base_solution_crud.get_solution_by_account_id_and_task_id(
         session, account.id, task_id
     )
     if user_reply:
         check_task_is_already_correct(user_reply.is_correct)
         check_counter_limit(task.max_attempts, user_reply.user_attempts)
-        user_reply = await user_reply_crud.update_user_reply(
+        user_reply = await string_match_solution_crud.update_string_match_solution(
             session, user_reply, user_answer, task.correct_answer
         )
     else:
-        user_reply = await user_reply_crud.create_user_reply(
+        user_reply = await string_match_solution_crud.create_string_match_solution(
             session, account.id, task, user_answer
         )
 

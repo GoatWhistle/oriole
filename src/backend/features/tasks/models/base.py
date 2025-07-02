@@ -1,13 +1,13 @@
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from datetime import datetime
-from typing import TYPE_CHECKING, List, Dict, Any
+from typing import TYPE_CHECKING, List
 
-from sqlalchemy import String, ForeignKey, Integer, DateTime, func, JSON
+from sqlalchemy import String, ForeignKey, Integer, DateTime, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from database import IdIntPkMixin
 from database.base import Base
-from features.tasks.schemas import BaseTaskModel
+from features.tasks.schemas import BaseTaskRead
 from shared.enums import TaskTypeEnum
 
 if TYPE_CHECKING:
@@ -15,13 +15,13 @@ if TYPE_CHECKING:
     from features.solutions.models import BaseSolution
 
 
-class BaseTask(Base, IdIntPkMixin, ABC):
+class BaseTask(Base, IdIntPkMixin):
     __tablename__ = "tasks"
 
     task_type: Mapped[str] = mapped_column(String(50), nullable=False, index=True)
 
     __mapper_args__ = {
-        "polymorphic_identity": TaskTypeEnum.BASE,
+        "polymorphic_identity": TaskTypeEnum.BASE.value,
         "polymorphic_on": task_type,
         "with_polymorphic": "*",
     }
@@ -36,7 +36,6 @@ class BaseTask(Base, IdIntPkMixin, ABC):
         back_populates="task", cascade="all, delete-orphan"
     )
 
-    correct_answer: Mapped[Dict[str, Any]] = mapped_column(JSON, default=dict)
     manual_grading: Mapped[bool] = mapped_column(default=False)
     max_attempts: Mapped[int] = mapped_column(Integer, default=0)
 
@@ -48,5 +47,17 @@ class BaseTask(Base, IdIntPkMixin, ABC):
     )
     is_active: Mapped[bool] = mapped_column(default=False)
 
+    @property
+    def space_id(self) -> int:
+        return self.module.space_id
+
     @abstractmethod
-    def get_validation_schema(self) -> BaseTaskModel: ...
+    def get_validation_schema(
+        self,
+        is_correct: bool = False,
+        user_attempts: int = 0,
+    ) -> BaseTaskRead:
+        data = BaseTaskRead.model_validate(self)
+        return data.model_copy(
+            update={"is_correct": is_correct, "user_attempts": user_attempts}
+        )

@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from database import db_helper
 from features.tasks.schemas import TaskRead
-from features.tasks.services import task as service
+from features.tasks.services import string_match as service
 from features.users.services.auth import get_current_active_auth_user_id
 from utils.response_func import create_json_response
 from utils.schemas import SuccessListResponse

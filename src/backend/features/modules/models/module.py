@@ -4,29 +4,27 @@ from typing import TYPE_CHECKING
 from sqlalchemy import String, ForeignKey, Integer, DateTime, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from database import IdIntPkMixin
-from database.base import Base
-from utils import get_number_one_bit_less as get_num_opt
+from database import Base, IdIntPkMixin
 
 if TYPE_CHECKING:
-    from features.groups.models import Group
-    from features.tasks.models import StringMatchTask
+    from features.tasks.models import BaseTask
+    from features.spaces.models.space import Space
     from features.users.models import UserProfile
 
 
 class Module(Base, IdIntPkMixin):
-    title: Mapped[str] = mapped_column(String(get_num_opt(100)))
-    description: Mapped[str] = mapped_column(String(get_num_opt(200)))
+    title: Mapped[str] = mapped_column(String(100))
+    description: Mapped[str] = mapped_column(String(200))
 
-    is_contest: Mapped[bool] = mapped_column()
+    creator_id: Mapped[int] = mapped_column(ForeignKey("user_profiles.user_id"))
+    creator: Mapped["UserProfile"] = relationship(back_populates="created_modules")
 
-    admin_id: Mapped[int] = mapped_column(ForeignKey("user_profiles.user_id"))
-    admin: Mapped["UserProfile"] = relationship(back_populates="admin_modules")
+    space_id: Mapped[int] = mapped_column(ForeignKey("spaces.id", ondelete="CASCADE"))
+    space: Mapped["Space"] = relationship(back_populates="modules")
 
-    group_id: Mapped[int] = mapped_column(ForeignKey("groups.id"))
-    group: Mapped["Group"] = relationship(back_populates="modules")
-
-    tasks: Mapped[list["StringMatchTask"]] = relationship(back_populates="module")
+    tasks: Mapped[list["BaseTask"]] = relationship(
+        back_populates="module", cascade="all, delete-orphan"
+    )
     tasks_count: Mapped[int] = mapped_column(Integer, default=0)
 
     start_datetime: Mapped[datetime] = mapped_column(

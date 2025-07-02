@@ -93,5 +93,6 @@
 |         <a href="https://github.com/BazhenovDM" target="_blank"><img src="https://github.com/BazhenovDM.png" width="80" style="border-radius: 50%"></a>         | **Баженов Дмитрий**<br>*Backend-разработчик*<br>  |
 |           <a href="https://github.com/ivanGMAI" target="_blank"><img src="https://github.com/ivanGMAI.png" width="80" style="border-radius: 50%"></a>           |  **Иван Герасимов**<br>*Backend-разработчик*<br>  |
 |         <a href="https://github.com/curboturbo" target="_blank"><img src="https://github.com/curboturbo.png" width="80" style="border-radius: 50%"></a>         |  **Артем Калинин**<br>*Backend-разработчик*<br>   |
+|          <a href="https://github.com/Makpukich" target="_blank"><img src="https://github.com/Makpukich.png" width="80" style="border-radius: 50%"></a>          |    **Борис Сергеев**<br>*Tester & Backend*<br>    |
 
 </div>

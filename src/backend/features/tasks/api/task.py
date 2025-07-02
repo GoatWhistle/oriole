@@ -7,7 +7,7 @@ from features.tasks.schemas import (
     TaskUpdate,
     TaskUpdatePartial,
 )
-from features.tasks.services import task as service
+from features.tasks.services import string_match as service
 from features.users.services.auth import get_current_active_auth_user_id
 from utils.response_func import create_json_response
 from utils.schemas import SuccessResponse, SuccessListResponse
@@ -25,7 +25,7 @@ async def create_task(
     session: AsyncSession = Depends(db_helper.dependency_session_getter),
     user_id: int = Depends(get_current_active_auth_user_id),
 ):
-    data = await service.create_task(session, user_id, task_in)
+    data = await service.create_string_match_task(session, user_id, task_in)
     return create_json_response(data=data)
 
 

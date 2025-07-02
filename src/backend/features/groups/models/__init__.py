@@ -4,6 +4,6 @@ __all__ = [
     "GroupInvite",
 ]
 
-from .account import Account
+from features.accounts.models.account import Account
 from .group import Group
 from .group_invite import GroupInvite

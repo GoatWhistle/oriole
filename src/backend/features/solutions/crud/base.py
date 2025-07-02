@@ -27,13 +27,13 @@ async def get_solutions(
     return list(result.scalars().all())
 
 
-async def get_solution_by_account_id_and_task_id(
+async def get_solutions_by_account_id_and_task_id(
     session: AsyncSession,
     account_id: int,
     task_id: int,
 ) -> BaseSolution | None:
     solutions = await get_solutions(session, [account_id], [task_id])
-    return solutions[0] if solutions else None
+    return solutions if solutions else None
 
 
 async def get_solutions_by_account_ids_and_task_ids(
@@ -44,7 +44,7 @@ async def get_solutions_by_account_ids_and_task_ids(
     return await get_solutions(session, account_ids, task_ids)
 
 
-async def get_solutions_by_task_ids(
+async def get_solutions_by_account_id_and_task_ids(
     session: AsyncSession,
     account_id: int,
     task_ids: list[int],

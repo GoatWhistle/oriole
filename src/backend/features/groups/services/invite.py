@@ -6,7 +6,7 @@ from fastapi import Request
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-import features.groups.crud.account as account_crud
+import features.accounts.crud.account as account_crud
 import features.groups.crud.invite as group_invite_crud
 from features.groups.models import GroupInvite
 from features.groups.schemas import AccountRole

@@ -3,29 +3,27 @@ from typing import TYPE_CHECKING, List
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from database import IdIntPkMixin
-from database.base import Base
+from database import Base, IdIntPkMixin
 
 if TYPE_CHECKING:
+    from features.users.models import UserProfile
+    from features.groups.models import Group
+    from features.solutions.models import BaseSolution
     from features import Chat
     from features import ChatAccountAssociation
-    from features import Group
-    from features import UserReply
-    from features import UserProfile
     from features import Message
 
 
 class Account(Base, IdIntPkMixin):
-    __tablename__ = "accounts"
-
     user_id: Mapped[int] = mapped_column(ForeignKey("user_profiles.user_id"))
-    group_id: Mapped[int] = mapped_column(ForeignKey("groups.id"))
+    user_profile: Mapped["UserProfile"] = relationship(back_populates="accounts")
 
     role: Mapped[int] = mapped_column()
 
-    user_profile: Mapped["UserProfile"] = relationship(back_populates="accounts")
+    group_id: Mapped[int] = mapped_column(ForeignKey("groups.id"))
     group: Mapped["Group"] = relationship(back_populates="accounts")
-    done_tasks: Mapped[List["UserReply"]] = relationship(back_populates="account")
+
+    done_tasks: Mapped[list["BaseSolution"]] = relationship(back_populates="account")
 
     messages: Mapped[List["Message"]] = relationship(
         back_populates="account", cascade="all, delete-orphan"
