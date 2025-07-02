@@ -1,20 +1,23 @@
-__all__ = (
+__all__ = [
+    "Account",
+    "Group",
+    "GroupInvite",
+    "Module",
+    "BaseSolution",
+    "StringMatchSolution",
+    "BaseTask",
+    "StringMatchTask",
     "User",
     "UserProfile",
-    "StringMatchTask",
-    "UserReply",
-    "Module",
-    "Group",
-    "Account",
-    "GroupInvite",
     "Message",
     "ChatAccountAssociation",
     "Chat",
-)
+]
 
 from .groups import Account, Group, GroupInvite
 from .modules import Module
-from .tasks import StringMatchTask, UserReply
+from .solutions import BaseSolution, StringMatchSolution
+from .tasks import BaseTask, StringMatchTask
 from .users import User, UserProfile
 from .chat.models.message import Message
 from .chat.models.chat import Chat
