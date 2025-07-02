@@ -1,6 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
-import features.groups.crud.account as account_crud
+import features.accounts.crud.account as account_crud
 from features.groups.schemas import AccountRole
 from features.groups.schemas.account import AccountRoleChangeRead
 from features.groups.validators import (

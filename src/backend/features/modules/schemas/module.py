@@ -2,12 +2,10 @@ from datetime import datetime
 
 from pydantic import BaseModel, Field, ConfigDict
 
-from utils import get_number_one_bit_less as get_num_opt
-
 
 class ModuleBase(BaseModel):
-    title: str = Field(max_length=get_num_opt(100))
-    description: str = Field(max_length=get_num_opt(200))
+    title: str = Field(max_length=100)
+    description: str = Field(max_length=200)
 
     start_datetime: datetime
     end_datetime: datetime
@@ -16,7 +14,7 @@ class ModuleBase(BaseModel):
 
 
 class ModuleCreate(ModuleBase):
-    group_id: int
+    space_id: int
 
 
 class ModuleRead(ModuleBase):
@@ -24,17 +22,15 @@ class ModuleRead(ModuleBase):
 
     is_active: bool
 
-    group_id: int
-    admin_id: int
+    space_id: int
+    creator_id: int
 
     tasks_count: int
     user_completed_tasks_count: int
 
     tasks: list
 
-    model_config = ConfigDict(
-        from_attributes=True,
-    )
+    model_config = ConfigDict(from_attributes=True)
 
 
 class ModuleUpdate(ModuleBase):
@@ -42,8 +38,8 @@ class ModuleUpdate(ModuleBase):
 
 
 class ModuleUpdatePartial(ModuleUpdate):
-    title: str | None = Field(default=None, max_length=get_num_opt(100))
-    description: str | None = Field(default=None, max_length=get_num_opt(200))
+    title: str | None = Field(default=None, max_length=100)
+    description: str | None = Field(default=None, max_length=200)
 
     start_datetime: datetime | None = None
     end_datetime: datetime | None = None
@@ -53,24 +49,28 @@ class ModuleUpdatePartial(ModuleUpdate):
 
 class ModuleReadWithoutReplies(ModuleBase):
     id: int
+
     is_active: bool
-    group_id: int
-    admin_id: int
+
+    space_id: int
+    creator_id: int
+
     tasks_count: int
+    user_completed_tasks_count: int
+
     tasks: list
 
-    model_config = ConfigDict(
-        from_attributes=True,
-    )
+    model_config = ConfigDict(from_attributes=True)
 
 
 class ModuleReadWithoutTasks(ModuleBase):
     id: int
+
     is_active: bool
-    group_id: int
-    admin_id: int
+
+    space_id: int
+    creator_id: int
+
     tasks_count: int
 
-    model_config = ConfigDict(
-        from_attributes=True,
-    )
+    model_config = ConfigDict(from_attributes=True)

@@ -28,8 +28,8 @@ async def get_tasks(
 async def get_tasks_by_module_id(
     session: AsyncSession,
     module_id: int,
-    task_model: Type[BaseTask] = BaseTask,
     is_active: bool | None = None,
+    task_model: Type[BaseTask] = BaseTask,
 ) -> list[BaseTask]:
     return await get_tasks_by_module_ids(session, [module_id], task_model, is_active)
 

@@ -1,69 +1,34 @@
-from datetime import datetime
+from features.tasks.schemas import (
+    BaseTaskModel,
+    BaseTaskRead,
+    BaseTaskCreate,
+    BaseTaskUpdatePartial,
+)
 
-from pydantic import BaseModel, Field, ConfigDict
 
-from features.tasks.schemas import BaseTaskModel
-from utils import get_number_one_bit_less as get_num_opt
+class StringMatchTaskBase(BaseTaskModel):
+    is_case_sensitive: bool
+    normalize_whitespace: bool
+    standardize_numeric_punctuation: bool
+    ignore_leading_zeros_in_numbers: bool
 
 
-class StringMatchTaskModel(BaseTaskModel):
+class StringMatchTaskCreate(StringMatchTaskBase, BaseTaskCreate):
+    correct_answer: str
+
+
+class StringMatchTaskRead(StringMatchTaskBase, BaseTaskRead):
     pass
 
 
-class TaskBase(BaseModel):
-    title: str = Field(max_length=get_num_opt(100))
-    description: str = Field(max_length=get_num_opt(200))
-
-    start_datetime: datetime
-    end_datetime: datetime
-
-    max_attempts: int
-
-
-class TaskCreate(TaskBase):
-    module_id: int
+class StringMatchTaskUpdate(StringMatchTaskBase):
     correct_answer: str
 
 
-class TaskRead(TaskBase):
-    id: int
-
-    is_correct: bool
-    is_active: bool
-
-    module_id: int
-    group_id: int
-
-    user_answer: str
-    user_attempts: int
-
-    model_config = ConfigDict(
-        from_attributes=True,
-    )
-
-
-class TaskUpdate(TaskBase):
-    correct_answer: str
-
-
-class TaskUpdatePartial(TaskUpdate):
-    title: str | None = Field(default=None, max_length=get_num_opt(100))
-    description: str | None = Field(default=None, max_length=get_num_opt(200))
-
-    start_datetime: datetime | None = None
-    end_datetime: datetime | None = None
-
-    max_attempts: str | None = None
+class StringMatchTaskUpdatePartial(StringMatchTaskUpdate, BaseTaskUpdatePartial):
     correct_answer: str | None = None
 
-
-class TaskReadWithoutReplies(TaskBase):
-    id: int
-    is_active: bool
-    is_correct: bool
-    module_id: int
-    group_id: int
-
-    model_config = ConfigDict(
-        from_attributes=True,
-    )
+    is_case_sensitive: bool | None = None
+    normalize_whitespace: bool | None = None
+    standardize_numeric_punctuation: bool | None = None
+    ignore_leading_zeros_in_numbers: bool | None = None

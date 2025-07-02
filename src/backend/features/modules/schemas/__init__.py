@@ -3,6 +3,8 @@ __all__ = [
     "ModuleRead",
     "ModuleUpdate",
     "ModuleUpdatePartial",
+    "ModuleReadWithoutReplies",
+    "ModuleReadWithoutTasks",
 ]
 
 from .module import (
@@ -10,4 +12,6 @@ from .module import (
     ModuleRead,
     ModuleUpdate,
     ModuleUpdatePartial,
+    ModuleReadWithoutReplies,
+    ModuleReadWithoutTasks,
 )

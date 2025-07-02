@@ -1,6 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
-import features.groups.crud.account as account_crud
+import features.accounts.crud.account as account_crud
 import features.groups.crud.group as group_crud
 import features.modules.crud.module as module_crud
 import features.modules.mappers as mapper

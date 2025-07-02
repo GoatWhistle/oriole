@@ -10,6 +10,7 @@ authors = [
     { name = "Dmitry Bazhenov", email = "BazhenovStudy@yandex.ru" },
     { name = "Ivan Gerasimov", email = "ivan.gerasimou@yandex.ru" },
     { name = "Artem Kalinin", email = "arrdin32@gmail.com" },
+    { name = "Boris Sergeev", email = "SergeevBoris.work@gmail.com" },
 ]
 license = { text = "GPL v3" }
 readme = "README.md"

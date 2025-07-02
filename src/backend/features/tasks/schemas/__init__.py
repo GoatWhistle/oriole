@@ -1,17 +1,20 @@
 __all__ = [
-    "TaskCreate",
-    "TaskRead",
-    "TaskUpdate",
-    "TaskUpdatePartial",
     "BaseTaskModel",
-    "StringMatchTaskModel",
+    "BaseTaskCreate",
+    "BaseTaskRead",
+    "BaseTaskUpdatePartial",
+    "StringMatchTaskCreate",
+    "StringMatchTaskRead",
+    "StringMatchTaskReadWithSolutions",
+    "StringMatchTaskUpdate",
+    "StringMatchTaskUpdatePartial",
 ]
 
-from .base import BaseTaskModel
+from .base import BaseTaskModel, BaseTaskCreate, BaseTaskRead, BaseTaskUpdatePartial
 from .string_match import (
-    TaskCreate,
-    TaskRead,
-    TaskUpdate,
-    TaskUpdatePartial,
-    StringMatchTaskModel,
+    StringMatchTaskCreate,
+    StringMatchTaskRead,
+    StringMatchTaskReadWithSolutions,
+    StringMatchTaskUpdate,
+    StringMatchTaskUpdatePartial,
 )

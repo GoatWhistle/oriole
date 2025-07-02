@@ -1,6 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
-import features.groups.crud.account as account_crud
+import features.accounts.crud.account as account_crud
 import features.modules.crud.module as module_crud
 import features.solutions.crud.string_match as user_reply_crud
 import features.tasks.crud.string_match as task_crud
@@ -12,18 +12,14 @@ from features.groups.validators import (
 )
 from features.modules.validators import get_module_or_404
 from features.tasks.schemas import (
-    TaskCreate,
-    TaskRead,
-    TaskUpdate,
-    TaskUpdatePartial,
+    StringMatchTaskCreate,
 )
-from features.tasks.schemas.string_match import TaskReadWithoutReplies
+from features.tasks.schemas.string_match import StringMatchTaskRead
 from features.tasks.validators import (
     get_task_or_404,
     check_task_start_deadline_after_module_start,
     check_task_end_deadline_before_module_end,
 )
-from features.users.validators import check_user_exists
 from shared.validators import (
     check_start_time_not_in_past,
     check_end_time_not_in_past,
@@ -31,16 +27,14 @@ from shared.validators import (
 )
 
 
-async def create_task(
+async def create_string_match_task(
     session: AsyncSession,
     user_id: int,
-    task_in: TaskCreate,
-) -> TaskRead:
-    await check_user_exists(session, user_id)
-
+    task_in: StringMatchTaskCreate,
+) -> StringMatchTaskRead:
     module = await get_module_or_404(session, task_in.module_id)
-    _ = await get_group_or_404(session, module.group_id)
-    account = await get_account_or_404(session, user_id, module.group_id)
+    _ = await get_group_or_404(session, module.space_id)
+    account = await get_account_or_404(session, user_id, module.space_id)
 
     check_user_is_admin_or_owner(account.role)
 
@@ -55,30 +49,7 @@ async def create_task(
     task = await task_crud.create_string_match_task(session, task_in)
     await module_crud.increment_module_tasks_count(session, module.id)
 
-    return mapper.build_task_read(task, module)
-
-
-async def get_task_by_id(
-    session: AsyncSession,
-    user_id: int,
-    task_id: int,
-    include: list[str] | None = None,
-) -> TaskRead | TaskReadWithoutReplies:
-    await check_user_exists(session, user_id)
-
-    task = await get_task_or_404(session, task_id)
-    module = await get_module_or_404(session, task.module_id)
-    _ = await get_group_or_404(session, module.group_id)
-    account = await get_account_or_404(session, user_id, module.group_id)
-    user_reply = (
-        await user_reply_crud.get_user_reply_by_account_id_and_task_id(
-            session, account.id, task_id
-        )
-        if include and "user_replies" in include
-        else []
-    )
-
-    return mapper.build_task_read(task, module, user_reply)
+    return task.get_validation_schema()
 
 
 async def get_tasks_in_module(
@@ -88,8 +59,6 @@ async def get_tasks_in_module(
     is_active: bool | None,
     include: list[str] | None = None,
 ) -> list[TaskRead]:
-    await check_user_exists(session, user_id)
-
     module = await get_module_or_404(session, module_id)
     _ = await get_group_or_404(session, module.group_id)
     account = await get_account_or_404(session, user_id, module.group_id)
@@ -114,9 +83,7 @@ async def get_user_tasks(
     user_id: int,
     is_active: bool | None,
     include: list[str] | None = None,
-) -> list[TaskRead | TaskReadWithoutReplies]:
-    await check_user_exists(session=session, user_id=user_id)
-
+) -> list[TaskRead | StringMatchTaskRead]:
     accounts = await account_crud.get_accounts_by_user_id(session, user_id)
     if not accounts:
         return []
@@ -151,7 +118,6 @@ async def update_task(
     task_update: TaskUpdate | TaskUpdatePartial,
     is_partial: bool = False,
 ) -> TaskRead:
-    await check_user_exists(session, user_id)
 
     task = await get_task_or_404(session, task_id)
     module = await get_module_or_404(session, task.module_id)
@@ -180,21 +146,3 @@ async def update_task(
     task = await task_crud.update_string_match_task(session, task, update_data)
 
     return mapper.build_task_read(task, module)
-
-
-async def delete_task(
-    session: AsyncSession,
-    user_id: int,
-    task_id: int,
-) -> None:
-    await check_user_exists(session, user_id)
-
-    task = await get_task_or_404(session, task_id)
-    module = await get_module_or_404(session, task.module_id)
-    _ = await get_group_or_404(session, module.group_id)
-    account = await get_account_or_404(session, user_id, module.group_id)
-
-    check_user_is_admin_or_owner(account.role)
-
-    await user_reply_crud.delete_user_replies_by_task_id(session, task_id)
-    await task_crud.delete_task(session, task)

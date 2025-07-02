@@ -25,8 +25,8 @@ async def copy_task_to_module(
     task = await get_task_or_404(session, source_task_id)
 
     source_module = await get_module_or_404(session, task.module_id)
-    _ = await get_group_or_404(session, source_module.group_id)
-    source_account = await get_account_or_404(session, user_id, source_module.group_id)
+    _ = await get_group_or_404(session, source_module.space_id)
+    source_account = await get_account_or_404(session, user_id, source_module.space_id)
 
     check_user_is_admin_or_owner(source_account.role)
 
@@ -36,10 +36,10 @@ async def copy_task_to_module(
         else source_module
     )
 
-    if source_module.group_id != target_module.group_id:
-        _ = await get_group_or_404(session, target_module.group_id)
+    if source_module.space_id != target_module.space_id:
+        _ = await get_group_or_404(session, target_module.space_id)
         target_account = await get_account_or_404(
-            session, user_id, target_module.group_id
+            session, user_id, target_module.space_id
         )
         check_user_is_admin_or_owner(target_account.role)
 
