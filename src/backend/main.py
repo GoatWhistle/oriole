@@ -26,6 +26,8 @@ sentry_sdk.init(
 
 app = FastAPI(lifespan=lifespan)
 
+app.add_middleware(ExceptionHandlerMiddleware)
+
 app.add_middleware(SentryAsgiMiddleware)
 
 Instrumentator().instrument(app).expose(app)
@@ -55,7 +57,6 @@ if not (is_dev):
         invalidate_paths=["auth", "verify"],
     )
 app.add_middleware(LoggingMiddleware)
-app.add_middleware(ExceptionHandlerMiddleware)
 
 app.include_router(
     api_router,
