@@ -3,7 +3,7 @@ from typing import Sequence, Any
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from features.groups.models import Account
+from features.accounts.models import Account
 from features.groups.models import Group
 from features.groups.schemas import GroupCreate
 

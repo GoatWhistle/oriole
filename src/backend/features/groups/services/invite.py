@@ -8,8 +8,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 import features.accounts.crud.account as account_crud
 import features.groups.crud.invite as group_invite_crud
+from features.accounts.schemas import AccountRole
 from features.groups.models import GroupInvite
-from features.groups.schemas import AccountRole
 from features.groups.schemas.invite import LinkRead, LinkJoinRead
 from features.groups.validators import (
     get_group_or_404,
@@ -78,7 +78,7 @@ async def join_by_link(
 
     await get_account_or_404(session, user_id, group_id, is_correct=False)
 
-    accounts = await account_crud.get_accounts_in_group(session, group_id)
+    accounts = await account_crud.get_accounts_in_space(session, group_id)
     role = AccountRole.OWNER if not accounts else AccountRole.MEMBER
 
     await account_crud.create_account(session, user_id, group_id, role.value)

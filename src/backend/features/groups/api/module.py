@@ -28,7 +28,7 @@ async def get_modules_in_group(
     data = await service.get_modules_in_group(
         session=session,
         user_id=user_id,
-        group_id=group_id,
+        space_id=group_id,
         is_active=is_active,
         include=include,
     )

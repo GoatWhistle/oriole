@@ -8,7 +8,7 @@ import features.modules.crud.module as module_crud
 import features.solutions.crud.string_match as user_reply_crud
 import features.tasks.crud.string_match as task_crud
 import features.users.crud.user_profile as user_profile_crud
-from features.groups.schemas import AccountRead, AccountRole
+from features.accounts.schemas import AccountRead, AccountRole
 from features.groups.schemas import (
     GroupCreate,
     GroupRead,
@@ -61,7 +61,7 @@ async def get_group_by_id(
     account = await get_account_or_404(session, user_id, group_id)
 
     accounts = (
-        await account_crud.get_accounts_in_group(session, group_id)
+        await account_crud.get_accounts_in_space(session, group_id)
         if include and "accounts" in include
         else None
     )
@@ -114,7 +114,7 @@ async def get_user_groups(
 
     groups = await group_crud.get_groups_by_ids(session, group_ids)
     all_group_accounts = (
-        await account_crud.get_accounts_in_groups(session, group_ids)
+        await account_crud.get_accounts_in_spaces(session, group_ids)
         if include and "accounts" in include
         else []
     )
@@ -126,7 +126,7 @@ async def get_user_groups(
         else None
     )
     modules = (
-        await module_crud.get_modules_by_group_ids(session, group_ids)
+        await module_crud.get_modules_by_space_ids(session, group_ids)
         if include and "modules" in include
         else []
     )

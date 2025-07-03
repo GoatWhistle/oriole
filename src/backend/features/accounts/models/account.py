@@ -7,7 +7,7 @@ from database import Base, IdIntPkMixin
 
 if TYPE_CHECKING:
     from features.users.models import UserProfile
-    from features.groups.models import Group
+    from features.spaces.models import Space
     from features.solutions.models import BaseSolution
     from features import Chat
     from features import ChatAccountAssociation
@@ -20,8 +20,8 @@ class Account(Base, IdIntPkMixin):
 
     role: Mapped[int] = mapped_column()
 
-    group_id: Mapped[int] = mapped_column(ForeignKey("groups.id"))
-    group: Mapped["Group"] = relationship(back_populates="accounts")
+    space_id: Mapped[int] = mapped_column(ForeignKey("spaces.id", ondelete="CASCADE"))
+    space: Mapped["Space"] = relationship(back_populates="accounts")
 
     done_tasks: Mapped[list["BaseSolution"]] = relationship(back_populates="account")
 

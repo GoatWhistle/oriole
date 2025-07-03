@@ -3,13 +3,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 import features.accounts.crud.account as account_crud
 import features.groups.crud.group as group_crud
 import features.groups.crud.invite as invite_crud
+from features.accounts.models import Account
 from features.groups.exceptions import (
     AccountNotFoundInGroupException,
     GroupNotFoundException,
     GroupInviteNotFoundException,
     AccountAlreadyInGroupException,
 )
-from features.groups.models import Group, GroupInvite, Account
+from features.groups.models import Group, GroupInvite
 
 
 async def get_group_or_404(
@@ -28,7 +29,7 @@ async def get_account_or_404(
     group_id: int,
     is_correct: bool = True,
 ) -> Account:
-    account = await account_crud.get_account_by_user_id_and_group_id(
+    account = await account_crud.get_account_by_user_id_and_space_id(
         session, user_id, group_id
     )
 

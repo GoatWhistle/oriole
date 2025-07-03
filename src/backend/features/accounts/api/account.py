@@ -2,8 +2,8 @@ from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from database import db_helper
-from features.groups.schemas.account import AccountRoleChangeRead
-from features.groups.services import account as service
+from features.accounts.schemas.account import AccountRoleChangeRead
+from features.accounts.services import account as service
 from features.users.services.auth import get_current_active_auth_user_id
 from utils.response_func import create_json_response
 from utils.schemas import SuccessResponse

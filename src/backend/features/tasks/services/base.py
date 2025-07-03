@@ -31,7 +31,7 @@ async def get_task_by_id(
         solutions = await solution_crud.get_solutions_by_account_id_and_task_id(
             session, account.id, task_id
         )
-# TODO: change to real solution object
+    # TODO: change to real solution object
     is_correct = any(sol.is_correct for sol in solutions) if solutions else False
     user_attempts = len(solutions)
 
@@ -70,8 +70,8 @@ async def get_user_tasks(
     if not accounts:
         return []
 
-    modules = await module_crud.get_modules_by_group_ids(
-        session, [account.group_id for account in accounts], is_active
+    modules = await module_crud.get_modules_by_space_ids(
+        session, [account.space_id for account in accounts], is_active
     )
     if not modules:
         return []

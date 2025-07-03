@@ -1,4 +1,4 @@
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from datetime import datetime
 from typing import TYPE_CHECKING, Any, Dict
 
@@ -11,11 +11,11 @@ from features.solutions.schemas import BaseSolutionModel
 from shared.enums import TaskTypeEnum
 
 if TYPE_CHECKING:
-    from features.groups.models import Account
+    from features.accounts.models import Account
     from features.tasks.models import BaseTask
 
 
-class BaseSolution(Base, IdIntPkMixin, ABC):
+class BaseSolution(Base, IdIntPkMixin):
     __tablename__ = "solutions"
 
     task_type: Mapped[str] = mapped_column(String(50), nullable=False, index=True)

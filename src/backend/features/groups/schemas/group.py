@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field, ConfigDict
 
-from features.groups.schemas import AccountRead
+from features.accounts.schemas import AccountRead
 from features.modules.schemas import ModuleRead
 from features.modules.schemas.module import (
     ModuleReadWithoutReplies,

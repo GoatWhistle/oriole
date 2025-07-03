@@ -1,7 +1,6 @@
 __all__ = [
     "Group",
-    "Account",
     "GroupInvite",
 ]
 
-from .models import Account, Group, GroupInvite
+from .models import Group, GroupInvite

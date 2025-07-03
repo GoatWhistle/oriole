@@ -4,8 +4,8 @@ import features.accounts.crud.account as account_crud
 import features.groups.crud.group as group_crud
 import features.modules.crud.module as module_crud
 import features.modules.mappers as mapper
-import features.solutions.crud.string_match as user_reply_crud
-import features.tasks.crud.string_match as task_crud
+import features.solutions.crud.base as solution_crud
+import features.tasks.crud.base as task_crud
 from features.groups.validators import (
     get_group_or_404,
     get_account_or_404,
@@ -19,7 +19,6 @@ from features.modules.schemas import (
 )
 from features.modules.schemas.module import ModuleReadWithoutTasks
 from features.modules.validators import get_module_or_404
-from features.users.validators import check_user_exists
 from shared.validators import (
     check_start_time_not_in_past,
     check_end_time_not_in_past,
@@ -32,10 +31,8 @@ async def create_module(
     user_id: int,
     module_in: ModuleCreate,
 ) -> ModuleReadWithoutTasks:
-    await check_user_exists(session, user_id)
-
-    _ = await get_group_or_404(session, module_in.group_id)
-    account = await get_account_or_404(session, user_id, module_in.group_id)
+    _ = await get_group_or_404(session, module_in.space_id)
+    account = await get_account_or_404(session, user_id, module_in.space_id)
 
     check_user_is_admin_or_owner(account.role)
 
@@ -54,18 +51,16 @@ async def get_module_by_id(
     module_id: int,
     include: list[str] | None = None,
 ) -> ModuleRead:
-    await check_user_exists(session, user_id)
-
     module = await get_module_or_404(session, module_id)
-    _ = await get_group_or_404(session, module.group_id)
-    account = await get_account_or_404(session, user_id, module.group_id)
+    _ = await get_group_or_404(session, module.space_id)
+    account = await get_account_or_404(session, user_id, module.space_id)
     tasks = (
         await task_crud.get_tasks_by_module_id(session, module_id)
         if include and "tasks" in include
         else None
     )
     user_replies = (
-        await user_reply_crud.get_user_replies_by_task_ids(
+        await solution_crud.get_user_replies_by_task_ids(
             session, account.id, [task.id for task in tasks]
         )
         if tasks and include and "tasks" in include
@@ -78,16 +73,14 @@ async def get_module_by_id(
 async def get_modules_in_group(
     session: AsyncSession,
     user_id: int,
-    group_id: int,
+    space_id: int,
     include: list[str] | None = None,
     is_active: bool | None = None,
 ) -> list[ModuleRead]:
-    await check_user_exists(session, user_id)
+    _ = await get_group_or_404(session, space_id)
+    account = await get_account_or_404(session, user_id, space_id)
 
-    _ = await get_group_or_404(session, group_id)
-    account = await get_account_or_404(session, user_id, group_id)
-
-    modules = await module_crud.get_modules_by_group_ids(session, [group_id], is_active)
+    modules = await module_crud.get_modules_by_space_ids(session, [space_id], is_active)
     if not modules:
         return []
 
@@ -96,7 +89,7 @@ async def get_modules_in_group(
         [module.id for module in modules] if include and "tasks" in include else [],
     )
     user_replies = (
-        await user_reply_crud.get_user_replies_by_account_ids_and_task_ids(
+        await solution_crud.get_solutions_by_account_ids_and_task_ids(
             session, [account.id], [task.id for task in tasks]
         )
         if tasks and include and "user_replies" in include
@@ -111,8 +104,6 @@ async def get_user_modules(
     include: list[str] | None = None,
     is_active: bool | None = None,
 ) -> list[ModuleRead]:
-    await check_user_exists(session, user_id)
-
     accounts = await account_crud.get_accounts_by_user_id(session, user_id)
     if not accounts:
         return []
@@ -123,7 +114,7 @@ async def get_user_modules(
     if not groups:
         return []
 
-    modules = await module_crud.get_modules_by_group_ids(
+    modules = await module_crud.get_modules_by_space_ids(
         session, [group.id for group in groups], is_active
     )
     if not modules:
@@ -137,7 +128,7 @@ async def get_user_modules(
         else None
     )
     user_replies = (
-        await user_reply_crud.get_user_replies_by_account_ids_and_task_ids(
+        await solution_crud.get_solutions_by_account_ids_and_task_ids(
             session, account_ids, [task.id for task in tasks]
         )
         if tasks and include and "user_replies" in include
@@ -154,11 +145,9 @@ async def update_module(
     module_update: ModuleUpdate | ModuleUpdatePartial,
     is_partial: bool = False,
 ) -> ModuleRead:
-    await check_user_exists(session, user_id)
-
     module = await get_module_or_404(session, module_id)
-    _ = await get_group_or_404(session, module.group_id)
-    account = await get_account_or_404(session, user_id, module.group_id)
+    _ = await get_group_or_404(session, module.space_id)
+    account = await get_account_or_404(session, user_id, module.space_id)
 
     check_user_is_admin_or_owner(account.role)
 
@@ -183,18 +172,16 @@ async def delete_module(
     user_id: int,
     module_id: int,
 ) -> None:
-    await check_user_exists(session, user_id)
-
     module = await get_module_or_404(session=session, module_id=module_id)
-    _ = await get_group_or_404(session, module.group_id)
-    account = await get_account_or_404(session, user_id, module.group_id)
+    _ = await get_group_or_404(session, module.space_id)
+    account = await get_account_or_404(session, user_id, module.space_id)
 
     check_user_is_admin_or_owner(account.role)
 
     tasks = await task_crud.get_tasks_by_module_id(session, module_id)
 
     for task in tasks:
-        await user_reply_crud.delete_user_replies_by_task_id(session, task.id)
+        await solution_crud.delete_solutions_by_task_id(session, task.id)
         await task_crud.delete_task(session, task)
 
     await module_crud.delete_module(session, module)
