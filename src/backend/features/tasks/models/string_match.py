@@ -2,7 +2,7 @@ from sqlalchemy import ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from features.tasks.models import BaseTask
-from features.tasks.schemas.string_match import StringMatchTaskRead
+from features.tasks.schemas import StringMatchTaskRead
 from shared.enums import TaskTypeEnum
 
 

@@ -8,7 +8,7 @@ from database import Base, IdIntPkMixin
 
 if TYPE_CHECKING:
     from features.tasks.models import BaseTask
-    from features.spaces.models.space import Space
+    from features.spaces.models import Space
     from features.users.models import UserProfile
 
 

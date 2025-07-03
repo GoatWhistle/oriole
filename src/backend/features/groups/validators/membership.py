@@ -1,10 +1,10 @@
+from features.accounts.schemas import AccountRole
 from features.groups.exceptions import (
     UserNotMemberException,
     UserNotAdminException,
     UserNotOwnerException,
     UserNotAdminOrOwnerException,
 )
-from features.groups.schemas import AccountRole
 
 
 def check_user_is_member(

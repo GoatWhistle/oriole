@@ -9,7 +9,8 @@ from shared.enums import SpaceTypeEnum
 
 if TYPE_CHECKING:
     from features.modules.models import Module
-    from features.groups.models import Account, GroupInvite
+    from features.groups.models import GroupInvite
+    from features.accounts.models import Account
 
 
 class Space(Base, IdIntPkMixin):

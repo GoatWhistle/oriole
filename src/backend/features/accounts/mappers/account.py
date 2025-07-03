@@ -1,5 +1,5 @@
-from features.groups.models import Account
-from features.groups.schemas import AccountRead
+from features.accounts.models import Account
+from features.accounts.schemas import AccountRead
 from features.users.models import UserProfile
 from features.users.schemas import UserProfileRead
 

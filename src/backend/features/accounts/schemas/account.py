@@ -17,5 +17,5 @@ class AccountRead(BaseModel):
 
 
 class AccountRoleChangeRead(BaseModel):
-    group_id: int
+    space_id: int
     user_id: int

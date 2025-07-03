@@ -1,19 +1,19 @@
 from sqlalchemy import select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from features.groups.models import Account
-from features.tasks.models import UserReply
+from features.accounts.models import Account
+from features.solutions.models import BaseSolution
 
 
 async def create_account(
     session: AsyncSession,
     user_id: int,
-    group_id: int,
+    space_id: int,
     role: int,
 ) -> Account:
     account = Account(
         user_id=user_id,
-        group_id=group_id,
+        space_id=space_id,
         role=role,
     )
     session.add(account)
@@ -22,44 +22,44 @@ async def create_account(
     return account
 
 
-async def get_accounts_by_group_id(
+async def get_accounts_by_space_id(
     session: AsyncSession,
-    group_id: int,
+    space_id: int,
 ) -> list[Account]:
-    result = await session.execute(select(Account).where(Account.group_id == group_id))
+    result = await session.execute(select(Account).where(Account.space_id == space_id))
     return list(result.scalars().all())
 
 
-async def get_accounts_in_groups(
+async def get_accounts_in_spaces(
     session: AsyncSession,
     group_ids: list[int],
 ) -> list[Account]:
     if not group_ids:
         return []
-    statement = select(Account).where(Account.group_id.in_(group_ids))
+    statement = select(Account).where(Account.space_id.in_(group_ids))
     result = await session.execute(statement)
     return list(result.scalars().all())
 
 
-async def get_account_by_user_id_and_group_id(
+async def get_account_by_user_id_and_space_id(
     session: AsyncSession,
     user_id: int,
-    group_id: int,
+    space_id: int,
 ) -> Account | None:
     statement = select(Account).where(
-        Account.user_id == user_id, Account.group_id == group_id
+        Account.user_id == user_id, Account.space_id == space_id
     )
     result = await session.execute(statement)
     return result.scalars().first()
 
 
-async def get_accounts_by_group_and_role(
+async def get_accounts_by_space_and_role(
     session: AsyncSession,
-    group_id: int,
+    space_id: int,
     role: int,
 ) -> list[Account]:
     statement = select(Account).where(
-        Account.group_id == group_id,
+        Account.space_id == space_id,
         Account.role == role,
     )
     result = await session.execute(statement)
@@ -71,11 +71,11 @@ async def get_accounts_by_user_id(session: AsyncSession, user_id: int) -> list[A
     return list(result.scalars().all())
 
 
-async def get_accounts_in_group(
+async def get_accounts_in_space(
     session: AsyncSession,
-    group_id: int,
+    space_id: int,
 ) -> list[Account]:
-    result = await session.execute(select(Account).where(Account.group_id == group_id))
+    result = await session.execute(select(Account).where(Account.space_id == space_id))
     return list(result.scalars().all())
 
 
@@ -92,7 +92,9 @@ async def delete_user_replies_by_account_id(
     session: AsyncSession,
     account_id: int,
 ) -> None:
-    await session.execute(delete(UserReply).where(UserReply.account_id == account_id))
+    await session.execute(
+        delete(BaseSolution).where(BaseSolution.account_id == account_id)
+    )
 
 
 async def delete_account(
@@ -104,6 +106,6 @@ async def delete_account(
 
 async def delete_accounts_by_group_id(
     session: AsyncSession,
-    group_id: int,
+    space_id: int,
 ) -> None:
-    await session.execute(delete(Account).where(Account.group_id == group_id))
+    await session.execute(delete(Account).where(Account.space_id == space_id))

@@ -8,7 +8,7 @@ from database.base import Base
 if TYPE_CHECKING:
     from features.modules.models import Module
     from features.users.models import User
-    from features.groups.models import Account
+    from features.accounts.models import Account
 
 
 class UserProfile(Base):

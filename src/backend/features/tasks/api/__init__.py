@@ -5,5 +5,5 @@ from .string_match import router as string_match_task_router
 
 router = APIRouter()
 
-router.include_router(router=base_task_router)
-router.include_router(router=string_match_task_router)
+router.include_router(router=base_task_router, prefix="/base")
+router.include_router(router=string_match_task_router, prefix="/string-match")

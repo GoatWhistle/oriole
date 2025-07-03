@@ -28,10 +28,9 @@ def build_module_read(
         "description": module.description,
         "start_datetime": module.start_datetime,
         "end_datetime": module.end_datetime,
-        "is_contest": module.is_contest,
         "is_active": module.is_active,
-        "group_id": module.group_id,
-        "admin_id": module.admin_id,
+        "space_id": module.space_id,
+        "creator_id": module.creator_id,
         "tasks_count": module.tasks_count,
     }
     model_class: type[ModuleRead | ModuleReadWithoutReplies | ModuleReadWithoutTasks]
