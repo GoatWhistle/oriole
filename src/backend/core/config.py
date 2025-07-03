@@ -54,6 +54,7 @@ class ApiPrefix(BaseModel):
     reset_password: str = "/reset_password_redirect"
     forgot_password: str = "/forgot_password_redirect"
     websocket: str = "/websocket"
+    chat: str = "/chat"
 
 
 class Telegram(BaseModel):

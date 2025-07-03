@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 
 
 class Account(Base, IdIntPkMixin):
-    __tablename__ = "account"
+    __tablename__ = "accounts"
 
     user_id: Mapped[int] = mapped_column(ForeignKey("user_profiles.user_id"))
     group_id: Mapped[int] = mapped_column(ForeignKey("groups.id"))
@@ -37,8 +37,4 @@ class Account(Base, IdIntPkMixin):
 
     chats: Mapped[List["Chat"]] = relationship(
         secondary="chat_account_association", back_populates="accounts", viewonly=True
-    )
-
-    created_chats: Mapped[List["Chat"]] = relationship(
-        "Chat", back_populates="creator", foreign_keys="[Chat.creator_id]"
     )

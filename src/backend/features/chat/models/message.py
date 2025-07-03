@@ -22,6 +22,9 @@ class Message(Base):
     account_id: Mapped[int] = mapped_column(
         ForeignKey("accounts.id", ondelete="CASCADE"), nullable=False
     )
+    chat_id: Mapped[int] = mapped_column(
+        ForeignKey("chat.id", ondelete="CASCADE"), nullable=False
+    )
     reply_to: Mapped[int | None] = mapped_column(
         ForeignKey("messages.id"), nullable=True
     )

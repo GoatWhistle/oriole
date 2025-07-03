@@ -16,7 +16,7 @@ class ChatAccountAssociation(Base, IdIntPkMixin):
 
     chat_id: Mapped[int] = mapped_column(ForeignKey("chat.id", ondelete="CASCADE"))
     account_id: Mapped[int] = mapped_column(
-        ForeignKey("account.id", ondelete="CASCADE")
+        ForeignKey("accounts.id", ondelete="CASCADE")
     )
 
     chat: Mapped["Chat"] = relationship(back_populates="account_links")
