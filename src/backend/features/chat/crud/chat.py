@@ -1,5 +1,7 @@
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from features import Group, Account
 from features.chat.models.chat import Chat
 
 from features.groups.validators import (
@@ -23,3 +25,24 @@ async def create_chat_for_group(
     await session.commit()
     await session.refresh(chat)
     return chat
+
+
+async def get_users_chat(
+    session: AsyncSession,
+    user_id: int,
+):
+    stmt = (
+        select(Chat)
+        .join(Group, Chat.group_id == Group.id)
+        .join(Account, Account.group_id == Group.id)
+        .where(Account.user_id == user_id)
+    )
+    result = await session.execute(stmt)
+    chats = result.scalars().all()
+    return chats
+
+
+async def get_chat_by_group_id(session: AsyncSession, group_id: int):
+    stmt = select(Chat).where(Chat.group_id == group_id)
+    result = await session.execute(stmt)
+    return result.scalar_one_or_none()

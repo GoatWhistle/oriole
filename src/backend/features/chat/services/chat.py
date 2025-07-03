@@ -4,13 +4,21 @@ from core.redis import redis_connection
 from ..connections.manager import connection_manager
 import json
 from ..crud import message as crud
+from features.groups.validators import get_account_or_404
+from features.chat.crud.chat import get_chat_by_group_id
 
 
 async def handle_websocket(
-    websocket: WebSocket, group_id: int, user_id: int, session: AsyncSession
+    websocket: WebSocket, group_id: int, account_id: int, session: AsyncSession
 ):
-    await connection_manager.connect(websocket, group_id, user_id)
+    await connection_manager.connect(websocket, group_id, account_id)
     cache_key = f"chat:history:{group_id}"
+
+    account = await get_account_or_404(session, account_id, group_id)
+    account_id = account.id
+
+    chat = await get_chat_by_group_id(session, group_id)
+    chat_id = chat.id
 
     try:
         history = await crud.get_message_history(group_id, session)
@@ -26,7 +34,10 @@ async def handle_websocket(
 
             if data.get("edit"):
                 updated = await crud.update_message(
-                    user_id, data.get("message"), session, data.get("message_id")
+                    account_id=account_id,
+                    message_id=data.get("message_id"),
+                    session=session,
+                    new_text=data.get("message"),
                 )
                 if updated:
                     await redis_connection.redis.delete(cache_key)
@@ -35,11 +46,11 @@ async def handle_websocket(
                         json.dumps(
                             {
                                 "edit": True,
-                                "user_id": user_id,
-                                "message": data.get("message"),
+                                "account_id": account_id,
+                                "message": updated.text,
                                 "timestamp": updated.timestamp.isoformat(),
                                 "connectionId": data.get("connectionId"),
-                                "message_id": data.get("message_id"),
+                                "message_id": updated.id,
                             }
                         ),
                     )
@@ -47,7 +58,9 @@ async def handle_websocket(
 
             if data.get("delete"):
                 deleted = await crud.delete_message(
-                    message_id=data.get("message_id"), session=session, user_id=user_id
+                    message_id=int(data.get("message_id")),
+                    session=session,
+                    account_id=account_id,
                 )
                 if deleted:
                     await redis_connection.redis.delete(cache_key)
@@ -56,8 +69,8 @@ async def handle_websocket(
                         json.dumps(
                             {
                                 "delete": True,
-                                "message_id": data.get("message_id"),
-                                "connectionId": data.get("connectionId"),
+                                "message_id": int(data.get("message_id")),
+                                "connectionId": int(data.get("connectionId")),
                             }
                         ),
                     )
@@ -65,7 +78,11 @@ async def handle_websocket(
 
             if data.get("message"):
                 message_payload = await crud.save_new_message(
-                    data, group_id, user_id, session
+                    data=data,
+                    group_id=group_id,
+                    chat_id=chat_id,
+                    account_id=account_id,
+                    session=session,
                 )
                 await redis_connection.redis.delete(cache_key)
                 await connection_manager.broadcast(

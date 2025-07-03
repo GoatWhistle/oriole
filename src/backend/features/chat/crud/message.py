@@ -6,44 +6,39 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.redis import redis_connection
+from ..exeptions import InvalidMessageIdException, MessageNotFoundOrForbiddenException
 from ..models.message import Message
 
 
-async def update_message(
-    user_id: int,
-    message_id: int,
-    session: AsyncSession,
-    new_text: str,
+async def save_new_message(
+    data, group_id: int, chat_id: int, account_id: int, session: AsyncSession
 ):
+    timestamp = datetime.now(timezone.utc)
     try:
-        message_id = int(message_id)
+        reply_to = int(data.get("reply_to"))
     except (ValueError, TypeError):
-        return None
+        reply_to = None
 
-    message = await session.get(Message, message_id)
-    if message and message.sender_id == user_id:
-        message.text = new_text
-        await session.commit()
-        return message
-    return None
+    message = Message(
+        text=data.get("message", ""),
+        group_id=group_id,
+        chat_id=chat_id,
+        account_id=account_id,
+        timestamp=timestamp,
+        reply_to=reply_to,
+    )
+    session.add(message)
+    await session.commit()
 
-
-async def delete_message(
-    user_id: int,
-    message_id: int,
-    session: AsyncSession,
-):
-    try:
-        message_id = int(message_id)
-    except (ValueError, TypeError):
-        return None
-
-    message = await session.get(Message, message_id)
-    if message and message.sender_id == user_id:
-        await session.delete(message)
-        await session.commit()
-        return message
-    return None
+    return {
+        "user_id": account_id,
+        "message": message.text,
+        "timestamp": timestamp.isoformat(),
+        "connectionId": data.get("connectionId"),
+        "message_id": message.id,
+        "reply_to": reply_to,
+        "reply_to_text": data.get("reply_to_text"),
+    }
 
 
 async def get_message_history(group_id: int, session: AsyncSession):
@@ -62,7 +57,7 @@ async def get_message_history(group_id: int, session: AsyncSession):
 
     history = [
         {
-            "user_id": msg.sender_id,
+            "user_id": msg.account_id,
             "message": msg.text,
             "timestamp": msg.timestamp.isoformat(),
             "message_id": msg.id,
@@ -78,29 +73,40 @@ async def get_message_history(group_id: int, session: AsyncSession):
     return history
 
 
-async def save_new_message(data, group_id: int, user_id: int, session: AsyncSession):
-    timestamp = datetime.now(timezone.utc)
+async def delete_message(
+    account_id: int,
+    message_id: int,
+    session: AsyncSession,
+):
     try:
-        reply_to = int(data.get("reply_to"))
+        message_id = int(message_id)
     except (ValueError, TypeError):
-        reply_to = None
+        raise InvalidMessageIdException(message_id)
 
-    message = Message(
-        text=data.get("message", ""),
-        group_id=group_id,
-        sender_id=user_id,
-        timestamp=timestamp,
-        reply_to=reply_to,
-    )
-    session.add(message)
+    message = await session.get(Message, message_id)
+    if not message or message.account_id != account_id:
+        raise MessageNotFoundOrForbiddenException(message_id)
+
+    await session.delete(message)
     await session.commit()
+    return message
 
-    return {
-        "user_id": user_id,
-        "message": message.text,
-        "timestamp": timestamp.isoformat(),
-        "connectionId": data.get("connectionId"),
-        "message_id": message.id,
-        "reply_to": reply_to,
-        "reply_to_text": data.get("reply_to_text"),
-    }
+
+async def update_message(
+    account_id: int,
+    message_id: int,
+    session: AsyncSession,
+    new_text: str,
+):
+    try:
+        message_id = int(message_id)
+    except (ValueError, TypeError):
+        raise InvalidMessageIdException(message_id)
+
+    message = await session.get(Message, message_id)
+    if not message or message.account_id != account_id:
+        raise MessageNotFoundOrForbiddenException(message_id)
+
+    message.text = new_text
+    await session.commit()
+    return message
