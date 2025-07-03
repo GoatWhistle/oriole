@@ -3,8 +3,7 @@ from typing import TYPE_CHECKING
 from sqlalchemy import String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from database import IdIntPkMixin
-from database.base import Base
+from database import Base, IdIntPkMixin
 from shared.enums import SpaceTypeEnum
 
 if TYPE_CHECKING:

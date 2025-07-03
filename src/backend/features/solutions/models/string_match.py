@@ -7,6 +7,7 @@ from shared.enums import TaskTypeEnum
 
 
 class StringMatchSolution(BaseSolution):
+    __tablename__ = "string_match_solutions"
     __mapper_args__ = {
         "polymorphic_identity": TaskTypeEnum.STRING_MATCH,
     }
