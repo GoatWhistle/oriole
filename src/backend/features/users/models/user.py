@@ -8,8 +8,7 @@ from database.base import Base
 from utils import get_number_one_bit_less as get_num_opt
 
 if TYPE_CHECKING:
-    from features.users.models import UserProfile
-    from features.chat.models import Message
+    from features import UserProfile
 
 
 class User(Base, IdIntPkMixin):

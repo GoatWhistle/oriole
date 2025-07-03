@@ -5,9 +5,10 @@ from datetime import datetime
 
 from database import Base
 
+
 if TYPE_CHECKING:
-    from src.backend.features.groups.models import Group
-    from src.backend.features.users.models import User
+    from features import Chat
+    from features import Account
 
 
 class Message(Base):
@@ -18,8 +19,8 @@ class Message(Base):
     group_id: Mapped[int] = mapped_column(
         ForeignKey("groups.id", ondelete="CASCADE"), nullable=False
     )
-    sender_id: Mapped[int] = mapped_column(
-        ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    account_id: Mapped[int] = mapped_column(
+        ForeignKey("accounts.id", ondelete="CASCADE"), nullable=False
     )
     reply_to: Mapped[int | None] = mapped_column(
         ForeignKey("messages.id"), nullable=True
@@ -29,5 +30,5 @@ class Message(Base):
     timestamp: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=func.now()
     )
-    group: Mapped["Group"] = relationship(back_populates="messages")
-    sender: Mapped["User"] = relationship(back_populates="messages")
+    chat: Mapped["Chat"] = relationship(back_populates="messages")
+    account: Mapped["Account"] = relationship(back_populates="messages")
