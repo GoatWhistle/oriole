@@ -7,6 +7,7 @@ from shared.enums import TaskTypeEnum
 
 
 class StringMatchTask(BaseTask):
+    __tablename__ = "string_match_tasks"
     __mapper_args__ = {"polymorphic_identity": TaskTypeEnum.STRING_MATCH.value}
 
     id: Mapped[int] = mapped_column(
