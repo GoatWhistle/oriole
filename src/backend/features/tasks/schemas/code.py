@@ -2,7 +2,7 @@ from features.tasks.schemas import (
     BaseTaskModel,
     BaseTaskRead,
     BaseTaskCreate,
-    BaseTaskUpdatePartial,
+    BaseTaskUpdate,
 )
 
 
@@ -23,6 +23,6 @@ class CodeTaskUpdate(CodeTaskBase):
     pass
 
 
-class CodeTaskUpdatePartial(CodeTaskUpdate, BaseTaskUpdatePartial):
+class CodeTaskUpdatePartial(CodeTaskUpdate, BaseTaskUpdate):
     time_limit: int | None = None
     memory_limit: int | None = None

@@ -23,7 +23,7 @@ async def create_module(
         **module_data.model_dump(exclude={"is_active"}),
         is_active=is_active,
     )
-    module.admin_id = user_id
+    module.creator_id = user_id
     session.add(module)
     await session.commit()
     await session.refresh(module)

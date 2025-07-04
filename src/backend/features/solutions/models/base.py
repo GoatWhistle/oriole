@@ -1,13 +1,12 @@
 from abc import abstractmethod
 from datetime import datetime
-from typing import TYPE_CHECKING, Any, Dict
+from typing import TYPE_CHECKING
 
-from sqlalchemy import String, ForeignKey, Integer, DateTime, func, JSON
+from sqlalchemy import String, ForeignKey, DateTime, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from database import IdIntPkMixin
-from database.base import Base
-from features.solutions.schemas import BaseSolutionModel
+from database import Base, IdIntPkMixin
+from features.solutions.schemas import BaseSolutionRead
 from shared.enums import TaskTypeEnum
 
 if TYPE_CHECKING:
@@ -32,13 +31,11 @@ class BaseSolution(Base, IdIntPkMixin):
     account: Mapped["Account"] = relationship(back_populates="done_tasks")
     task: Mapped["BaseTask"] = relationship(back_populates="solutions")
 
-    user_answer: Mapped[Dict[str, Any]] = mapped_column(JSON, default=dict)
-    is_correct: Mapped[bool] = mapped_column(nullable=False, default=False)
-    user_attempts: Mapped[int] = mapped_column(Integer, default=0)
-
+    is_correct: Mapped[bool] = mapped_column(default=False)
     submitted_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.timezone("UTC", func.now())
     )
 
     @abstractmethod
-    def get_validation_schema(self) -> BaseSolutionModel: ...
+    def get_validation_schema(self) -> BaseSolutionRead:
+        return BaseSolutionRead.model_validate(self)

@@ -1,24 +1,22 @@
 from datetime import datetime
 
-from pydantic import BaseModel
-from pydantic import ConfigDict
+from pydantic import BaseModel, ConfigDict
 
 
 class BaseSolutionModel(BaseModel):
-    submitted_at: datetime
+    task_id: int
 
 
 class BaseSolutionCreate(BaseSolutionModel):
-    task_id: int
+    pass
 
 
 class BaseSolutionRead(BaseSolutionModel):
     id: int
+
     account_id: int
-    task_id: int
-    module_id: int
-    space_id: int
-    is_correct: bool
-    user_attempts: int
+
+    is_correct: bool = False
+    submitted_at: datetime
 
     model_config = ConfigDict(from_attributes=True)

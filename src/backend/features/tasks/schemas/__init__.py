@@ -2,11 +2,14 @@ __all__ = [
     "BaseTaskModel",
     "BaseTaskCreate",
     "BaseTaskRead",
-    "BaseTaskUpdatePartial",
+    "BaseTaskReadWithCorrectness",
+    "BaseTaskReadWithSolutions",
+    "BaseTaskUpdate",
     "StringMatchTaskCreate",
     "StringMatchTaskRead",
     "StringMatchTaskUpdate",
-    "StringMatchTaskUpdatePartial",
+    "StringMatchTaskReadWithCorrectness",
+    "StringMatchTaskReadWithSolutions",
     "CodeTaskBase",
     "CodeTaskCreate",
     "CodeTaskRead",
@@ -18,7 +21,14 @@ __all__ = [
     "TestUpdatePartial",
 ]
 
-from .base import BaseTaskModel, BaseTaskCreate, BaseTaskRead, BaseTaskUpdatePartial
+from .base import (
+    BaseTaskModel,
+    BaseTaskCreate,
+    BaseTaskRead,
+    BaseTaskReadWithCorrectness,
+    BaseTaskReadWithSolutions,
+    BaseTaskUpdate,
+)
 from .code import (
     CodeTaskBase,
     CodeTaskCreate,
@@ -30,7 +40,8 @@ from .string_match import (
     StringMatchTaskCreate,
     StringMatchTaskRead,
     StringMatchTaskUpdate,
-    StringMatchTaskUpdatePartial,
+    StringMatchTaskReadWithCorrectness,
+    StringMatchTaskReadWithSolutions,
 )
 from .test import (
     TestCreate,

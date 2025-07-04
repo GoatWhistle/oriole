@@ -1,11 +1,12 @@
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
+import features.solutions.services.string_match as solution_service
 import features.tasks.services.string_match as service
 from database import db_helper
+from features.solutions.schemas import StringMatchSolutionCreate
 from features.tasks.schemas import (
     StringMatchTaskUpdate,
-    StringMatchTaskUpdatePartial,
     StringMatchTaskCreate,
 )
 from features.users.services.auth import get_current_active_auth_user_id
@@ -41,23 +42,23 @@ async def update_string_match_task(
     user_id: int = Depends(get_current_active_auth_user_id),
 ):
     data = await service.update_string_match_task(
-        session, user_id, task_id, task_update, False
+        session, user_id, task_id, task_update
     )
     return create_json_response(data=data)
 
 
-@router.patch(
-    "/{task_id}/",
+@router.post(
+    "/{task_id}/solutions",
     response_model=SuccessResponse,
-    status_code=status.HTTP_200_OK,
+    status_code=status.HTTP_201_CREATED,
 )
-async def update_string_match_task_partial(
-    task_update: StringMatchTaskUpdatePartial,
-    task_id: int,
+async def create_string_match_solution(
+    solution_in: StringMatchSolutionCreate,
     session: AsyncSession = Depends(db_helper.dependency_session_getter),
     user_id: int = Depends(get_current_active_auth_user_id),
 ):
-    data = await service.update_string_match_task(
-        session, user_id, task_id, task_update, True
+    data = await solution_service.create_string_match_solution(
+        session, user_id, solution_in
     )
+    pass
     return create_json_response(data=data)

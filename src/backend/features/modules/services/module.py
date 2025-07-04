@@ -41,8 +41,8 @@ async def create_module(
     check_end_time_is_after_start_time(module_in.start_datetime, module_in.end_datetime)
 
     module = await module_crud.create_module(session, module_in, user_id)
-
-    return mapper.build_module_read(module)
+    module_read = ModuleReadWithoutTasks.model_validate(module)
+    return module_read
 
 
 async def get_module_by_id(

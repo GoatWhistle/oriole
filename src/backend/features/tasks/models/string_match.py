@@ -20,12 +20,5 @@ class StringMatchTask(BaseTask):
     standardize_numeric_punctuation: Mapped[bool] = mapped_column(default=False)
     ignore_leading_zeros_in_numbers: Mapped[bool] = mapped_column(default=False)
 
-    def get_validation_schema(
-        self,
-        is_correct: bool = False,
-        user_attempts: int = 0,
-    ) -> StringMatchTaskRead:
-        data = StringMatchTaskRead.model_validate(self)
-        return data.model_copy(
-            update={"is_correct": is_correct, "user_attempts": user_attempts}
-        )
+    def get_validation_schema(self) -> StringMatchTaskRead:
+        return StringMatchTaskRead.model_validate(self)

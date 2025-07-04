@@ -5,8 +5,7 @@ from typing import TYPE_CHECKING, List
 from sqlalchemy import String, ForeignKey, Integer, DateTime, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from database import IdIntPkMixin
-from database.base import Base
+from database import Base, IdIntPkMixin
 from features.tasks.schemas import BaseTaskRead
 from shared.enums import TaskTypeEnum
 
@@ -53,12 +52,5 @@ class BaseTask(Base, IdIntPkMixin):
         return self.module.space_id
 
     @abstractmethod
-    def get_validation_schema(
-        self,
-        is_correct: bool = False,
-        user_attempts: int = 0,
-    ) -> BaseTaskRead:
-        data = BaseTaskRead.model_validate(self)
-        return data.model_copy(
-            update={"is_correct": is_correct, "user_attempts": user_attempts}
-        )
+    def get_validation_schema(self) -> BaseTaskRead:
+        return BaseTaskRead.model_validate(self)

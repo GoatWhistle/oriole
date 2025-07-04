@@ -7,11 +7,11 @@ from utils import get_current_utc
 
 async def create_string_match_task(
     session: AsyncSession,
-    task_data: StringMatchTaskCreate,
+    task_in: StringMatchTaskCreate,
 ) -> StringMatchTask:
-    is_active = task_data.start_datetime <= get_current_utc() <= task_data.end_datetime
+    is_active = task_in.start_datetime <= get_current_utc() <= task_in.end_datetime
     task = StringMatchTask(
-        **task_data.model_dump(exclude={"is_active"}),
+        **task_in.model_dump(exclude={"is_active"}),
         is_active=is_active,
     )
     session.add(task)
