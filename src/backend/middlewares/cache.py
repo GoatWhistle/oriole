@@ -24,6 +24,7 @@ class AutoCacheMiddleware(BaseHTTPMiddleware):
         self.ttl = ttl
         self.exclude_paths = exclude_paths or []
         self.invalidate_paths = invalidate_paths or []
+        self.redis = redis_connection.redis
 
     def make_cache_key(self, request: Request) -> str:
         query = str(sorted(request.query_params.items()))
@@ -38,8 +39,8 @@ class AutoCacheMiddleware(BaseHTTPMiddleware):
 
     async def cache_set(self, key: str, tag: str, value: str):
         try:
-            await redis_connection.redis.setex(key, self.ttl, value)
-            await redis_connection.redis.sadd(tag, key)
+            await self.redis.setex(key, self.ttl, value)
+            await self.redis.sadd(tag, key)
         except Exception as e:
             logger.error(
                 f"Redis get error in {inspect.currentframe().f_code.co_name}: {e}"
@@ -47,10 +48,10 @@ class AutoCacheMiddleware(BaseHTTPMiddleware):
 
     async def invalidate_tag(self, tag_key: str):
         try:
-            keys = await redis_connection.redis.smembers(tag_key)
+            keys = await self.redis.smembers(tag_key)
             if keys:
-                await redis_connection.redis.delete(*keys)
-            await redis_connection.redis.delete(tag_key)
+                await self.redis.delete(*keys)
+            await self.redis.delete(tag_key)
         except Exception as e:
             logger.error(
                 f"Redis get error in {inspect.currentframe().f_code.co_name}: {e}"
@@ -70,13 +71,13 @@ class AutoCacheMiddleware(BaseHTTPMiddleware):
 
     async def invalidate_all_cache(self):
         try:
-            cache_keys = await redis_connection.redis.keys("cache:*")
-            tag_keys = await redis_connection.redis.keys("tag:*")
+            cache_keys = await self.redis.keys("cache:*")
+            tag_keys = await self.redis.keys("tag:*")
 
             if cache_keys:
-                await redis_connection.redis.delete(*cache_keys)
+                await self.redis.delete(*cache_keys)
             if tag_keys:
-                await redis_connection.redis.delete(*tag_keys)
+                await self.redis.delete(*tag_keys)
         except Exception as e:
             logger.error(
                 f"Redis get error in {inspect.currentframe().f_code.co_name}: {e}"
@@ -97,7 +98,7 @@ class AutoCacheMiddleware(BaseHTTPMiddleware):
         if method == "GET":
             cache_key = self.make_cache_key(request)
             try:
-                cached = await redis_connection.redis.get(cache_key)
+                cached = await self.redis.get(cache_key)
             except Exception as e:
                 logger.error(
                     f"Redis get error in {inspect.currentframe().f_code.co_name}: {e}"
