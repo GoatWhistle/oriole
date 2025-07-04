@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from core.config import settings
 from database import Base
+from features import *  # noqa
 
 from features import *  # noqa
 
