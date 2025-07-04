@@ -6,6 +6,7 @@ import json
 from ..crud import message as crud
 from features.groups.validators import get_account_or_404
 from features.chat.crud.chat import get_chat_by_group_id
+from ..repositories.messange_repo import MessageRepository
 
 
 async def handle_websocket(
@@ -20,8 +21,10 @@ async def handle_websocket(
     chat = await get_chat_by_group_id(session, group_id)
     chat_id = chat.id
 
+    repo = MessageRepository(session)
+
     try:
-        history = await crud.get_message_history(group_id, session)
+        history = await crud.get_message_history(group_id, repo)
         await websocket.send_text(json.dumps({"type": "history", "messages": history}))
 
         while True:
@@ -36,7 +39,7 @@ async def handle_websocket(
                 updated = await crud.update_message(
                     account_id=account_id,
                     message_id=data.get("message_id"),
-                    session=session,
+                    repo=repo,
                     new_text=data.get("message"),
                 )
                 if updated:
@@ -59,7 +62,7 @@ async def handle_websocket(
             if data.get("delete"):
                 deleted = await crud.delete_message(
                     message_id=int(data.get("message_id")),
-                    session=session,
+                    repo=repo,
                     account_id=account_id,
                 )
                 if deleted:
@@ -82,7 +85,7 @@ async def handle_websocket(
                     group_id=group_id,
                     chat_id=chat_id,
                     account_id=account_id,
-                    session=session,
+                    repo=repo,
                 )
                 await redis_connection.redis.delete(cache_key)
                 await connection_manager.broadcast(

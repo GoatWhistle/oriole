@@ -1,18 +1,17 @@
 from datetime import datetime, timezone
-
 import json
 
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.redis import redis_connection
 from ..exeptions import InvalidMessageIdException, MessageNotFoundOrForbiddenException
 from ..models.message import Message
+from ..repositories.messange_repo import MessageRepository
 
 
 async def save_new_message(
-    data, group_id: int, chat_id: int, account_id: int, session: AsyncSession
+    data, group_id: int, chat_id: int, account_id: int, repo: MessageRepository
 ):
+
     timestamp = datetime.now(timezone.utc)
     try:
         reply_to = int(data.get("reply_to"))
@@ -27,8 +26,8 @@ async def save_new_message(
         timestamp=timestamp,
         reply_to=reply_to,
     )
-    session.add(message)
-    await session.commit()
+
+    await repo.save_new_message(message)
 
     return {
         "user_id": account_id,
@@ -41,18 +40,15 @@ async def save_new_message(
     }
 
 
-async def get_message_history(group_id: int, session: AsyncSession):
+async def get_message_history(group_id: int, repo: MessageRepository):
+
     cache_key = f"chat:history:{group_id}"
     cached = await redis_connection.redis.get(cache_key)
 
     if cached:
         return json.loads(cached)
 
-    stmt = (
-        select(Message).where(Message.group_id == group_id).order_by(Message.timestamp)
-    )
-    result = await session.execute(stmt)
-    messages = result.scalars().all()
+    messages = await repo.get_messages_by_group(group_id)
     msg_dict = {msg.id: msg for msg in messages}
 
     history = [
@@ -76,37 +72,37 @@ async def get_message_history(group_id: int, session: AsyncSession):
 async def delete_message(
     account_id: int,
     message_id: int,
-    session: AsyncSession,
+    repo: MessageRepository,
 ):
+
     try:
         message_id = int(message_id)
     except (ValueError, TypeError):
         raise InvalidMessageIdException(message_id)
 
-    message = await session.get(Message, message_id)
+    message = await repo.get_by_id(message_id)
     if not message or message.account_id != account_id:
         raise MessageNotFoundOrForbiddenException(message_id)
 
-    await session.delete(message)
-    await session.commit()
+    await repo.delete(message)
     return message
 
 
 async def update_message(
     account_id: int,
     message_id: int,
-    session: AsyncSession,
     new_text: str,
+    repo: MessageRepository,
 ):
+
     try:
         message_id = int(message_id)
     except (ValueError, TypeError):
         raise InvalidMessageIdException(message_id)
 
-    message = await session.get(Message, message_id)
+    message = await repo.get_by_id(message_id)
     if not message or message.account_id != account_id:
         raise MessageNotFoundOrForbiddenException(message_id)
 
-    message.text = new_text
-    await session.commit()
+    await repo.update_message(message, new_text)
     return message
