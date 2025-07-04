@@ -8,6 +8,8 @@ __all__ = [
     "StringMatchSolution",
     "BaseTask",
     "StringMatchTask",
+    "CodeTask",
+    "Test",
     "Space",
     "User",
     "UserProfile",
@@ -22,7 +24,7 @@ from .groups import Group, GroupInvite
 from .modules import Module
 from .solutions import BaseSolution, StringMatchSolution
 from .spaces import Space
-from .tasks import BaseTask, StringMatchTask
+from .tasks import BaseTask, StringMatchTask, CodeTask, Test
 from .users import User, UserProfile
 from .chat.models.message import Message
 from .chat.models.chat import Chat

@@ -24,6 +24,6 @@ class Space(Base, IdIntPkMixin):
     title: Mapped[str] = mapped_column(String(100))
     description: Mapped[str] = mapped_column(String(200))
 
-    accounts: Mapped[list["Account"]] = relationship(back_populates="group")
-    modules: Mapped[list["Module"]] = relationship(back_populates="group")
-    invites: Mapped[list["GroupInvite"]] = relationship(back_populates="group")
+    accounts: Mapped[list["Account"]] = relationship(back_populates="space")
+    modules: Mapped[list["Module"]] = relationship(back_populates="space")
+    invites: Mapped[list["GroupInvite"]] = relationship(back_populates="space")

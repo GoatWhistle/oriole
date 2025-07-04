@@ -8,12 +8,12 @@ from database import IdIntPkMixin
 from database.base import Base
 
 if TYPE_CHECKING:
-    from features.groups.models import Group
+    from features.spaces.models import Space
 
 
 class GroupInvite(Base, IdIntPkMixin):
-    group_id: Mapped[int] = mapped_column(ForeignKey("groups.id"))
-    group: Mapped["Group"] = relationship(back_populates="invites")
+    space_id: Mapped[int] = mapped_column(ForeignKey("spaces.id", ondelete="CASCADE"))
+    space: Mapped["Space"] = relationship(back_populates="invites")
 
     code: Mapped[str] = mapped_column(String(8), unique=True, index=True)
     expires_at: Mapped[datetime] = mapped_column(
