@@ -15,6 +15,7 @@ def main():
                 port=settings.run.port,
                 workers=settings.gunicorn_run.workers,
                 timeout=settings.gunicorn_run.timeout,
+                worker_class=settings.gunicorn_run.worker_class,
                 reload=is_dev,
             ),
         )

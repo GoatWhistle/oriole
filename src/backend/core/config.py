@@ -22,6 +22,7 @@ class RunConfig(BaseModel):
 class GunicornConfig(BaseModel):
     workers: int = 5
     timeout: int = 900
+    worker_class: str = "uvicorn.workers.UvicornWorker"
 
 
 class DbConfig(BaseModel):
