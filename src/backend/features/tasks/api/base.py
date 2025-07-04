@@ -3,7 +3,8 @@ from fastapi import Query, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from database import db_helper
-from features.tasks.services import base as service
+from features.solutions.services import base as solution_service
+from features.tasks.services import base as task_service
 from features.users.services.auth import get_current_active_auth_user_id
 from utils.response_func import create_json_response
 from utils.schemas import SuccessResponse, SuccessListResponse
@@ -22,7 +23,7 @@ async def get_task_by_id(
     session: AsyncSession = Depends(db_helper.dependency_session_getter),
     user_id: int = Depends(get_current_active_auth_user_id),
 ):
-    data = await service.get_task_by_id(session, user_id, task_id, include)
+    data = await task_service.get_task_by_id(session, user_id, task_id, include)
     return create_json_response(data=data)
 
 
@@ -39,7 +40,7 @@ async def get_user_tasks(
     session: AsyncSession = Depends(db_helper.dependency_session_getter),
     user_id: int = Depends(get_current_active_auth_user_id),
 ):
-    data = await service.get_user_tasks(session, user_id, is_active)
+    data = await task_service.get_user_tasks(session, user_id, is_active)
     return create_json_response(
         data=data,
         page=page,
@@ -57,4 +58,44 @@ async def delete_task(
     session: AsyncSession = Depends(db_helper.dependency_session_getter),
     user_id: int = Depends(get_current_active_auth_user_id),
 ):
-    await service.delete_task(session, user_id, task_id)
+    await task_service.delete_task(session, user_id, task_id)
+
+
+@router.get(
+    "/solutions/{solution_id}/",
+    response_model=SuccessResponse,
+    status_code=status.HTTP_200_OK,
+)
+async def get_solution_by_id(
+    solution_id: int,
+    session: AsyncSession = Depends(db_helper.dependency_session_getter),
+    user_id: int = Depends(get_current_active_auth_user_id),
+):
+    data = await solution_service.get_solution_by_id(session, user_id, solution_id)
+    return create_json_response(data=data)
+
+
+@router.get(
+    "/{task_id}/solutions",
+    response_model=list[SuccessListResponse],
+    status_code=status.HTTP_200_OK,
+)
+async def get_solutions_in_task(
+    task_id: int,
+    session: AsyncSession = Depends(db_helper.dependency_session_getter),
+    user_id: int = Depends(get_current_active_auth_user_id),
+):
+    data = await solution_service.get_solutions_in_task(session, user_id, task_id)
+    return create_json_response(data=data)
+
+
+@router.delete(
+    "/solutions/{solution_id}/",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+async def delete_solution(
+    solution_id: int,
+    session: AsyncSession = Depends(db_helper.dependency_session_getter),
+    user_id: int = Depends(get_current_active_auth_user_id),
+):
+    await solution_service.delete_solution(session, user_id, solution_id)

@@ -1,7 +1,11 @@
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from features.solutions.crud.base import get_solutions_by_account_id_and_task_id
 from features.tasks.exceptions import (
     TaskCounterLimitExceededException,
     TaskAlreadySolved,
 )
+from features.tasks.models import BaseTask
 
 
 def check_counter_limit(
@@ -12,8 +16,19 @@ def check_counter_limit(
         raise TaskCounterLimitExceededException()
 
 
-def check_task_is_already_correct(
-    user_reply_is_correct: bool,
-) -> None:
-    if user_reply_is_correct:
+async def validate_solution_creation(
+    session: AsyncSession,
+    account_id: int,
+    task: BaseTask,
+) -> int:
+    solutions = await get_solutions_by_account_id_and_task_id(
+        session, account_id, task.id
+    )
+
+    total_attempts = len(solutions)
+    is_correct = any(sol.is_correct for sol in solutions)
+
+    if is_correct and not task.can_attempt:
         raise TaskAlreadySolved()
+
+    return total_attempts

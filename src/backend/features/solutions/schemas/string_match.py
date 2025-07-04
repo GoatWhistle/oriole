@@ -1,23 +1,19 @@
-from pydantic import BaseModel, ConfigDict
+from pydantic import Field
 
-from features.solutions.schemas import BaseSolutionModel
+from features.solutions.schemas import (
+    BaseSolutionModel,
+    BaseSolutionCreate,
+    BaseSolutionRead,
+)
 
 
-class StringMatchSolutionModel(BaseSolutionModel):
+class StringMatchSolutionBase(BaseSolutionModel):
     pass
 
 
-class UserReplyBase(BaseModel):
-    account_id: int
-    task_id: int
-    user_answer: str
-    is_correct: bool
-    user_attempts: int
+class StringMatchSolutionCreate(StringMatchSolutionBase, BaseSolutionCreate):
+    user_answer: str = Field(max_length=300)
 
 
-class UserReplyRead(UserReplyBase):
-    id: int
-
-    model_config = ConfigDict(
-        from_attributes=True,
-    )
+class StringMatchSolutionRead(StringMatchSolutionBase, BaseSolutionRead):
+    pass

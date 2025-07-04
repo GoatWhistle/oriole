@@ -40,11 +40,11 @@ async def get_groups_by_ids(
 async def get_groups_by_account_ids(
     session: AsyncSession,
     account_ids: Sequence[int],
-) -> Sequence[Group]:
+) -> list[Group]:
     result = await session.execute(
         select(Group).join(Account).where(Account.id.in_(account_ids))
     )
-    return result.scalars().all()
+    return list(result.scalars().all())
 
 
 async def update_group(

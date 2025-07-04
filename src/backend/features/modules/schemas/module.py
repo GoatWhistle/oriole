@@ -10,8 +10,6 @@ class ModuleBase(BaseModel):
     start_datetime: datetime
     end_datetime: datetime
 
-    is_contest: bool
-
 
 class ModuleCreate(ModuleBase):
     space_id: int
@@ -43,8 +41,6 @@ class ModuleUpdatePartial(ModuleUpdate):
 
     start_datetime: datetime | None = None
     end_datetime: datetime | None = None
-
-    is_contest: bool | None = None
 
 
 class ModuleReadWithoutReplies(ModuleBase):

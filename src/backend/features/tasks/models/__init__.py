@@ -1,7 +1,7 @@
 __all__ = [
     "BaseTask",
-    "StringMatchTask",
     "CodeTask",
+    "StringMatchTask",
     "Test",
 ]
 
