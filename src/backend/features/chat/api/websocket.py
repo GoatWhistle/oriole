@@ -17,6 +17,6 @@ async def websocket_endpoint(
     return await service.handle_websocket(
         websocket=websocket,
         group_id=group_id,
-        account_id=user_id,
+        user_id=user_id,
         session=session,
     )

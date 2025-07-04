@@ -5,6 +5,7 @@ from database import db_helper
 from features.chat.dependencies.dependencies import get_current_account_id
 from features.users.services.auth import get_current_active_auth_user_id
 from ..crud import chat as crud
+from ...groups.validators import get_account_or_404
 
 router = APIRouter()
 
@@ -27,3 +28,15 @@ async def get_users_chat(
     ),
 ):
     return await crud.get_users_chat(session, user_id)
+
+
+@router.get("/account")
+async def get_account_id_by_group(
+    group_id: int,
+    user_id: int = Depends(
+        get_current_active_auth_user_id,
+    ),
+    session: AsyncSession = Depends(db_helper.dependency_session_getter),
+):
+    account = await get_account_or_404(session, user_id, group_id)
+    return {"id": account.id}

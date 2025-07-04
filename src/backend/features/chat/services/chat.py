@@ -10,18 +10,18 @@ from ..repositories.messange_repo import MessageRepository
 
 
 async def handle_websocket(
-    websocket: WebSocket, group_id: int, account_id: int, session: AsyncSession
+    websocket: WebSocket, group_id: int, user_id: int, session: AsyncSession
 ):
-    await connection_manager.connect(websocket, group_id, account_id)
-    cache_key = f"chat:history:{group_id}"
-
-    account = await get_account_or_404(session, account_id, group_id)
+    account = await get_account_or_404(session, user_id, group_id)
     account_id = account.id
+
+    await connection_manager.connect(websocket, group_id, account_id)
 
     chat = await get_chat_by_group_id(session, group_id)
     chat_id = chat.id
 
     repo = MessageRepository(session)
+    cache_key = f"chat:history:{group_id}"
 
     try:
         history = await crud.get_message_history(group_id, repo)
@@ -32,7 +32,6 @@ async def handle_websocket(
             try:
                 data = json.loads(raw_data)
             except json.JSONDecodeError:
-                print("[websocket] Invalid JSON")
                 continue
 
             if data.get("edit"):
