@@ -21,11 +21,3 @@ async def create_string_match_solution(
     await session.commit()
     await session.refresh(solution)
     return solution
-
-
-async def delete_string_match_solution(
-    session: AsyncSession,
-    string_match_solution: StringMatchSolution,
-) -> None:
-    await session.delete(string_match_solution)
-    await session.commit()
