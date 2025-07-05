@@ -45,7 +45,7 @@ async def create_string_match_task(
         module.end_datetime,
     )
 
-    task = await task_crud.create_string_match_task(session, task_in)
+    task = await task_crud.create_string_match_task(session, task_in, user_id)
     await module_crud.increment_module_tasks_count(session, module.id)
 
     return task.get_validation_schema()

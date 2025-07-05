@@ -5,7 +5,6 @@ from database import db_helper
 from features.modules.schemas import (
     ModuleCreate,
     ModuleUpdate,
-    ModuleUpdatePartial,
 )
 from features.modules.services import module as service
 from features.users.services.auth import get_current_active_auth_user_id
@@ -56,17 +55,13 @@ async def get_user_modules(
     user_id: int = Depends(get_current_active_auth_user_id),
     page: int | None = None,
     per_page: int | None = None,
-    include: list[str] | None = Query(None),
 ):
-    data = await service.get_user_modules(
-        session=session, user_id=user_id, is_active=is_active, include=include
-    )
+    data = await service.get_user_modules(session, user_id, is_active)
     return create_json_response(
         data=data,
         page=page,
         per_page=per_page,
         base_url=f"{str(request.base_url).rstrip("/")}/api/modules/?is_active={is_active if is_active else False}",
-        include=include,
     )
 
 
@@ -81,24 +76,7 @@ async def update_module(
     session: AsyncSession = Depends(db_helper.dependency_session_getter),
     user_id: int = Depends(get_current_active_auth_user_id),
 ):
-    data = await service.update_module(
-        session, user_id, module_id, module_update, False
-    )
-    return create_json_response(data=data)
-
-
-@router.patch(
-    "/{module_id}/",
-    response_model=SuccessResponse,
-    status_code=status.HTTP_200_OK,
-)
-async def update_module_partial(
-    module_update: ModuleUpdatePartial,
-    module_id: int,
-    session: AsyncSession = Depends(db_helper.dependency_session_getter),
-    user_id: int = Depends(get_current_active_auth_user_id),
-):
-    data = await service.update_module(session, user_id, module_id, module_update, True)
+    data = await service.update_module(session, user_id, module_id, module_update)
     return create_json_response(data=data)
 
 

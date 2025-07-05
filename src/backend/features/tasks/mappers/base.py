@@ -3,7 +3,6 @@ from features.solutions.models import BaseSolution
 from features.tasks.models import BaseTask
 from features.tasks.schemas import (
     BaseTaskReadWithCorrectness,
-    BaseTaskRead,
     BaseTaskReadWithSolutions,
 )
 
@@ -12,32 +11,23 @@ def build_base_task_read_with_correctness(
     task: BaseTask,
     solutions: list[BaseSolution] | None = None,
 ) -> BaseTaskReadWithCorrectness:
-    task_read: BaseTaskRead = task.get_validation_schema()
     is_correct = any(sol.is_correct for sol in solutions) if solutions else False
     user_attempts = len(solutions) if solutions else 0
+    base_schema = task.get_validation_schema()
 
-    return BaseTaskReadWithCorrectness(
-        **task_read.model_dump(),
-        is_correct=is_correct,
-        user_attempts=user_attempts,
-    )
+    return base_schema.to_with_correctness(is_correct, user_attempts)
 
 
 def build_base_task_read_with_solutions(
     task: BaseTask,
     solutions: list[BaseSolution],
 ) -> BaseTaskReadWithSolutions:
-    task_read: BaseTaskRead = task.get_validation_schema()
     is_correct = any(sol.is_correct for sol in solutions)
     user_attempts = len(solutions)
+    base_schema = task.get_validation_schema()
     solutions_read = solution_mapper.build_base_solution_read_list(solutions)
 
-    return BaseTaskReadWithSolutions(
-        **task_read.model_dump(),
-        is_correct=is_correct,
-        user_attempts=user_attempts,
-        solutions=solutions_read,
-    )
+    return base_schema.to_with_solutions(is_correct, user_attempts, solutions_read)
 
 
 def build_base_task_read_with_correctness_list(

@@ -1,67 +1,40 @@
-import features.tasks.mappers as mapper
-from features import StringMatchSolution
 from features.modules.models import Module
-from features.modules.schemas import ModuleRead
-from features.modules.schemas.module import (
-    ModuleReadWithoutReplies,
-    ModuleReadWithoutTasks,
-)
-from features.tasks.models import StringMatchTask
+from features.modules.schemas import ModuleRead, ModuleReadWithPerformance
+from features.solutions.models import BaseSolution
+from features.tasks.mappers import build_base_task_read_with_correctness_list
+from features.tasks.models import BaseTask
 
 
-def build_module_read(
+def build_module_read_with_performance(
     module: Module,
-    tasks: list[StringMatchTask] | None = None,
-    solutions: list[StringMatchSolution] | None = None,
-) -> ModuleRead | ModuleReadWithoutReplies | ModuleReadWithoutTasks:
-    tasks = tasks or []
-    solutions = solutions or []
+    tasks: list[BaseTask],
+    solutions: list[BaseSolution],
+) -> ModuleReadWithPerformance:
+    tasks_schemas = build_base_task_read_with_correctness_list(tasks, solutions)
+    user_completed_tasks_count = sum(1 for task in tasks_schemas if task.is_correct)
+    base_schema = module.get_validation_schema()
 
-    task_reads = mapper.build_task_read_list([module], tasks, solutions)
-    user_completed_tasks_count = (
-        sum(task.is_correct for task in task_reads) if solutions else None
-    )
-
-    base_data = {
-        "id": module.id,
-        "title": module.title,
-        "description": module.description,
-        "start_datetime": module.start_datetime,
-        "end_datetime": module.end_datetime,
-        "is_active": module.is_active,
-        "space_id": module.space_id,
-        "creator_id": module.creator_id,
-        "tasks_count": module.tasks_count,
-    }
-    model_class: type[ModuleRead | ModuleReadWithoutReplies | ModuleReadWithoutTasks]
-
-    match (bool(tasks), bool(solutions)):
-        case (True, True):
-            model_class = ModuleRead
-            extra_data = {
-                "tasks": task_reads,
-                "user_completed_tasks_count": user_completed_tasks_count,
-            }
-        case (True, False):
-            model_class = ModuleReadWithoutReplies
-            extra_data = {"tasks": task_reads}
-        case _:
-            model_class = ModuleReadWithoutTasks
-            extra_data = {}
-
-    return model_class(**base_data, **extra_data)
+    return base_schema.to_with_performance(user_completed_tasks_count)
 
 
-def build_module_read_list(
+def build_module_read_with_tasks(
+    module: Module,
+    tasks: list[BaseTask],
+    solutions: list[BaseSolution],
+) -> ModuleReadWithPerformance:
+    tasks_schemas = build_base_task_read_with_correctness_list(tasks, solutions)
+    user_completed_tasks_count = sum(1 for task in tasks_schemas if task.is_correct)
+    base_schema = module.get_validation_schema()
+
+    return base_schema.to_with_tasks(user_completed_tasks_count, tasks_schemas)
+
+
+def build_module_read_with_performance_list(
     modules: list[Module],
-    tasks: list[StringMatchTask] | None,
-    solutions: list[StringMatchSolution] | None,
+    tasks: list[BaseTask],
+    solutions: list[BaseSolution] | None,
 ) -> list[ModuleRead]:
     return [
-        build_module_read(
-            module=module,
-            tasks=tasks,
-            solutions=solutions,
-        )
+        build_module_read_with_performance(module, tasks, solutions)
         for module in modules
     ]

@@ -23,7 +23,29 @@ class StringMatchTaskCreate(StringMatchTaskBase, BaseTaskCreate):
 
 
 class StringMatchTaskRead(StringMatchTaskBase, BaseTaskRead):
-    pass
+    def to_with_correctness(
+        self,
+        is_correct: bool,
+        user_attempts: int,
+    ) -> "StringMatchTaskReadWithCorrectness":
+        return StringMatchTaskReadWithCorrectness(
+            **self.model_dump(),
+            is_correct=is_correct,
+            user_attempts=user_attempts,
+        )
+
+    def to_with_solutions(
+        self,
+        is_correct: bool,
+        user_attempts: int,
+        solutions: list[StringMatchSolutionRead],
+    ) -> "StringMatchTaskReadWithSolutions":
+        return StringMatchTaskReadWithSolutions(
+            **self.model_dump(),
+            is_correct=is_correct,
+            user_attempts=user_attempts,
+            solutions=solutions,
+        )
 
 
 class StringMatchTaskReadWithCorrectness(
