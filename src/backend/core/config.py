@@ -79,6 +79,7 @@ class Redis(BaseModel):
     port: int
     url: str
     password: str = None
+    db: int = 0
     use_ssl: bool = False
     socket_timeout: int = 2
 
@@ -89,7 +90,7 @@ class Redis(BaseModel):
     def get_storage_uri(self):
         scheme = "rediss" if self.use_ssl else "redis"
         credentials = f":{self.password}@" if self.password else ""
-        return f"{scheme}://{credentials}{self.url}:{self.port}/0"
+        return f"{scheme}://{credentials}{self.url}:{self.port}/{self.db}"
 
     def get_storage_options(self) -> dict:
         return {
