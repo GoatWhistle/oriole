@@ -86,14 +86,12 @@ class Redis(BaseModel):
     limiter_strategy: Literal["fixed-window", "moving-window"] = "moving-window"
     limiter_default: str = "10/minute"
 
-    @property
     def get_storage_uri(self):
         scheme = "rediss" if self.use_ssl else "redis"
         credentials = f":{self.password}@" if self.password else ""
         return f"{scheme}://{credentials}{self.url}:{self.port}/0"
 
-    @property
-    def safe_storage_options(self) -> dict:
+    def get_storage_options(self) -> dict:
         return {
             "socket_timeout": self.socket_timeout,
             "ssl": self.use_ssl,

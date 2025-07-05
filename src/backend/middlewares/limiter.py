@@ -17,13 +17,14 @@ def create_limiter(limiter_settings: RateLimiterSettings) -> Limiter | None:
         return None
 
     storage_config = limiter_settings.get_storage_config()
+    storage_options = storage_config.get_storage_options()
 
     return Limiter(
         key_func=get_remote_address,
-        storage_uri=storage_config.get_storage_uri,
+        storage_uri=storage_config.get_storage_uri(),
         strategy=limiter_settings.strategy,
         default_limits=[limit.strip() for limit in limiter_settings.default.split(",")],
-        **storage_config.get_storage_options(),
+        storage_options=storage_options,
         auto_check=False,
     )
 
