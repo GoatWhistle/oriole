@@ -31,6 +31,7 @@ def _set_auth_cookies(
         httponly=True,
         secure=False,
         samesite="lax",
+        path="/",
         max_age=access_expires,
     )
     response.set_cookie(
