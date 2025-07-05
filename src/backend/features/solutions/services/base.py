@@ -38,7 +38,7 @@ async def get_solutions_in_task(
     solutions = await base_solution_crud.get_solutions_by_account_id_and_task_id(
         session, account.id, task_id
     )
-
+    solutions = solutions or []
     return build_base_solution_read_list(solutions)
 
 

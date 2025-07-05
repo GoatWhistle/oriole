@@ -16,7 +16,8 @@ class CodeTaskCreate(CodeTaskBase, BaseTaskCreate):
 
 
 class CodeTaskRead(CodeTaskBase, BaseTaskRead):
-    tests: list
+    # tests: list
+    pass
 
 
 class CodeTaskUpdate(CodeTaskBase):

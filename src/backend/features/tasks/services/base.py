@@ -32,6 +32,7 @@ async def get_task_by_id(
     solutions = await base_solution_crud.get_solutions_by_account_id_and_task_id(
         session, account.id, task_id
     )
+    solutions = solutions or []
     if include and "solutions" in include:
         return mapper.build_base_task_read_with_solutions(task, solutions)
     return mapper.build_base_task_read_with_correctness(task, solutions)

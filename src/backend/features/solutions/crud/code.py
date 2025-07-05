@@ -1,5 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from features.solutions.models.code import CodeSolution
 from features.solutions.schemas import CodeSolutionCreate
 
 
