@@ -15,10 +15,13 @@ from features.modules.schemas import (
     ModuleCreate,
     ModuleRead,
     ModuleUpdate,
-    ModuleUpdatePartial,
 )
-from features.modules.schemas.module import ModuleReadWithoutTasks
+from features.modules.schemas.module import (
+    ModuleReadWithPerformance,
+    ModuleReadWithTasks,
+)
 from features.modules.validators import get_module_or_404
+from features.spaces.validators import get_space_or_404
 from shared.validators import (
     check_start_time_not_in_past,
     check_end_time_not_in_past,
@@ -30,8 +33,8 @@ async def create_module(
     session: AsyncSession,
     user_id: int,
     module_in: ModuleCreate,
-) -> ModuleReadWithoutTasks:
-    _ = await get_group_or_404(session, module_in.space_id)
+) -> ModuleRead:
+    _ = await get_space_or_404(session, module_in.space_id)
     account = await get_account_or_404(session, user_id, module_in.space_id)
 
     check_user_is_admin_or_owner(account.role)
@@ -41,8 +44,7 @@ async def create_module(
     check_end_time_is_after_start_time(module_in.start_datetime, module_in.end_datetime)
 
     module = await module_crud.create_module(session, module_in, user_id)
-    module_read = ModuleReadWithoutTasks.model_validate(module)
-    return module_read
+    return module.get_validation_schema()
 
 
 async def get_module_by_id(
@@ -50,31 +52,23 @@ async def get_module_by_id(
     user_id: int,
     module_id: int,
     include: list[str] | None = None,
-) -> ModuleRead:
+) -> ModuleReadWithPerformance | ModuleReadWithTasks:
     module = await get_module_or_404(session, module_id)
-    _ = await get_group_or_404(session, module.space_id)
+    _ = await get_space_or_404(session, module.space_id)
     account = await get_account_or_404(session, user_id, module.space_id)
-    tasks = (
-        await task_crud.get_tasks_by_module_id(session, module_id)
-        if include and "tasks" in include
-        else None
+    tasks = await task_crud.get_tasks_by_module_id(session, module_id)
+    solutions = await solution_crud.get_solutions_by_account_id_and_task_ids(
+        session, account.id, [task.id for task in tasks]
     )
-    user_replies = (
-        await solution_crud.get_user_replies_by_task_ids(
-            session, account.id, [task.id for task in tasks]
-        )
-        if tasks and include and "tasks" in include
-        else None
-    )
-
-    return mapper.build_module_read(module, tasks, user_replies)
+    if include and "tasks" in include:
+        return mapper.build_module_read_with_tasks(module, tasks, solutions)
+    return mapper.build_module_read_with_performance(module, tasks, solutions)
 
 
-async def get_modules_in_group(
+async def get_modules_in_space(
     session: AsyncSession,
     user_id: int,
     space_id: int,
-    include: list[str] | None = None,
     is_active: bool | None = None,
 ) -> list[ModuleRead]:
     _ = await get_group_or_404(session, space_id)
@@ -85,23 +79,17 @@ async def get_modules_in_group(
         return []
 
     tasks = await task_crud.get_tasks_by_module_ids(
-        session,
-        [module.id for module in modules] if include and "tasks" in include else [],
+        session, [module.id for module in modules]
     )
-    user_replies = (
-        await solution_crud.get_solutions_by_account_ids_and_task_ids(
-            session, [account.id], [task.id for task in tasks]
-        )
-        if tasks and include and "user_replies" in include
-        else None
+    solutions = await solution_crud.get_solutions_by_account_id_and_task_ids(
+        session, account.id, [task.id for task in tasks]
     )
-    return mapper.build_module_read_list(modules, tasks, user_replies)
+    return mapper.build_module_read_with_performance_list(modules, tasks, solutions)
 
 
 async def get_user_modules(
     session: AsyncSession,
     user_id: int,
-    include: list[str] | None = None,
     is_active: bool | None = None,
 ) -> list[ModuleRead]:
     accounts = await account_crud.get_accounts_by_user_id(session, user_id)
@@ -120,30 +108,20 @@ async def get_user_modules(
     if not modules:
         return []
 
-    tasks = (
-        await task_crud.get_tasks_by_module_ids(
-            session, [module.id for module in modules]
-        )
-        if include and "tasks" in include
-        else None
+    tasks = await task_crud.get_tasks_by_module_ids(
+        session, [module.id for module in modules]
     )
-    user_replies = (
-        await solution_crud.get_solutions_by_account_ids_and_task_ids(
-            session, account_ids, [task.id for task in tasks]
-        )
-        if tasks and include and "user_replies" in include
-        else None
+    solutions = await solution_crud.get_solutions_by_account_ids_and_task_ids(
+        session, account_ids, [task.id for task in tasks]
     )
-
-    return mapper.build_module_read_list(modules, tasks, user_replies)
+    return mapper.build_module_read_with_performance_list(modules, tasks, solutions)
 
 
 async def update_module(
     session: AsyncSession,
     user_id: int,
     module_id: int,
-    module_update: ModuleUpdate | ModuleUpdatePartial,
-    is_partial: bool = False,
+    module_update: ModuleUpdate,
 ) -> ModuleRead:
     module = await get_module_or_404(session, module_id)
     _ = await get_group_or_404(session, module.space_id)
@@ -151,7 +129,7 @@ async def update_module(
 
     check_user_is_admin_or_owner(account.role)
 
-    update_data = module_update.model_dump(exclude_unset=is_partial)
+    update_data = module_update.model_dump(exclude_unset=True)
 
     if "start_datetime" in update_data:
         check_start_time_not_in_past(update_data["start_datetime"])
@@ -164,7 +142,11 @@ async def update_module(
         check_end_time_is_after_start_time(start, end)
 
     module = await module_crud.update_module(session, module, update_data)
-    return mapper.build_module_read(module)
+    tasks = await task_crud.get_tasks_by_module_id(session, module.id)
+    solutions = await solution_crud.get_solutions_by_account_id_and_task_ids(
+        session, account.id, [task.id for task in tasks]
+    )
+    return mapper.build_module_read_with_performance(module, tasks, solutions)
 
 
 async def delete_module(

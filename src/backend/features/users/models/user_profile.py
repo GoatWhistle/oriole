@@ -9,10 +9,10 @@ if TYPE_CHECKING:
     from features.modules.models import Module
     from features.users.models import User
     from features.accounts.models import Account
+    from features.tasks.models import BaseTask
 
 
 class UserProfile(Base):
-
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), primary_key=True)
     user: Mapped["User"] = relationship(back_populates="profile")
 
@@ -25,5 +25,8 @@ class UserProfile(Base):
     patronymic: Mapped[str] = mapped_column(String(length=30), index=True)
 
     created_modules: Mapped[list["Module"]] = relationship(
+        back_populates="creator", cascade="all, delete-orphan"
+    )
+    created_tasks: Mapped[list["BaseTask"]] = relationship(
         back_populates="creator", cascade="all, delete-orphan"
     )

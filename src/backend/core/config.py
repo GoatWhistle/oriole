@@ -55,11 +55,13 @@ class ApiPrefix(BaseModel):
     forgot_password: str = "/forgot_password_redirect"
     websocket: str = "/websocket"
     chat: str = "/chat"
+    space: str = "/space"
 
 
 class Telegram(BaseModel):
     bot_token: str
     registration_lifetime_seconds: int = 86400
+
 
 
 class AuthJWT(BaseModel):

@@ -4,6 +4,7 @@ from core.config import settings
 from features.chat.api.websocket import router as chat_router
 from features.groups.api import router as groups_router
 from features.modules.api import router as moduls_router
+from features.spaces.api import router as space_router
 from features.tasks.api import router as tasks_router
 from features.users.api.auth import router as auth_router
 from features.users.api.telegram_auth import router as telegram_auth
@@ -13,6 +14,12 @@ from features.chat.api.сhat import router as chats_router
 
 
 router = APIRouter(prefix=settings.api.prefix)
+
+router.include_router(
+    router=space_router,
+    tags=[settings.api.space[1:].capitalize()],
+    prefix=settings.api.space,
+)
 
 router.include_router(
     router=groups_router,

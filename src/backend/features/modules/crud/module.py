@@ -13,17 +13,15 @@ from utils import get_current_utc
 
 async def create_module(
     session: AsyncSession,
-    module_data: ModuleCreate,
+    module_in: ModuleCreate,
     user_id: int,
 ) -> Module:
-    is_active = (
-        module_data.start_datetime <= get_current_utc() <= module_data.end_datetime
-    )
+    is_active = module_in.start_datetime <= get_current_utc() <= module_in.end_datetime
     module = Module(
-        **module_data.model_dump(exclude={"is_active"}),
+        **module_in.model_dump(exclude={"is_active"}),
         is_active=is_active,
+        creator_id=user_id,
     )
-    module.creator_id = user_id
     session.add(module)
     await session.commit()
     await session.refresh(module)

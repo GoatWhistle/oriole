@@ -26,10 +26,33 @@ class BaseTaskRead(BaseTaskModel):
 
     is_active: bool
 
+    creator_id: int
     module_id: int
     space_id: int
 
     model_config = ConfigDict(from_attributes=True)
+
+    def to_with_correctness(
+        self, is_correct: bool, user_attempts: int
+    ) -> "BaseTaskReadWithCorrectness":
+        return BaseTaskReadWithCorrectness(
+            **self.model_dump(),
+            is_correct=is_correct,
+            user_attempts=user_attempts,
+        )
+
+    def to_with_solutions(
+        self,
+        is_correct: bool,
+        user_attempts: int,
+        solutions: list[BaseSolutionRead],
+    ) -> "BaseTaskReadWithSolutions":
+        return BaseTaskReadWithSolutions(
+            **self.model_dump(),
+            is_correct=is_correct,
+            user_attempts=user_attempts,
+            solutions=solutions,
+        )
 
 
 class BaseTaskReadWithCorrectness(BaseTaskRead):

@@ -12,6 +12,7 @@ from shared.enums import TaskTypeEnum
 if TYPE_CHECKING:
     from features.modules.models import Module
     from features.solutions.models import BaseSolution
+    from features.users.models import UserProfile
 
 
 class BaseTask(Base, IdIntPkMixin):
@@ -28,7 +29,10 @@ class BaseTask(Base, IdIntPkMixin):
     title: Mapped[str] = mapped_column(String(100))
     description: Mapped[str] = mapped_column(String(500))
 
+    creator_id: Mapped[int] = mapped_column(ForeignKey("user_profiles.user_id"))
     module_id: Mapped[int] = mapped_column(ForeignKey("modules.id"))
+
+    creator: Mapped["UserProfile"] = relationship(back_populates="created_tasks")
     module: Mapped["Module"] = relationship(back_populates="tasks")
 
     solutions: Mapped[List["BaseSolution"]] = relationship(

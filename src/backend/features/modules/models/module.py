@@ -5,6 +5,7 @@ from sqlalchemy import String, ForeignKey, Integer, DateTime, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from database import Base, IdIntPkMixin
+from features.modules.schemas import ModuleRead
 
 if TYPE_CHECKING:
     from features.tasks.models import BaseTask
@@ -17,9 +18,9 @@ class Module(Base, IdIntPkMixin):
     description: Mapped[str] = mapped_column(String(200))
 
     creator_id: Mapped[int] = mapped_column(ForeignKey("user_profiles.user_id"))
-    creator: Mapped["UserProfile"] = relationship(back_populates="created_modules")
-
     space_id: Mapped[int] = mapped_column(ForeignKey("spaces.id", ondelete="CASCADE"))
+
+    creator: Mapped["UserProfile"] = relationship(back_populates="created_modules")
     space: Mapped["Space"] = relationship(back_populates="modules")
 
     tasks: Mapped[list["BaseTask"]] = relationship(
@@ -34,3 +35,6 @@ class Module(Base, IdIntPkMixin):
         DateTime(timezone=True), server_default=func.timezone("UTC", func.now())
     )
     is_active: Mapped[bool] = mapped_column(default=False)
+
+    def get_validation_schema(self) -> ModuleRead:
+        return ModuleRead.model_validate(self)
