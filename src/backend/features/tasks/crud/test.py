@@ -1,5 +1,6 @@
 from typing import Any
 
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from features.tasks.models import Test
@@ -31,8 +32,10 @@ async def update_test(
     return test
 
 
-async def get_tests(
-    session,
-    task_id,
-):
-    pass
+async def get_tests_by_task_id(
+    session: AsyncSession,
+    task_id: int,
+) -> list[Test]:
+    stmt = select(Test).where(Test.task_id == task_id)
+    result = await session.execute(stmt)
+    return list(result.scalars().all())
