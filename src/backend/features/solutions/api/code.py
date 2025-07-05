@@ -1,7 +1,7 @@
-import features.solutions.services.code as solution_service
 from fastapi import APIRouter, status, Depends, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
+import features.solutions.services.code as solution_service
 from database import db_helper
 from features.solutions.schemas import CodeSolutionCreate
 from features.users.services.auth import get_current_active_auth_user_id
@@ -35,7 +35,7 @@ async def get_code_solution_by_id(
     session: AsyncSession = Depends(db_helper.dependency_session_getter),
     user_id: int = Depends(get_current_active_auth_user_id),
 ):
-    data = await solution_service.get_task_by_id(session, user_id, solution_id)
+    data = await solution_service.get_code_solution_by_id(session, user_id, solution_id)
     return create_json_response(data=data)
 
 
@@ -44,14 +44,17 @@ async def get_code_solution_by_id(
     response_model=SuccessListResponse,
     status_code=status.HTTP_200_OK,
 )
-async def get_user_tasks(
+async def get_user_solutions(
     request: Request,
+    task_id: int,
     page: int | None = None,
     per_page: int | None = None,
     session: AsyncSession = Depends(db_helper.dependency_session_getter),
     user_id: int = Depends(get_current_active_auth_user_id),
 ):
-    data = await solution_service.get_user_tasks(session, user_id)
+    data = await solution_service.get_user_solutions_by_task_id(
+        session, user_id, task_id
+    )
     return create_json_response(
         data=data,
         page=page,
