@@ -1,8 +1,7 @@
-from fastapi import status
-
+from http import HTTPStatus
 from shared.exceptions import AppException
 
 
 class NotFoundException(AppException):
-    status_code: int = status.HTTP_404_NOT_FOUND
+    status_code: int = HTTPStatus.NOT_FOUND
     detail: str = "Object not found"

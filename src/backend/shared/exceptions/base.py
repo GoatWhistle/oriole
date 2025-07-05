@@ -1,8 +1,8 @@
-from fastapi import status
+from http import HTTPStatus
 
 
 class AppException(Exception):
-    status_code: int = status.HTTP_400_BAD_REQUEST
+    status_code: int = HTTPStatus.BAD_REQUEST
     detail: str = "Application error"
 
     def __init__(self, status_code: int | None = None, detail: str | None = None):

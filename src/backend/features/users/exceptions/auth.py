@@ -1,9 +1,9 @@
-from shared.exceptions import AuthException
+from shared.exceptions import AuthException, AuthForbiddenException
 
 
 class AuthenticationRequiredException(AuthException):
     detail = "Authentication required"
 
 
-class AuthenticatedForbiddenException(AuthenticationRequiredException):
+class AuthenticatedForbiddenException(AuthForbiddenException):
     detail = "Authenticated users cannot perform this action"

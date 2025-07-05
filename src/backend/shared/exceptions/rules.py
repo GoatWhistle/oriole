@@ -1,10 +1,10 @@
-from fastapi import status
+from http import HTTPStatus
 
 from shared.exceptions import AppException
 
 
 class RuleException(AppException):
-    status_code: int = status.HTTP_403_FORBIDDEN
+    status_code: int = HTTPStatus.FORBIDDEN
     detail: str = "Rule violation"
 
 

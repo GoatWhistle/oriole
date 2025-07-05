@@ -12,12 +12,13 @@ __all__ = [
     "RequestTimeoutException",
     "InvalidTokenException",
     "MissingTokenException",
+    "AuthForbiddenException",
 ]
 
 from .base import AppException
 from .existence import NotFoundException
 from .membership import RoleException
-from .auth import AuthException
+from .auth import AuthException, AuthForbiddenException
 from .token import InvalidTokenException, MissingTokenException
 from .rules import RuleException, InactiveObjectException
 from .timing import (
