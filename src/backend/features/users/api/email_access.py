@@ -12,7 +12,7 @@ from features.users.services import email_access as service
 router = APIRouter()
 
 
-@router.post("/{token}")
+@router.get("/{token}")
 async def verify(
     token: str,
     session: Annotated[AsyncSession, Depends(db_helper.dependency_session_getter)],
@@ -20,7 +20,7 @@ async def verify(
     return await service.verify(token=token, session=session)
 
 
-@router.post("/reset_password_redirect/{token}")
+@router.get("/reset_password_redirect/{token}")
 async def reset_password_redirect(
     token: str,
     new_password: str,
@@ -33,7 +33,7 @@ async def reset_password_redirect(
     )
 
 
-@router.post("/forgot_password_redirect/{token}")
+@router.get("/forgot_password_redirect/{token}")
 async def forgot_password_redirect(
     token: str,
     new_password: str,
@@ -46,7 +46,7 @@ async def forgot_password_redirect(
     )
 
 
-# @router.post("/change_email/{token}")
+# @router.get("/change_email/{token}")
 # async def change_email_redirect(
 #     request: Request,
 #     response: Response,

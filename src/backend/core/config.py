@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Literal
+from typing import Literal, Protocol
 
 from dotenv import load_dotenv
 from pydantic import BaseModel, EmailStr
@@ -51,7 +51,7 @@ class ApiPrefix(BaseModel):
     email_verify: str = "/verify"
     reset_password: str = "/reset_password_redirect"
     forgot_password: str = "/forgot_password_redirect"
-    websocket : str = "/websocket"
+    websocket: str = "/websocket"
 
 
 class AuthJWT(BaseModel):
@@ -87,9 +87,10 @@ class Redis(BaseModel):
     limiter_default: str = "10/minute"
 
     @property
-    def full_url(self):
+    def get_storage_uri(self):
         scheme = "rediss" if self.use_ssl else "redis"
-        return f"{scheme}://{self.url}:{self.port}/0"
+        credentials = f":{self.password}@" if self.password else ""
+        return f"{scheme}://{credentials}{self.url}:{self.port}/0"
 
     @property
     def safe_storage_options(self) -> dict:
@@ -101,6 +102,39 @@ class Redis(BaseModel):
             "retry_on_timeout": True,
             "socket_keepalive": True,
         }
+
+
+class MemcachedConfig(BaseModel):
+    url: str
+    port: int = 11211
+    timeout: int = 2
+
+    def get_storage_uri(self) -> str:
+        return f"memcached://{self.url}:{self.port}"
+
+    def get_storage_options(self) -> dict:
+        return {"timeout": self.timeout}
+
+
+class RateLimiterStorageConfig(Protocol):
+    def get_storage_uri(self) -> str: ...
+    def get_storage_options(self) -> dict: ...
+
+
+class RateLimiterSettings(BaseModel):
+    enabled: bool = True
+    storage_type: Literal["redis", "memcached"] = "redis"
+    strategy: Literal["fixed-window", "moving-window"] = "moving-window"
+    default: str = "10/minute"
+    redis: Redis | None = None
+    memcached: MemcachedConfig | None = None
+
+    def get_storage_config(self) -> RateLimiterStorageConfig:
+        if self.storage_type == "redis" and self.redis:
+            return self.redis
+        elif self.storage_type == "memcached" and self.memcached:
+            return self.memcached
+        raise ValueError("Storage configuration not found")
 
 
 class Settings(BaseSettings):
@@ -115,10 +149,22 @@ class Settings(BaseSettings):
     smtp_email: SMTPEmail
     db: DbConfig
     redis: Redis
+    memcached: MemcachedConfig = MemcachedConfig(url="localhost")
     sentry: Sentry
     gunicorn_run: GunicornConfig = GunicornConfig()
     api: ApiPrefix = ApiPrefix()
     auth_jwt: AuthJWT = AuthJWT()
+
+    @property
+    def rate_limiter(self) -> RateLimiterSettings:
+        return RateLimiterSettings(
+            enabled=self.redis.limiter_enabled,
+            storage_type="redis",
+            strategy=self.redis.limiter_strategy,
+            default=self.redis.limiter_default,
+            redis=self.redis,
+            memcached=self.memcached,
+        )
 
 
 settings = Settings()

@@ -6,16 +6,21 @@ from core.redis import redis_connection
 from database import db_helper
 from core.logging.config import setup_logging
 
-from middlewares.limiter import limiter
 from core.config import settings
-from middlewares.limiter import universal_rate_limit_handler
+from middlewares.limiter import (
+    handle_limiter_exception,
+    handle_rate_limit_exceeded,
+    limiter,
+)
+from shared.exceptions.limits import RateLimitException, LimiterException
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     if settings.redis.limiter_enabled:
         app.state.limiter = limiter
-        app.add_exception_handler(Exception, universal_rate_limit_handler)
+        app.add_exception_handler(RateLimitException, handle_rate_limit_exceeded)
+        app.add_exception_handler(LimiterException, handle_limiter_exception)
 
     await redis_connection.connect()
     setup_logging()
