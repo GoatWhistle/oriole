@@ -2,7 +2,7 @@ from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column
 
 from features.solutions.models import BaseSolution
-from features.solutions.schemas.string_match import StringMatchSolutionModel
+from features.solutions.schemas.code import CodeSolutionRead
 from shared.enums import TaskTypeEnum
 
 
@@ -16,4 +16,5 @@ class CodeSolution(BaseSolution):
     )
     code: Mapped[str] = mapped_column(default="")
 
-    def get_validation_schema(self) -> StringMatchSolutionModel: ...
+    def get_validation_schema(self) -> CodeSolutionRead:
+        return CodeSolutionRead.model_validate(self)
