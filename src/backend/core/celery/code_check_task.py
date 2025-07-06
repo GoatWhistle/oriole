@@ -1,121 +1,122 @@
-import os
-import tempfile
-from dataclasses import dataclass
-from typing import List
-
 import docker
+from requests.exceptions import ReadTimeout, ConnectionError, ConnectTimeout
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
+from features import CodeTask, Test
+from features.solutions.exceptions.existance import SolutionNotFoundException
 from features.solutions.models import CodeSolution
+from features.tasks.exceptions import TaskNotFoundException
+from shared.enums import SolutionStatusEnum
 from .app import app
 
-sync_engine = create_engine(
-    "postgresql://Trava:1234@pg:5432/DB_project",
-)
-
-SessionLocal = sessionmaker(
-    autocommit=False,
-    autoflush=False,
-    bind=sync_engine,
-)
+sync_engine = create_engine("postgresql://Trava:1234@pg:5432/DB_project")
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=sync_engine)
 
 
-@dataclass
-class TestResult:
-    input: str
-    expected_output: str
-    actual_output: str
-    passed: bool
-    error: str | None = None
-
-
-@dataclass
-class CheckResult:
-    status: str  # "success", "failed", "error"
-    results: List[TestResult]
-
-
-# @app.task
-# def check_code(solution_id: int):
-#     with SessionLocal() as session:
-#         solution = session.query(CodeSolution).get(solution_id)
-#         time.sleep(20)
-#         solution.code = "zzzzzzzzzzzz"
-#         session.commit()
-
-
-@app.task(bind=True)
-def check_code(self, solution_id: int):
-    with SessionLocal() as db:
-        solution = db.query(CodeSolution).get(solution_id)
-        if not solution:
-            raise ValueError("No solution found")
-
-        try:
-            result = run_in_docker(solution)
-            # solution.status = result.status
-        except Exception as e:
-            # solution.status = "error"
-            pass
-        db.commit()
-
-
-def run_in_docker(solution) -> CheckResult:
+def run_code_in_container(code, input_data, mem_limit, time_limit):
     client = docker.from_env()
 
-    with tempfile.TemporaryDirectory() as tmpdir:
-        code_path = os.path.join(tmpdir, "code.py")
-        with open(code_path, "w", encoding="utf-8") as f:
-            f.write(solution.code)
+    container = None
+    timed_out = False
 
-        results = []
-        failed = False
+    try:
+        container = client.containers.run(
+            image="python:3.9-slim",
+            command=["python", "-c", code],
+            stdin_open=bool(input_data),
+            stdout=True,
+            stderr=True,
+            tty=False,
+            detach=True,
+            network_mode="none",
+            mem_limit=mem_limit,
+            memswap_limit=mem_limit,
+            oom_kill_disable=False,
+        )
 
-        for test in solution.task.test_cases:  # test.input_data, test.expected_output
-            try:
-                container_output = client.containers.run(
-                    image="code-checker:python",
-                    command="python3 /app/code.py",
-                    volumes={tmpdir: {"bind": "/app", "mode": "ro"}},
-                    mem_limit="128m",
-                    network_disabled=True,
-                    stdin_open=True,
-                    tty=False,
-                    detach=False,
-                    remove=True,
-                    user="1000",  # без root
-                    environment={},  # опционально
-                    stdout=True,
-                    stderr=True,
-                    # input=test.input_data.encode("utf-8") if test.input_data else None,
-                    working_dir="/app",
-                )
+        if input_data:
+            socket = container.attach_socket(params={"stdin": 1, "stream": 1})
+            socket._sock.send(input_data.encode() + b"\n")
+            socket._sock.close()
 
-                actual_output = container_output.decode().strip()
-                expected_output = test.expected_output.strip()
+        try:
+            result = container.wait(timeout=time_limit + 1)
+        except (ReadTimeout, ConnectionError, ConnectTimeout):
+            timed_out = True
+            return "", "Time limit exceeded", -1, True, False
 
-                result = TestResult(
-                    input=test.input_data,
-                    expected_output=expected_output,
-                    actual_output=actual_output,
-                    passed=(actual_output == expected_output),
-                )
-                results.append(result)
+        stdout = container.logs(stdout=True, stderr=False).decode().strip()
+        stderr = container.logs(stdout=False, stderr=True).decode().strip()
+        status_code = result.get("StatusCode", 0)
+        oom_killed = container.attrs.get("State", {}).get("OOMKilled", False)
 
-                if not result.passed:
-                    failed = True
+        return stdout, stderr, status_code, timed_out, oom_killed
+    finally:
+        if container:
+            container.remove(force=True)
 
-            except docker.errors.ContainerError as e:
-                results.append(
-                    TestResult(
-                        input=test.input_data,
-                        expected_output=test.expected_output,
-                        actual_output="",
-                        passed=False,
-                        error=str(e),
-                    )
-                )
-                failed = True
 
-    return CheckResult(status="failed" if failed else "success", results=results)
+@app.task(name="core.celery.code_check_task.check_code")
+def check_code(solution_id):
+    with SessionLocal() as session:
+        solution = session.get(CodeSolution, solution_id)
+        if not solution:
+            raise SolutionNotFoundException()
+
+        task = session.get(CodeTask, solution.task_id)
+        if not task:
+            raise TaskNotFoundException()
+
+        tests = session.query(Test).filter(Test.task_id == task.id).all()
+
+        mem_limit = f"{max(task.memory_limit, 6)}m"
+        time_limit = task.time_limit / 1000.0
+
+        for test in tests:
+            stdout, stderr, status_code, timed_out, oom_killed = run_code_in_container(
+                solution.code, test.input_data, mem_limit, time_limit
+            )
+
+            result = analyze_result(
+                stdout, stderr, status_code, timed_out, oom_killed, solution, test
+            )
+            if result:
+                break
+        else:
+            solution.status = SolutionStatusEnum.ACCEPTED.value
+            solution.is_correct = True
+            result = {"status": "success", "correct": True}
+
+        session.commit()
+        return result
+
+
+def analyze_result(stdout, stderr, status_code, timed_out, oom_killed, solution, test):
+    result = 0
+    if timed_out:
+        solution.status = SolutionStatusEnum.TIME_LIMIT_EXCEEDED.value
+        result = {
+            "status": "error",
+            "error": "Time limit exceeded",
+            "output": stdout,
+        }
+    elif oom_killed or status_code == 137 or "memory" in stderr.lower():
+        solution.status = SolutionStatusEnum.MEMORY_LIMIT_EXCEEDED.value
+        result = {
+            "status": "error",
+            "error": "Memory limit exceeded",
+            "output": stdout,
+        }
+    elif stderr:
+        solution.status = SolutionStatusEnum.RUNTIME_ERROR.value
+        result = {"status": "error", "error": stderr, "output": stdout}
+    elif stdout.strip() != test.correct_output:
+        solution.status = SolutionStatusEnum.WRONG_ANSWER.value
+        result = {
+            "status": "fail",
+            "output": stdout,
+            "expected": test.correct_output,
+            "correct": False,
+        }
+    return None

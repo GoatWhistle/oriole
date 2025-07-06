@@ -9,3 +9,7 @@ class TaskCounterLimitExceededException(RuleException):
     detail: str = (
         "The number of user attempts is more than the number of maximum attempts of task"
     )
+
+
+class TestIsNotPublic(RuleException):
+    detail: str = "Test is not public"

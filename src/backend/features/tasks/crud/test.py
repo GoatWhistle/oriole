@@ -39,3 +39,20 @@ async def get_tests_by_task_id(
     stmt = select(Test).where(Test.task_id == task_id)
     result = await session.execute(stmt)
     return list(result.scalars().all())
+
+
+async def get_test_by_id(
+    session: AsyncSession,
+    test_id: int,
+) -> Test:
+    stmt = select(Test).where(Test.id == test_id)
+    result = await session.execute(stmt)
+    return result.scalar()
+
+
+async def delete_test(
+    session: AsyncSession,
+    test: Test,
+) -> None:
+    await session.delete(test)
+    await session.commit()

@@ -130,6 +130,7 @@ services:
         condition: service_healthy
     volumes:
       - ./src/backend:/backend
+      - /var/run/docker.sock:/var/run/docker.sock
     environment:
       DB_URL: ${DB_URL}
       PYTHONPATH: /backend

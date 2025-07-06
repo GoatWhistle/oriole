@@ -41,10 +41,9 @@ dependencies = [
     "prometheus-fastapi-instrumentator (>=7.1.0,<8.0.0)",
     "sentry-sdk (>=2.32.0,<3.0.0)",
     "black (>=25.1.0,<26.0.0)",
-    "docker (>=7.1.0,<8.0.0)",
-    "docker-py (>=1.10.6,<2.0.0)",
     "setuptools (>=80.9.0,<81.0.0)",
     "psycopg2-binary (>=2.9.10,<3.0.0)",
+    "docker (>=7.1.0,<8.0.0)",
 ]
 
 [tool.poetry]

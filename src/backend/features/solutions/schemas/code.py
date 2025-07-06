@@ -12,4 +12,4 @@ class CodeSolutionCreate(CodeSolutionBase, BaseSolutionCreate):
 
 
 class CodeSolutionRead(CodeSolutionBase, BaseSolutionRead):
-    pass
+    status: str
