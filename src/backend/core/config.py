@@ -55,7 +55,7 @@ class ApiPrefix(BaseModel):
     websocket: str = "/websocket"
 
 
-class Telegram:
+class Telegram(BaseModel):
     bot_token: str
     registration_lifetime_seconds: int = 86400
 
