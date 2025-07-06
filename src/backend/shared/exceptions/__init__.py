@@ -20,7 +20,7 @@ from .base import AppException
 from .existence import NotFoundException
 from .membership import RoleException
 from .auth import AuthException, AuthForbiddenException
-from telegram import TelegramAuthException
+from .telegram import TelegramAuthException
 from .token import InvalidTokenException, MissingTokenException
 from .rules import RuleException, InactiveObjectException
 from .timing import (
