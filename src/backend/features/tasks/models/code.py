@@ -23,12 +23,5 @@ class CodeTask(BaseTask):
 
     tests: Mapped[list["Test"]] = relationship(back_populates="task")
 
-    def get_validation_schema(
-        self,
-        is_correct: bool = False,
-        user_attempts: int = 0,
-    ) -> CodeTaskRead:
-        data = CodeTaskRead.model_validate(self)
-        return data.model_copy(
-            update={"is_correct": is_correct, "user_attempts": user_attempts}
-        )
+    def get_validation_schema(self) -> CodeTaskRead:
+        return CodeTaskRead.model_validate(self)

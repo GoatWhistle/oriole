@@ -1,8 +1,11 @@
+from features.solutions.schemas import CodeSolutionRead
 from features.tasks.schemas import (
     BaseTaskModel,
     BaseTaskRead,
     BaseTaskCreate,
     BaseTaskUpdate,
+    BaseTaskReadWithCorrectness,
+    BaseTaskReadWithSolutions,
 )
 
 
@@ -16,14 +19,39 @@ class CodeTaskCreate(CodeTaskBase, BaseTaskCreate):
 
 
 class CodeTaskRead(CodeTaskBase, BaseTaskRead):
-    # tests: list
+    def to_with_correctness(
+        self,
+        is_correct: bool,
+        user_attempts: int,
+    ) -> "CodeTaskReadWithCorrectness":
+        return CodeTaskReadWithCorrectness(
+            **self.model_dump(),
+            is_correct=is_correct,
+            user_attempts=user_attempts,
+        )
+
+    def to_with_solutions(
+        self,
+        is_correct: bool,
+        user_attempts: int,
+        solutions: list[CodeSolutionRead],
+    ) -> "CodeTaskReadWithSolutions":
+        return CodeTaskReadWithSolutions(
+            **self.model_dump(),
+            is_correct=is_correct,
+            user_attempts=user_attempts,
+            solutions=solutions,
+        )
+
+
+class CodeTaskReadWithCorrectness(CodeTaskRead, BaseTaskReadWithCorrectness):
     pass
 
 
-class CodeTaskUpdate(CodeTaskBase):
-    pass
+class CodeTaskReadWithSolutions(CodeTaskRead, BaseTaskReadWithSolutions):
+    solutions: list[CodeSolutionRead]
 
 
-class CodeTaskUpdatePartial(CodeTaskUpdate, BaseTaskUpdate):
+class CodeTaskUpdate(BaseTaskUpdate):
     time_limit: int | None = None
     memory_limit: int | None = None

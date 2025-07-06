@@ -13,7 +13,7 @@ async def create_group_invite(
 ) -> GroupInvite:
     invite = GroupInvite(
         code=code,
-        group_id=group_id,
+        space_id=group_id,
         expires_at=get_current_utc(offset_minutes=expires_minutes),
         is_active=True,
     )

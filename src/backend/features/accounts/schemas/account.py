@@ -1,6 +1,6 @@
 from enum import IntEnum
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 
 class AccountRole(IntEnum):
@@ -10,9 +10,12 @@ class AccountRole(IntEnum):
 
 
 class AccountRead(BaseModel):
+    id: int
     user_id: int
     space_id: int
     role: int
+
+    model_config = ConfigDict(from_attributes=True)
 
     def to_with_profile_data(
         self,
