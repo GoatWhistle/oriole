@@ -78,6 +78,7 @@ def create_access_token(
     user_id: int,
     user_email: str,
     lifetime_seconds: int = settings.auth_jwt.access_token_lifetime_seconds,
+    auth_method: str = "default",
 ) -> str:
     current_time_utc = datetime.now(utc)
     expire = current_time_utc + timedelta(seconds=lifetime_seconds)
@@ -86,6 +87,7 @@ def create_access_token(
         "email": user_email,
         "exp": expire,
         "iat": current_time_utc,
+        "auth_method": auth_method,
     }
     return encode_jwt(payload=jwt_payload)
 
@@ -94,6 +96,7 @@ def create_refresh_token(
     user_id: int,
     user_email: str,
     lifetime_seconds: int = settings.auth_jwt.refresh_token_lifetime_seconds,
+    auth_method: str = "default",
 ) -> str:
     current_time_utc = datetime.now(utc)
     expire = current_time_utc + timedelta(seconds=lifetime_seconds)
@@ -102,6 +105,7 @@ def create_refresh_token(
         "email": user_email,
         "exp": expire,
         "iat": current_time_utc,
+        "auth_method": auth_method,
     }
     return encode_jwt(payload=jwt_payload)
 

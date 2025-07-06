@@ -6,6 +6,7 @@ from features.groups.api import router as groups_router
 from features.modules.api import router as moduls_router
 from features.tasks.api import router as tasks_router
 from features.users.api.auth import router as auth_router
+from features.users.api.telegram_auth import router as telegram_auth
 from features.users.api.email_access import router as email_access_router
 from features.users.api.user import router as users_router
 
@@ -39,6 +40,12 @@ router.include_router(
     router=auth_router,
     tags=[settings.api.auth[1:].capitalize()],
     prefix=settings.api.auth,
+)
+
+router.include_router(
+    router=telegram_auth,
+    tags=[settings.api.auth[1:].capitalize()],
+    prefix=settings.api.telegram_auth,
 )
 
 router.include_router(

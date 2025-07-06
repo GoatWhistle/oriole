@@ -48,6 +48,7 @@ class ApiPrefix(BaseModel):
     modules: str = "/modules"
     tasks: str = "/tasks"
     auth: str = "/auth"
+    telegram_auth: str = "/auth-via-telegram"
     learn: str = "/learn"
     email_verify: str = "/verify"
     reset_password: str = "/reset_password_redirect"
