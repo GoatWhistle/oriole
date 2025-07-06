@@ -2,12 +2,16 @@ __all__ = [
     "GroupCreate",
     "GroupRead",
     "GroupUpdate",
-    "GroupUpdatePartial",
+    "GroupReadWithAccounts",
+    "GroupReadWithModules",
+    "GroupReadWithAccountsAndModules",
 ]
 
 from .group import (
     GroupCreate,
     GroupRead,
     GroupUpdate,
-    GroupUpdatePartial,
+    GroupReadWithAccounts,
+    GroupReadWithModules,
+    GroupReadWithAccountsAndModules,
 )

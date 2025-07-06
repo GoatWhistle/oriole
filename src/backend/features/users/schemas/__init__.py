@@ -1,6 +1,5 @@
 __all__ = (
     "TokenResponseForOAuth2",
-    "UserProfile",
     "UserProfileRead",
     "RegisterUserInput",
     "UserRead",
@@ -17,7 +16,6 @@ __all__ = (
 
 from .token import TokenResponseForOAuth2
 from .user import (
-    UserProfile,
     UserProfileRead,
     UserAuth,
     UserAuthRead,

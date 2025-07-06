@@ -83,12 +83,13 @@ async def update_account_role(
     session: AsyncSession,
     account: Account,
     new_role: int,
-) -> None:
+) -> Account:
     account.role = new_role
     await session.commit()
+    return account
 
 
-async def delete_user_replies_by_account_id(
+async def delete_solutions_by_account_id(
     session: AsyncSession,
     account_id: int,
 ) -> None:
@@ -104,7 +105,7 @@ async def delete_account(
     await session.delete(account)
 
 
-async def delete_accounts_by_group_id(
+async def delete_accounts_by_space_id(
     session: AsyncSession,
     space_id: int,
 ) -> None:

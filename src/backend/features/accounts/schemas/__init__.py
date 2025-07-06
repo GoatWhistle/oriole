@@ -1,7 +1,7 @@
 __all__ = [
-    "AccountRead",
-    "AccountRoleChangeRead",
     "AccountRole",
+    "AccountRead",
+    "AccountReadWithProfileData",
 ]
 
-from .account import AccountRead, AccountRoleChangeRead, AccountRole
+from .account import AccountRole, AccountRead, AccountReadWithProfileData

@@ -1,52 +1,68 @@
-from pydantic import BaseModel, Field, ConfigDict
-
-from features.accounts.schemas import AccountRead
-from features.modules.schemas import ModuleRead
-from features.modules.schemas.module import (
-    ModuleReadWithoutReplies,
-    ModuleReadWithoutTasks,
+from features.accounts.schemas.account import AccountReadWithProfileData
+from features.modules.schemas import ModuleReadWithPerformance
+from features.spaces.schemas import (
+    SpaceBase,
+    SpaceCreate,
+    SpaceRead,
+    SpaceReadWithAccounts,
+    SpaceReadWithModules,
+    SpaceReadWithAccountsAndModules,
+    SpaceUpdate,
 )
 
 
-class GroupBase(BaseModel):
-    title: str = Field(max_length=100)
-    description: str = Field(max_length=200)
-
-
-class GroupCreate(GroupBase):
+class GroupBase(SpaceBase):
     pass
 
 
-class GroupRead(GroupBase):
-    id: int
-
-    accounts: list[AccountRead]
-    modules: list[ModuleRead | ModuleReadWithoutReplies | ModuleReadWithoutTasks]
-
-    model_config = ConfigDict(from_attributes=True)
-
-
-class GroupUpdate(GroupBase):
+class GroupCreate(SpaceCreate):
     pass
 
 
-class GroupUpdatePartial(GroupUpdate):
-    title: str | None = Field(default=None, max_length=100)
-    description: str | None = Field(default=None, max_length=200)
+class GroupRead(SpaceRead):
+    def to_with_accounts(
+        self,
+        accounts: list[AccountReadWithProfileData],
+    ) -> "GroupReadWithAccounts":
+        return GroupReadWithAccounts(
+            **self.model_dump(),
+            accounts=accounts,
+        )
+
+    def to_with_modules(
+        self,
+        modules: list[ModuleReadWithPerformance],
+    ) -> "GroupReadWithModules":
+        return GroupReadWithModules(
+            **self.model_dump(),
+            modules=modules,
+        )
+
+    def to_with_accounts_and_modules(
+        self,
+        accounts: list[AccountReadWithProfileData],
+        modules: list[ModuleReadWithPerformance],
+    ) -> "GroupReadWithAccountsAndModules":
+        return GroupReadWithAccountsAndModules(
+            **self.model_dump(),
+            accounts=accounts,
+            modules=modules,
+        )
 
 
-class GroupReadWithoutModules(GroupBase):
-    id: int
-    accounts: list[AccountRead]
-    model_config = ConfigDict(from_attributes=True)
+class GroupReadWithAccounts(GroupRead, SpaceReadWithAccounts):
+    pass
 
 
-class GroupReadWithoutAccounts(GroupBase):
-    id: int
-    modules: list[ModuleRead | ModuleReadWithoutReplies | ModuleReadWithoutTasks]
-    model_config = ConfigDict(from_attributes=True)
+class GroupReadWithModules(GroupRead, SpaceReadWithModules):
+    pass
 
 
-class GroupReadWithoutModulesAndAccounts(GroupBase):
-    id: int
-    model_config = ConfigDict(from_attributes=True)
+class GroupReadWithAccountsAndModules(
+    GroupReadWithAccounts, GroupReadWithModules, SpaceReadWithAccountsAndModules
+):
+    pass
+
+
+class GroupUpdate(SpaceUpdate):
+    pass

@@ -1,8 +1,6 @@
 from enum import IntEnum
 
-from pydantic import BaseModel
-
-from features.users.schemas import UserProfileRead
+from pydantic import BaseModel, Field
 
 
 class AccountRole(IntEnum):
@@ -12,10 +10,25 @@ class AccountRole(IntEnum):
 
 
 class AccountRead(BaseModel):
-    user_profile: UserProfileRead
+    user_id: int
+    space_id: int
     role: int
 
+    def to_with_profile_data(
+        self,
+        name: str,
+        surname: str,
+        patronymic: str,
+    ) -> "AccountReadWithProfileData":
+        return AccountReadWithProfileData(
+            **self.model_dump(),
+            name=name,
+            surname=surname,
+            patronymic=patronymic,
+        )
 
-class AccountRoleChangeRead(BaseModel):
-    space_id: int
-    user_id: int
+
+class AccountReadWithProfileData(AccountRead):
+    name: str = Field(max_length=30)
+    surname: str = Field(max_length=30)
+    patronymic: str = Field(max_length=30)

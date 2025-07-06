@@ -3,7 +3,8 @@ from typing import TYPE_CHECKING
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, relationship, mapped_column
 
-from features.spaces.models.space import Space
+from features.groups.schemas import GroupRead
+from features.spaces.models import Space
 from shared.enums import SpaceTypeEnum
 
 if TYPE_CHECKING:
@@ -17,3 +18,6 @@ class Group(Space):
     chat: Mapped["Chat"] = relationship(
         "Chat", back_populates="group", uselist=False, cascade="all, delete-orphan"
     )
+
+    def get_validation_schema(self) -> GroupRead:
+        return GroupRead.model_validate(self)

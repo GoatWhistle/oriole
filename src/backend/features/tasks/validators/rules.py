@@ -1,6 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from features.solutions.crud.base import get_solutions_by_account_id_and_task_id
+import features.solutions.crud.base as crud
 from features.tasks.exceptions import (
     TaskCounterLimitExceededException,
     TaskAlreadySolved,
@@ -21,7 +21,7 @@ async def validate_solution_creation(
     account_id: int,
     task: BaseTask,
 ) -> int:
-    solutions = await get_solutions_by_account_id_and_task_id(
+    solutions = await crud.get_solutions_by_account_id_and_task_id(
         session, account_id, task.id
     )
 

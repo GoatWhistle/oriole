@@ -1,6 +1,5 @@
 __all__ = [
     "Account",
-    "Course",
     "Group",
     "GroupInvite",
     "Module",
@@ -19,7 +18,6 @@ __all__ = [
 ]
 
 from .accounts import Account
-from .courses import Course
 from .groups import Group, GroupInvite
 from .modules import Module
 from .solutions import BaseSolution, StringMatchSolution

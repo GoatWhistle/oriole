@@ -1,11 +1,10 @@
-from fastapi import APIRouter, Depends, status, Query, Request
+from http import HTTPStatus
+
+from fastapi import APIRouter, Depends, Query, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from database import db_helper
-from features.modules.schemas import (
-    ModuleCreate,
-    ModuleUpdate,
-)
+from features.modules.schemas import ModuleCreate, ModuleUpdate
 from features.modules.services import module as service
 from features.users.services.auth import get_current_active_auth_user_id
 from utils.response_func import create_json_response
@@ -17,7 +16,7 @@ router = APIRouter()
 @router.post(
     "/",
     response_model=SuccessResponse,
-    status_code=status.HTTP_201_CREATED,
+    status_code=HTTPStatus.CREATED,
 )
 async def create_module(
     module_in: ModuleCreate,
@@ -31,7 +30,7 @@ async def create_module(
 @router.get(
     "/{module_id}/",
     response_model=SuccessResponse,
-    status_code=status.HTTP_200_OK,
+    status_code=HTTPStatus.OK,
 )
 async def get_module_by_id(
     module_id: int,
@@ -46,7 +45,7 @@ async def get_module_by_id(
 @router.get(
     "/",
     response_model=list[SuccessListResponse],
-    status_code=status.HTTP_200_OK,
+    status_code=HTTPStatus.OK,
 )
 async def get_user_modules(
     request: Request,
@@ -68,7 +67,7 @@ async def get_user_modules(
 @router.put(
     "/{module_id}/",
     response_model=SuccessResponse,
-    status_code=status.HTTP_200_OK,
+    status_code=HTTPStatus.OK,
 )
 async def update_module(
     module_update: ModuleUpdate,
@@ -82,7 +81,7 @@ async def update_module(
 
 @router.delete(
     "/{module_id}/",
-    status_code=status.HTTP_204_NO_CONTENT,
+    status_code=HTTPStatus.NO_CONTENT,
 )
 async def delete_module(
     module_id: int,

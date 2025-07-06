@@ -3,6 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from pydantic import EmailStr
 
 from core.celery.email_tasks import send_confirmation_email
+from features.accounts.services.account import leave_from_space
 from features.groups.services.group import get_user_groups
 from features.groups.validators import get_group_or_404, get_account_or_404
 from features.users.schemas import (
@@ -37,7 +38,7 @@ async def delete_user(
     groups = await get_user_groups(session=session, user_id=user_id)
 
     for group in groups:
-        await leave_from_group(session=session, user_id=user_id, group_id=group.id)
+        await leave_from_space(session=session, user_id=user_id, group_id=group.id)
 
     await session.delete(user)
 

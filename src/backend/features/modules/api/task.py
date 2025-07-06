@@ -1,8 +1,9 @@
-from fastapi import APIRouter, Depends, status, Request
+from http import HTTPStatus
+
+from fastapi import APIRouter, Depends, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from database import db_helper
-from features.tasks.schemas import BaseTaskRead
 from features.tasks.services import base as service
 from features.users.services.auth import get_current_active_auth_user_id
 from utils.response_func import create_json_response
@@ -13,8 +14,8 @@ router = APIRouter()
 
 @router.get(
     "/{module_id}/tasks/",
-    response_model=SuccessListResponse[BaseTaskRead],
-    status_code=status.HTTP_200_OK,
+    response_model=SuccessListResponse,
+    status_code=HTTPStatus.OK,
 )
 async def get_tasks_in_module(
     request: Request,

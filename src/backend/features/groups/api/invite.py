@@ -1,8 +1,9 @@
-from fastapi import APIRouter, Depends, status, Request
+from http import HTTPStatus
+
+from fastapi import APIRouter, Depends, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from database import db_helper
-from features.groups.schemas.invite import LinkRead, LinkJoinRead
 from features.groups.services import invite as service
 from features.users.services.auth import get_current_active_auth_user_id
 from utils.response_func import create_json_response
@@ -13,8 +14,8 @@ router = APIRouter()
 
 @router.post(
     "/{group_id}/invite/",
-    response_model=SuccessResponse[LinkRead],
-    status_code=status.HTTP_200_OK,
+    response_model=SuccessResponse,
+    status_code=HTTPStatus.OK,
 )
 async def invite_user(
     request: Request,
@@ -32,8 +33,8 @@ async def invite_user(
 
 @router.post(
     "/join/{invite_code}",
-    response_model=SuccessResponse[LinkJoinRead],
-    status_code=status.HTTP_200_OK,
+    response_model=SuccessResponse,
+    status_code=HTTPStatus.OK,
 )
 async def join_by_link(
     invite_code: str,
@@ -46,7 +47,7 @@ async def join_by_link(
 
 @router.delete(
     "/{group_id}/delete-invites/",
-    status_code=status.HTTP_204_NO_CONTENT,
+    status_code=HTTPStatus.NO_CONTENT,
 )
 async def delete_group_invites(
     group_id: int,
