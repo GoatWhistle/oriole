@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING
 
-from sqlalchemy import String, Boolean
+from sqlalchemy import String, Boolean, BigInteger
 from sqlalchemy.orm import Mapped, relationship, mapped_column
 
 from database import IdIntPkMixin
@@ -22,6 +22,14 @@ class User(Base, IdIntPkMixin):
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     is_superuser: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     is_verified: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    telegram_id: Mapped[int] = mapped_column(
+        BigInteger,
+        unique=True,
+        index=True,
+        nullable=True,
+        default=0,
+    )
+
     messages: Mapped[list["Message"]] = relationship(back_populates="sender")
     profile: Mapped["UserProfile"] = relationship(
         back_populates="user", cascade="all, delete-orphan"
