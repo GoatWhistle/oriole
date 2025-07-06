@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 import features.tasks.crud.base as task_crud
 import features.tasks.crud.test as test_crud
-from features.tasks.exceptions import TaskNotFoundException
+from features.tasks.exceptions import TaskNotFoundException, TaskHasNoTests
 from features.tasks.models import Test, BaseTask
 
 
@@ -27,3 +27,13 @@ async def get_test_or_404(
     if not test:
         raise TaskNotFoundException()
     return test
+
+
+async def get_tests_or_404(
+    session: AsyncSession,
+    task_id: int,
+) -> list[Test]:
+    tests = await test_crud.get_tests_by_task_id(session, task_id)
+    if not tests:
+        raise TaskHasNoTests()
+    return tests

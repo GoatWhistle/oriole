@@ -18,3 +18,5 @@ app.conf.beat_schedule = {
 }
 
 app.autodiscover_tasks(["core.celery"])
+
+import core.celery.code_check_task  # noqa

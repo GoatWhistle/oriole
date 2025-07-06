@@ -14,10 +14,11 @@ __all__ = [
     "MissingTokenException",
     "AuthForbiddenException",
     "TelegramAuthException",
+    "BadRequest",
 ]
 
 from .base import AppException
-from .existence import NotFoundException
+from .existence import NotFoundException, BadRequest
 from .membership import RoleException
 from .auth import AuthException, AuthForbiddenException
 from .telegram import TelegramAuthException

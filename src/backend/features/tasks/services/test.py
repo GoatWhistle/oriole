@@ -7,6 +7,7 @@ from features.groups.validators import (
     check_user_is_admin_or_owner,
 )
 from features.modules.validators import get_module_or_404
+from features.tasks.exceptions.rules import TestIsNotPublic
 from features.tasks.schemas import TestRead, TestUpdate, TestUpdatePartial, TestCreate
 from features.tasks.validators import (
     get_task_or_404,
@@ -46,3 +47,45 @@ async def update_test(
     test = await test_crud.update_test(session, test, update_data)
 
     return mapper.build_test_read(test, module.id, module.space_id)
+
+
+async def get_test_by_id(
+    session: AsyncSession,
+    test_id,
+):
+    test = await get_test_or_404(session, test_id)
+    task = await get_task_or_404(session, test.task_id)
+    module = await get_module_or_404(session, task.module_id)
+
+    if not test.is_public:
+        raise TestIsNotPublic()
+    return mapper.build_test_read(test, module.id, module.space_id)
+
+
+async def delete_test(
+    session: AsyncSession,
+    test_id,
+    user_id: int,
+):
+    test = await get_test_or_404(session, test_id)
+    task = await get_task_or_404(session, test.task_id)
+    module = await get_module_or_404(session, task.module_id)
+    account = await get_account_or_404(session, user_id, module.space_id)
+
+    check_user_is_admin_or_owner(account.role)
+
+    await test_crud.delete_test(session, test)
+
+
+async def get_tests_by_task_id(
+    session: AsyncSession,
+    task_id: int,
+) -> list[TestRead]:
+    task = await get_task_or_404(session, task_id)
+    module = await get_module_or_404(session, task.module_id)
+
+    tests = await test_crud.get_tests_by_task_id(session, task_id)
+    if not tests:
+        return []
+    tests = [test for test in tests if test.is_public]
+    return mapper.build_test_read_list(module.id, module.space_id, tests)
