@@ -1,5 +1,5 @@
 from features.modules.models import Module
-from features.modules.schemas import ModuleRead, ModuleReadWithPerformance
+from features.modules.schemas import ModuleReadWithPerformance, ModuleReadWithTasks
 from features.solutions.models import BaseSolution
 from features.tasks.mappers import build_base_task_read_with_correctness_list
 from features.tasks.models import BaseTask
@@ -21,7 +21,7 @@ def build_module_read_with_tasks(
     module: Module,
     tasks: list[BaseTask],
     solutions: list[BaseSolution],
-) -> ModuleReadWithPerformance:
+) -> ModuleReadWithTasks:
     tasks_schemas = build_base_task_read_with_correctness_list(tasks, solutions)
     user_completed_tasks_count = sum(1 for task in tasks_schemas if task.is_correct)
     base_schema = module.get_validation_schema()
@@ -33,7 +33,7 @@ def build_module_read_with_performance_list(
     modules: list[Module],
     tasks: list[BaseTask],
     solutions: list[BaseSolution] | None,
-) -> list[ModuleRead]:
+) -> list[ModuleReadWithPerformance]:
     return [
         build_module_read_with_performance(module, tasks, solutions)
         for module in modules

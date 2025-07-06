@@ -6,6 +6,7 @@ from features.modules.validators import get_module_or_404
 from features.solutions.mappers import build_base_solution_read_list
 from features.solutions.schemas import BaseSolutionRead
 from features.solutions.validators import get_solution_or_404
+from features.solutions.validators.membership import check_user_is_creator_of_solution
 from features.spaces.validators import get_space_or_404
 from features.tasks.models import BaseTask
 from features.tasks.validators import get_task_or_404
@@ -20,8 +21,9 @@ async def get_solution_by_id(
     task = await get_task_or_404(session, solution.task_id)
     module = await get_module_or_404(session, task.module_id)
     _ = await get_space_or_404(session, module.space_id)
-    _ = await get_account_or_404(session, user_id, module.space_id)
+    account = await get_account_or_404(session, user_id, module.space_id)
 
+    check_user_is_creator_of_solution(account, solution)
     return solution.get_validation_schema()
 
 

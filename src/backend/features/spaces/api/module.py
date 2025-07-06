@@ -1,4 +1,6 @@
-from fastapi import APIRouter, Depends, status, Request
+from http import HTTPStatus
+
+from fastapi import APIRouter, Depends, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from database import db_helper
@@ -12,8 +14,8 @@ router = APIRouter()
 
 @router.get(
     "/{space_id}/modules/",
-    response_model=list[SuccessListResponse],
-    status_code=status.HTTP_200_OK,
+    response_model=SuccessListResponse,
+    status_code=HTTPStatus.OK,
 )
 async def get_modules_in_space(
     space_id: int,

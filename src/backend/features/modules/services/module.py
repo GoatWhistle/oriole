@@ -6,16 +6,8 @@ import features.modules.crud.module as module_crud
 import features.modules.mappers as mapper
 import features.solutions.crud.base as solution_crud
 import features.tasks.crud.base as task_crud
-from features.groups.validators import (
-    get_group_or_404,
-    get_account_or_404,
-    check_user_is_admin_or_owner,
-)
-from features.modules.schemas import (
-    ModuleCreate,
-    ModuleRead,
-    ModuleUpdate,
-)
+from features.groups.validators import get_account_or_404, check_user_is_admin_or_owner
+from features.modules.schemas import ModuleCreate, ModuleRead, ModuleUpdate
 from features.modules.schemas.module import (
     ModuleReadWithPerformance,
     ModuleReadWithTasks,
@@ -71,7 +63,7 @@ async def get_modules_in_space(
     space_id: int,
     is_active: bool | None = None,
 ) -> list[ModuleRead]:
-    _ = await get_group_or_404(session, space_id)
+    _ = await get_space_or_404(session, space_id)
     account = await get_account_or_404(session, user_id, space_id)
 
     modules = await module_crud.get_modules_by_space_ids(session, [space_id], is_active)
@@ -124,7 +116,7 @@ async def update_module(
     module_update: ModuleUpdate,
 ) -> ModuleRead:
     module = await get_module_or_404(session, module_id)
-    _ = await get_group_or_404(session, module.space_id)
+    _ = await get_space_or_404(session, module.space_id)
     account = await get_account_or_404(session, user_id, module.space_id)
 
     check_user_is_admin_or_owner(account.role)
@@ -155,7 +147,7 @@ async def delete_module(
     module_id: int,
 ) -> None:
     module = await get_module_or_404(session=session, module_id=module_id)
-    _ = await get_group_or_404(session, module.space_id)
+    _ = await get_space_or_404(session, module.space_id)
     account = await get_account_or_404(session, user_id, module.space_id)
 
     check_user_is_admin_or_owner(account.role)

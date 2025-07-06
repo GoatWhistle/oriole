@@ -3,14 +3,12 @@ from typing import Annotated, Optional
 from pydantic import BaseModel, EmailStr, Field, ConfigDict
 
 
-class UserProfile(BaseModel):
-    name: Annotated[str, Field(max_length=30)]
-    surname: Annotated[str, Field(max_length=30)]
-    patronymic: Annotated[Optional[str], Field(max_length=30)] = None
-
-
-class UserProfileRead(UserProfile):
+class UserProfileRead(BaseModel):
     user_id: int
+
+    name: str = Field(max_length=30)
+    surname: str = Field(max_length=30)
+    patronymic: str | None = Field(default=None, max_length=30)
 
     model_config = ConfigDict(from_attributes=True)
 

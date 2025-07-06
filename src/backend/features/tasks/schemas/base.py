@@ -33,7 +33,9 @@ class BaseTaskRead(BaseTaskModel):
     model_config = ConfigDict(from_attributes=True)
 
     def to_with_correctness(
-        self, is_correct: bool, user_attempts: int
+        self,
+        is_correct: bool,
+        user_attempts: int,
     ) -> "BaseTaskReadWithCorrectness":
         return BaseTaskReadWithCorrectness(
             **self.model_dump(),

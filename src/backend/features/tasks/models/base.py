@@ -1,6 +1,6 @@
 from abc import abstractmethod
 from datetime import datetime
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING
 
 from sqlalchemy import String, ForeignKey, Integer, DateTime, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -35,7 +35,7 @@ class BaseTask(Base, IdIntPkMixin):
     creator: Mapped["UserProfile"] = relationship(back_populates="created_tasks")
     module: Mapped["Module"] = relationship(back_populates="tasks")
 
-    solutions: Mapped[List["BaseSolution"]] = relationship(
+    solutions: Mapped[list["BaseSolution"]] = relationship(
         back_populates="task", cascade="all, delete-orphan"
     )
 

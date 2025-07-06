@@ -4,6 +4,7 @@ from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from database import Base, IdIntPkMixin
+from features.accounts.schemas import AccountRead
 
 if TYPE_CHECKING:
     from features.users.models import UserProfile
@@ -36,3 +37,6 @@ class Account(Base, IdIntPkMixin):
     chats: Mapped[List["Chat"]] = relationship(
         secondary="chat_account_association", back_populates="accounts", viewonly=True
     )
+
+    def get_validation_schema(self) -> AccountRead:
+        return AccountRead.model_validate(self)

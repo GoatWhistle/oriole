@@ -1,5 +1,6 @@
-from fastapi import APIRouter, Depends, status
-from fastapi import Query, Request
+from http import HTTPStatus
+
+from fastapi import APIRouter, Depends, Query, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from database import db_helper
@@ -15,7 +16,7 @@ router = APIRouter()
 @router.get(
     "/{task_id}/",
     response_model=SuccessResponse,
-    status_code=status.HTTP_200_OK,
+    status_code=HTTPStatus.OK,
 )
 async def get_task_by_id(
     task_id: int,
@@ -29,8 +30,8 @@ async def get_task_by_id(
 
 @router.get(
     "/",
-    response_model=list[SuccessListResponse],
-    status_code=status.HTTP_200_OK,
+    response_model=SuccessListResponse,
+    status_code=HTTPStatus.OK,
 )
 async def get_user_tasks(
     request: Request,
@@ -51,7 +52,7 @@ async def get_user_tasks(
 
 @router.delete(
     "/{task_id}/",
-    status_code=status.HTTP_204_NO_CONTENT,
+    status_code=HTTPStatus.NO_CONTENT,
 )
 async def delete_task(
     task_id: int,
@@ -64,7 +65,7 @@ async def delete_task(
 @router.get(
     "/solutions/{solution_id}/",
     response_model=SuccessResponse,
-    status_code=status.HTTP_200_OK,
+    status_code=HTTPStatus.OK,
 )
 async def get_solution_by_id(
     solution_id: int,
@@ -77,8 +78,8 @@ async def get_solution_by_id(
 
 @router.get(
     "/{task_id}/solutions",
-    response_model=list[SuccessListResponse],
-    status_code=status.HTTP_200_OK,
+    response_model=SuccessListResponse,
+    status_code=HTTPStatus.OK,
 )
 async def get_solutions_in_task(
     task_id: int,
@@ -91,7 +92,7 @@ async def get_solutions_in_task(
 
 @router.delete(
     "/solutions/{solution_id}/",
-    status_code=status.HTTP_204_NO_CONTENT,
+    status_code=HTTPStatus.NO_CONTENT,
 )
 async def delete_solution(
     solution_id: int,

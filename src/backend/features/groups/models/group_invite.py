@@ -4,8 +4,7 @@ from typing import TYPE_CHECKING
 from sqlalchemy import ForeignKey, String, DateTime, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from database import IdIntPkMixin
-from database.base import Base
+from database import Base, IdIntPkMixin
 
 if TYPE_CHECKING:
     from features.spaces.models import Space

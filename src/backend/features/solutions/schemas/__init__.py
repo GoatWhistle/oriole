@@ -2,7 +2,6 @@ __all__ = [
     "BaseSolutionModel",
     "BaseSolutionCreate",
     "BaseSolutionRead",
-    "CodeSolutionBase",
     "CodeSolutionCreate",
     "CodeSolutionRead",
     "StringMatchSolutionCreate",
@@ -10,9 +9,5 @@ __all__ = [
 ]
 
 from .base import BaseSolutionModel, BaseSolutionCreate, BaseSolutionRead
-from .code import (
-    CodeSolutionBase,
-    CodeSolutionCreate,
-    CodeSolutionRead,
-)
+from .code import CodeSolutionCreate, CodeSolutionRead
 from .string_match import StringMatchSolutionCreate, StringMatchSolutionRead

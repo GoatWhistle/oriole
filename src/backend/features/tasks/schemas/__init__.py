@@ -7,9 +7,9 @@ __all__ = [
     "BaseTaskUpdate",
     "StringMatchTaskCreate",
     "StringMatchTaskRead",
-    "StringMatchTaskUpdate",
     "StringMatchTaskReadWithCorrectness",
     "StringMatchTaskReadWithSolutions",
+    "StringMatchTaskUpdate",
     "CodeTaskBase",
     "CodeTaskCreate",
     "CodeTaskRead",
@@ -39,9 +39,9 @@ from .code import (
 from .string_match import (
     StringMatchTaskCreate,
     StringMatchTaskRead,
-    StringMatchTaskUpdate,
     StringMatchTaskReadWithCorrectness,
     StringMatchTaskReadWithSolutions,
+    StringMatchTaskUpdate,
 )
 from .test import (
     TestCreate,

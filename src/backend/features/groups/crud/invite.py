@@ -43,4 +43,4 @@ async def delete_group_invites_by_group_id(
     session: AsyncSession,
     group_id: int,
 ) -> None:
-    await session.execute(delete(GroupInvite).where(GroupInvite.group_id == group_id))
+    await session.execute(delete(GroupInvite).where(GroupInvite.space_id == group_id))

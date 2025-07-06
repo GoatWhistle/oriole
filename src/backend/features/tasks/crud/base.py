@@ -1,4 +1,4 @@
-from typing import Type, TypeVar, Any
+from typing import Type, Any
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -51,14 +51,11 @@ async def get_tasks_by_module_ids(
     return list(result.scalars().all())
 
 
-TaskType = TypeVar("TaskType", bound=BaseTask)
-
-
 async def update_task(
     session: AsyncSession,
-    task: TaskType,
+    task: BaseTask,
     task_update: dict[str, Any],
-) -> TaskType:
+) -> BaseTask:
     for key, value in task_update.items():
         setattr(task, key, value)
     await session.commit()

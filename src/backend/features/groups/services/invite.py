@@ -74,7 +74,7 @@ async def join_by_link(
     invite = await get_group_invite_or_404(session, invite_code)
     check_group_invite_active(invite.is_active)
     check_group_invite_not_expired(invite.expires_at)
-    group_id = invite.group_id
+    group_id = invite.space_id
 
     await get_account_or_404(session, user_id, group_id, is_correct=False)
 
