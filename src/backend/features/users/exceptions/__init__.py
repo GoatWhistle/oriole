@@ -11,11 +11,19 @@ __all__ = [
     "AuthenticationRequiredException",
     "UserUnverifiedException",
     "UserInactiveException",
+    "MissingHashException",
+    "InvalidHashException",
+    "ExpiredAuthException",
 ]
 
 from .auth import (
     AuthenticatedForbiddenException,
     AuthenticationRequiredException,
+)
+from .telegram import (
+    MissingHashException,
+    InvalidHashException,
+    ExpiredAuthException,
 )
 from .email import (
     EmailRequiredExceptions,

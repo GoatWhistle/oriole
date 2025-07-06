@@ -55,6 +55,11 @@ class ApiPrefix(BaseModel):
     websocket: str = "/websocket"
 
 
+class Telegram:
+    bot_token: str
+    registration_lifetime_seconds: int = 86400
+
+
 class AuthJWT(BaseModel):
     private_key_path: Path = BASE_DIR / "jwt-private.pem"
     public_key_path: Path = BASE_DIR / "jwt-public.pem"
@@ -149,6 +154,7 @@ class Settings(BaseSettings):
     smtp_email: SMTPEmail
     db: DbConfig
     redis: Redis
+    telegram: Telegram
     memcached: MemcachedConfig = MemcachedConfig(url="localhost")
     sentry: Sentry
     gunicorn_run: GunicornConfig = GunicornConfig()
