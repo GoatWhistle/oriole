@@ -17,8 +17,8 @@ router = APIRouter(prefix=settings.api.prefix)
 
 router.include_router(
     router=space_router,
-    tags=[settings.api.space[1:].capitalize()],
-    prefix=settings.api.space,
+    tags=[settings.api.spaces[1:].capitalize()],
+    prefix=settings.api.spaces,
 )
 
 router.include_router(

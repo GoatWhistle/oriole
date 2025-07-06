@@ -13,7 +13,6 @@ from features.tasks.schemas import (
     CodeTaskCreate,
     CodeTaskRead,
     CodeTaskUpdate,
-    CodeTaskUpdatePartial,
 )
 from features.tasks.validators import (
     get_task_or_404,
@@ -46,7 +45,7 @@ async def create_code_task(
     )
     check_task_end_deadline_before_module_end(task_in.end_datetime, module.end_datetime)
 
-    task = await task_crud.create_code_task(session, task_in)
+    task = await task_crud.create_code_task(session, task_in, user_id)
     await module_crud.increment_module_tasks_count(session, module.id)
 
     return task.get_validation_schema()
@@ -56,8 +55,7 @@ async def update_code_task(
     session: AsyncSession,
     user_id: int,
     task_id: int,
-    task_update: CodeTaskUpdate | CodeTaskUpdatePartial,
-    is_partial: bool = False,
+    task_update: CodeTaskUpdate,
 ) -> CodeTaskRead:
     task = await get_task_or_404(session, task_id)
     module = await get_module_or_404(session, task.module_id)
@@ -66,7 +64,7 @@ async def update_code_task(
 
     check_user_is_admin_or_owner(account.role)
 
-    update_data = task_update.model_dump(exclude_unset=is_partial)
+    update_data = task_update.model_dump(exclude_unset=True)
 
     if "start_datetime" in update_data:
         check_start_time_not_in_past(update_data["start_datetime"])

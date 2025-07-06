@@ -8,7 +8,7 @@ from features.groups.validators import (
 )
 from features.modules.validators import get_module_or_404
 from features.tasks.exceptions.rules import TestIsNotPublic
-from features.tasks.schemas import TestRead, TestUpdate, TestUpdatePartial, TestCreate
+from features.tasks.schemas import TestRead, TestUpdate, TestCreate
 from features.tasks.validators import (
     get_task_or_404,
     get_test_or_404,
@@ -33,8 +33,7 @@ async def update_test(
     session: AsyncSession,
     user_id: int,
     test_id: int,
-    test_update: TestUpdate | TestUpdatePartial,
-    is_partial: bool = False,
+    test_update: TestUpdate,
 ) -> TestRead:
     test = await get_test_or_404(session, test_id)
     task = await get_task_or_404(session, test.task_id)
@@ -42,7 +41,7 @@ async def update_test(
     account = await get_account_or_404(session, user_id, module.space_id)
 
     check_user_is_admin_or_owner(account.role)
-    update_data = test_update.model_dump(exclude_unset=is_partial)
+    update_data = test_update.model_dump(exclude_unset=True)
 
     test = await test_crud.update_test(session, test, update_data)
 
@@ -64,9 +63,9 @@ async def get_test_by_id(
 
 async def delete_test(
     session: AsyncSession,
-    test_id,
+    test_id: int,
     user_id: int,
-):
+) -> None:
     test = await get_test_or_404(session, test_id)
     task = await get_task_or_404(session, test.task_id)
     module = await get_module_or_404(session, task.module_id)

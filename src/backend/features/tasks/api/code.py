@@ -1,4 +1,6 @@
-from fastapi import APIRouter, status, Depends, Request
+from http import HTTPStatus
+
+from fastapi import APIRouter, Depends, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
 import features.solutions.services.code as solution_service
@@ -8,10 +10,8 @@ from database import db_helper
 from features.solutions.schemas import CodeSolutionCreate
 from features.tasks.schemas import (
     CodeTaskUpdate,
-    CodeTaskUpdatePartial,
     CodeTaskCreate,
     TestUpdate,
-    TestUpdatePartial,
     TestCreate,
 )
 from features.users.services.auth import get_current_active_auth_user_id
@@ -25,7 +25,7 @@ router = APIRouter()
 @router.post(
     "/",
     response_model=SuccessResponse,
-    status_code=status.HTTP_201_CREATED,
+    status_code=HTTPStatus.CREATED,
 )
 async def create_code_task(
     task_in: CodeTaskCreate,
@@ -39,7 +39,7 @@ async def create_code_task(
 @router.put(
     "/{task_id}/",
     response_model=SuccessResponse,
-    status_code=status.HTTP_200_OK,
+    status_code=HTTPStatus.OK,
 )
 async def update_code_task(
     task_update: CodeTaskUpdate,
@@ -47,31 +47,14 @@ async def update_code_task(
     session: AsyncSession = Depends(db_helper.dependency_session_getter),
     user_id: int = Depends(get_current_active_auth_user_id),
 ):
-    data = await task_service.update_code_task(
-        session, user_id, task_id, task_update, False
-    )
-    return create_json_response(data=data)
-
-
-@router.patch(
-    "/{task_id}/",
-    response_model=SuccessResponse,
-    status_code=status.HTTP_200_OK,
-)
-async def update_code_task_partial(
-    task_update: CodeTaskUpdatePartial,
-    task_id: int,
-    session: AsyncSession = Depends(db_helper.dependency_session_getter),
-    user_id: int = Depends(get_current_active_auth_user_id),
-):
-    data = await task_service.update_code_task(
-        session, user_id, task_id, task_update, True
-    )
+    data = await task_service.update_code_task(session, user_id, task_id, task_update)
     return create_json_response(data=data)
 
 
 @router.post(
-    "/tests", status_code=status.HTTP_201_CREATED, response_model=SuccessResponse
+    "/tests",
+    status_code=HTTPStatus.CREATED,
+    response_model=SuccessResponse,
 )
 async def create_test(
     test_in: TestCreate,
@@ -85,7 +68,7 @@ async def create_test(
 @router.get(
     "/tests/{test_id}",
     response_model=SuccessResponse,
-    status_code=status.HTTP_200_OK,
+    status_code=HTTPStatus.OK,
 )
 async def get_test_by_id(
     test_id: int,
@@ -99,7 +82,7 @@ async def get_test_by_id(
 @router.get(
     "/{task_id}/tests/",
     response_model=SuccessListResponse,
-    status_code=status.HTTP_200_OK,
+    status_code=HTTPStatus.OK,
 )
 async def get_tests_by_task_id(
     request: Request,
@@ -109,10 +92,7 @@ async def get_tests_by_task_id(
     page: int | None = None,
     per_page: int | None = None,
 ):
-    data = await test_service.get_tests_by_task_id(
-        session=session,
-        task_id=task_id,
-    )
+    data = await test_service.get_tests_by_task_id(session, task_id)
     return create_json_response(
         data=data,
         page=page,
@@ -124,7 +104,7 @@ async def get_tests_by_task_id(
 @router.put(
     "/tests/{test_id}/",
     response_model=SuccessResponse,
-    status_code=status.HTTP_200_OK,
+    status_code=HTTPStatus.OK,
 )
 async def update_test(
     test_update: TestUpdate,
@@ -132,28 +112,13 @@ async def update_test(
     session: AsyncSession = Depends(db_helper.dependency_session_getter),
     user_id: int = Depends(get_current_active_auth_user_id),
 ):
-    data = await test_service.update_test(session, user_id, test_id, test_update, False)
-    return create_json_response(data=data)
-
-
-@router.patch(
-    "/tests/{test_id}/",
-    response_model=SuccessResponse,
-    status_code=status.HTTP_200_OK,
-)
-async def update_test_partial(
-    test_update: TestUpdatePartial,
-    test_id: int,
-    session: AsyncSession = Depends(db_helper.dependency_session_getter),
-    user_id: int = Depends(get_current_active_auth_user_id),
-):
-    data = await test_service.update_test(session, user_id, test_id, test_update, True)
+    data = await test_service.update_test(session, user_id, test_id, test_update)
     return create_json_response(data=data)
 
 
 @router.delete(
     "/tests/{test_id}/",
-    status_code=status.HTTP_204_NO_CONTENT,
+    status_code=HTTPStatus.NO_CONTENT,
 )
 async def delete_test(
     test_id: int,
@@ -165,7 +130,7 @@ async def delete_test(
 
 @router.post(
     "/{task_id}/solutions",
-    status_code=status.HTTP_201_CREATED,
+    status_code=HTTPStatus.OK,
     response_model=SuccessResponse,
 )
 async def create_code_solution(
@@ -180,7 +145,7 @@ async def create_code_solution(
 @router.get(
     "/{task_id}/solutions/{solution_id}/",
     response_model=SuccessResponse,
-    status_code=status.HTTP_200_OK,
+    status_code=HTTPStatus.OK,
 )
 async def get_code_solution_by_id(
     solution_id: int,
@@ -194,7 +159,7 @@ async def get_code_solution_by_id(
 @router.get(
     "/{task_id}/solutions",
     response_model=SuccessListResponse,
-    status_code=status.HTTP_200_OK,
+    status_code=HTTPStatus.OK,
 )
 async def get_user_solutions(
     request: Request,

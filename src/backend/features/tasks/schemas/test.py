@@ -21,10 +21,6 @@ class TestRead(TestBase):
 
 
 class TestUpdate(TestBase):
-    pass
-
-
-class TestUpdatePartial(TestUpdate):
     correct_output: str | None = None
-    if_public: str | None = None
+    is_public: bool | None = None
     input_data: str | None = None

@@ -55,7 +55,7 @@ class ApiPrefix(BaseModel):
     forgot_password: str = "/forgot_password_redirect"
     websocket: str = "/websocket"
     chat: str = "/chat"
-    space: str = "/space"
+    spaces: str = "/spaces"
 
 
 class Telegram(BaseModel):

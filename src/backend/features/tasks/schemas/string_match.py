@@ -60,7 +60,7 @@ class StringMatchTaskReadWithSolutions(
     solutions: list[StringMatchSolutionRead]
 
 
-class StringMatchTaskUpdate(BaseTaskUpdate):
+class StringMatchTaskUpdate(StringMatchTaskBase, BaseTaskUpdate):
     correct_answer: str | None = Field(default=None, max_length=300)
 
     is_case_sensitive: bool | None = None

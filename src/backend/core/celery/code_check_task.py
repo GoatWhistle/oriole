@@ -4,7 +4,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from features import CodeTask, Test
-from features.solutions.exceptions.existance import SolutionNotFoundException
+from features.solutions.exceptions.existence import SolutionNotFoundException
 from features.solutions.models import CodeSolution
 from features.tasks.exceptions import TaskNotFoundException
 from shared.enums import SolutionStatusEnum
@@ -93,30 +93,12 @@ def check_code(solution_id):
 
 
 def analyze_result(stdout, stderr, status_code, timed_out, oom_killed, solution, test):
-    result = 0
     if timed_out:
         solution.status = SolutionStatusEnum.TIME_LIMIT_EXCEEDED.value
-        result = {
-            "status": "error",
-            "error": "Time limit exceeded",
-            "output": stdout,
-        }
     elif oom_killed or status_code == 137 or "memory" in stderr.lower():
         solution.status = SolutionStatusEnum.MEMORY_LIMIT_EXCEEDED.value
-        result = {
-            "status": "error",
-            "error": "Memory limit exceeded",
-            "output": stdout,
-        }
     elif stderr:
         solution.status = SolutionStatusEnum.RUNTIME_ERROR.value
-        result = {"status": "error", "error": stderr, "output": stdout}
     elif stdout.strip() != test.correct_output:
         solution.status = SolutionStatusEnum.WRONG_ANSWER.value
-        result = {
-            "status": "fail",
-            "output": stdout,
-            "expected": test.correct_output,
-            "correct": False,
-        }
     return None
