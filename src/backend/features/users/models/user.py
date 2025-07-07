@@ -14,10 +14,10 @@ if TYPE_CHECKING:
 
 class User(Base, IdIntPkMixin):
     email: Mapped[str] = mapped_column(
-        String(length=127), unique=True, index=True, nullable=False
+        String(length=127), unique=True, index=True, nullable=True
     )
     hashed_password: Mapped[str] = mapped_column(
-        String(length=get_num_opt(1000)), nullable=False
+        String(length=get_num_opt(1000)), nullable=True
     )
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     is_superuser: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
