@@ -91,11 +91,11 @@ jobs:
       - name: List env and py files
         run: find ./src -name ".env*"
 
-      - name: Show running containers
-        run: docker ps -a
-
       - name: Build and start services
         run: docker compose --env-file src/backend/.env up -d --build
+
+      - name: Show running containers
+        run: docker ps -a
 
       - name: Wait for services to be ready
         run: sleep 10
