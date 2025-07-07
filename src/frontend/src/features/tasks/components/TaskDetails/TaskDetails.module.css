@@ -1,0 +1,146 @@
+.container {
+  padding: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.loadingContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 24px;
+  min-height: 200px;
+}
+
+.errorAlert, .warningAlert {
+  margin: 24px;
+}
+
+.backButton {
+  margin-bottom: 16px;
+}
+
+.card {
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.title {
+  margin: 0 !important;
+  word-break: break-word;
+}
+
+.actions {
+  margin-left: auto;
+}
+
+.editButton {
+  border-color: #1890ff;
+  color: #1890ff;
+}
+
+.deleteButton {
+  background-color: #ff4d4f;
+  border-color: #ff4d4f;
+}
+
+.statsRow {
+  margin-bottom: 24px !important;
+}
+
+.statistic {
+  padding: 8px;
+  background: #fafafa;
+  border-radius: 4px;
+}
+
+.successIcon {
+  color: #52c41a;
+}
+
+.errorIcon {
+  color: #ff4d4f;
+}
+
+.warningIcon {
+  color: #faad14;
+}
+
+.divider {
+  margin: 16px 0;
+}
+
+.sectionTitle {
+  margin-bottom: 16px !important;
+}
+
+.description {
+  white-space: pre-line;
+  margin-bottom: 16px;
+}
+
+.form {
+  margin-top: 16px;
+}
+
+.formItem {
+  margin-bottom: 16px;
+}
+
+.textarea {
+  resize: vertical;
+}
+
+.alert {
+  margin-bottom: 16px;
+}
+
+.submitSection {
+  display: flex;
+  align-items: center;
+}
+
+.submitButton {
+  background-color: #1890ff;
+}
+
+.attemptsText {
+  margin-left: 16px;
+}
+
+.modal {
+  border-radius: 8px;
+}
+
+.editForm .input,
+.editForm .textarea,
+.editForm .inputNumber,
+.editForm .datePicker {
+  width: 100%;
+}
+
+@media (max-width: 768px) {
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .actions {
+    margin-left: 0;
+    margin-top: 16px;
+    width: 100%;
+  }
+
+  .editButton, .deleteButton {
+    width: 100%;
+    margin-bottom: 8px;
+  }
+}
