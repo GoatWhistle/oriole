@@ -1,3 +1,5 @@
+exclude: '(^|.*/)package(-lock)?\.json$'
+
 repos:
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: 'bbc3dc1'

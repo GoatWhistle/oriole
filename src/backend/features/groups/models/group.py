@@ -13,7 +13,6 @@ if TYPE_CHECKING:
     from features.chat.models import Message
 
 
-
 class Group(Base, IdIntPkMixin):
     title: Mapped[str] = mapped_column(String(get_num_opt(100)))
     description: Mapped[str] = mapped_column(String(get_num_opt(200)))
