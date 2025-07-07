@@ -29,7 +29,7 @@ jobs:
         run: poetry run pre-commit run --all-files --show-diff-on-failure --color always
 
   test:
-    needs: precommit
+    needs: pre-commit
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
