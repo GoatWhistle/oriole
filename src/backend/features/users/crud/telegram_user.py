@@ -16,9 +16,11 @@ async def create_user_via_telegram(
     session: AsyncSession,
     user_data: TelegramUserData,
 ) -> User:
+    generated_email = f"tg_{user_data.id}@telegram.local"
+
     user = User(
         telegram_id=user_data.id,
-        email=None,
+        email=generated_email,
         is_active=True,
         is_verified=True,
     )
