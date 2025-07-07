@@ -68,7 +68,6 @@ async def update_string_match_task(
 
     updated_start = update_data.get("start_datetime", task.start_datetime)
     updated_end = update_data.get("end_datetime", task.end_datetime)
-
     validate_task_deadlines(
         updated_start, updated_end, module.start_datetime, module.end_datetime
     )
