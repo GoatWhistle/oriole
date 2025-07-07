@@ -75,7 +75,7 @@ async def get_test_by_id(
     session: AsyncSession = Depends(db_helper.dependency_session_getter),
     user_id: int = Depends(get_current_active_auth_user_id),
 ):
-    data = await test_service.get_test_by_id(session, test_id)
+    data = await test_service.get_test_by_id(session, user_id, test_id)
     return create_json_response(data=data)
 
 
@@ -84,7 +84,7 @@ async def get_test_by_id(
     response_model=SuccessListResponse,
     status_code=HTTPStatus.OK,
 )
-async def get_tests_by_task_id(
+async def get_tests_in_task(
     request: Request,
     task_id: int,
     session: AsyncSession = Depends(db_helper.dependency_session_getter),
@@ -92,7 +92,7 @@ async def get_tests_by_task_id(
     page: int | None = None,
     per_page: int | None = None,
 ):
-    data = await test_service.get_tests_by_task_id(session, task_id)
+    data = await test_service.get_tests_in_task(session, user_id, task_id)
     return create_json_response(
         data=data,
         page=page,

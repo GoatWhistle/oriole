@@ -5,10 +5,10 @@ import features.groups.crud.group as group_crud
 import features.groups.crud.invite as invite_crud
 from features.accounts.models import Account
 from features.groups.exceptions import (
-    AccountNotFoundInGroupException,
+    AccountNotFoundInSpaceException,
     GroupNotFoundException,
     GroupInviteNotFoundException,
-    AccountAlreadyInGroupException,
+    AccountAlreadyInSpaceException,
 )
 from features.groups.models import Group, GroupInvite
 
@@ -26,17 +26,17 @@ async def get_group_or_404(
 async def get_account_or_404(
     session: AsyncSession,
     user_id: int,
-    group_id: int,
+    space_id: int,
     is_correct: bool = True,
 ) -> Account:
     account = await account_crud.get_account_by_user_id_and_space_id(
-        session, user_id, group_id
+        session, user_id, space_id
     )
 
     if not account and is_correct:
-        raise AccountNotFoundInGroupException()
+        raise AccountNotFoundInSpaceException()
     elif account and not is_correct:
-        raise AccountAlreadyInGroupException()
+        raise AccountAlreadyInSpaceException()
     return account
 
 
