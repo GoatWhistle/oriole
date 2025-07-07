@@ -1,7 +1,29 @@
+.container {
+  background: #6d32b8;
+  border: 4px solid #512790;
+  width: 350px;
+  border-radius: 20px;
+  padding-bottom: 15px;
+  font-weight: 500;
+}
+
+.card {
+  padding-top: 10px;
+  border-top: 1px solid #512790;
+}
+
+.title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #fff;
+  margin: 20px 0 20px 50px;
+  display: flex;
+  gap: 10px;
+}
+
 .menu {
-  width: 250px;
   border-right: none;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  background-color: #6d32b8;
 }
 
 .loading {

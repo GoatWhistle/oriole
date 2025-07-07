@@ -76,8 +76,8 @@ export const handleUpdateModule = async (module_id, values, setModule) => {
   try {
     const moduleData = {
       ...values,
-      start_datetime: values.dateRange?.[0]?.toISOString(),
-      end_datetime: values.dateRange?.[1]?.toISOString()
+      start_datetime: values.dateRange[0].toISOString(),
+      end_datetime: values.dateRange[1].toISOString()
     };
     const updatedModule = await updateModule(module_id, moduleData);
     setModule(updatedModule);

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Card, Divider, Typography, message } from 'antd';
+import { Card, Divider, Typography, Spin, message } from 'antd';
 
 import { GroupHeader } from '../GroupHeader.jsx';
 import { GroupMembers } from '../GroupMembers.jsx';
@@ -159,7 +159,12 @@ const createModule = async (values) => {
     handleCopyToClipboard(state.inviteLink);
   };
 
-  if (state.loading) return <div>Загрузка информации о группе...</div>;
+  if (state.loading) return (
+      <div>
+        <Spin size="large" tip="Загрузка модуля..." />
+      </div>
+    );
+
   if (state.error) return <div>Ошибка: {state.error}</div>;
   if (!state.group) return <div>Группа не найдена</div>;
 
