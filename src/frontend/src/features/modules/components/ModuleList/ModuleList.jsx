@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Menu } from 'antd';
+import { Menu, Card } from 'antd';
+import { CalculatorOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 
 import { handleShowModuleList } from '../../handlers/user.jsx';
@@ -26,12 +27,21 @@ const ModuleList = () => {
   if (error) return <div className={styles.error}>Ошибка: {error}</div>;
 
   return (
-    <Menu
-      onClick={onClick}
-      className={styles.menu}
-      mode="inline"
-      items={userModules}
-    />
+      <div className={styles.container}>
+          <div className={styles.title}>
+              <CalculatorOutlined/>
+              Мои модули
+          </div>
+          <div className={styles.card}>
+            <Menu
+              theme="dark"
+              onClick={onClick}
+              className={styles.menu}
+              mode="inline"
+              items={userModules}
+            />
+          </div>
+      </div>
   );
 };
 

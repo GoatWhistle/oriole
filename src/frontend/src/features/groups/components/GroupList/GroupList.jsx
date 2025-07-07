@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Menu, message } from 'antd';
+import { Menu } from 'antd';
+import { TeamOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 
 import { handleShowGroupList } from '../../handlers/user.jsx';
@@ -26,12 +27,21 @@ const GroupList = () => {
   if (error) return <div className={styles.error}>Ошибка: {error}</div>;
 
   return (
-    <Menu
-      onClick={onClick}
-      className={styles.menu}
-      mode="inline"
-      items={userGroups}
-    />
+      <div className={styles.container}>
+          <div className={styles.title}>
+              <TeamOutlined/>
+              Мои группы
+          </div>
+          <div className={styles.card}>
+            <Menu
+              theme="dark"
+              onClick={onClick}
+              className={styles.menu}
+              mode="inline"
+              items={userGroups}
+            />
+          </div>
+      </div>
   );
 };
 
