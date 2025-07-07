@@ -1,6 +1,6 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from features.users.models.user import User
+from features.users.models.user import User, UserProfile
 from features.users.schemas.telegram_user import TelegramUserData
 
 
@@ -26,5 +26,16 @@ async def create_user_via_telegram(
     )
     session.add(user)
     await session.flush()
+
+    profile = UserProfile(
+        user_id=user.id,
+        name=user_data.first_name or "TelegramUser",
+        surname=user_data.last_name or "",
+        patronymic="",
+    )
+    session.add(profile)
+    await session.flush()
+
+    await session.commit()
 
     return user
