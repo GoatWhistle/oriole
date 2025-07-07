@@ -37,7 +37,7 @@ jobs:
         run: npm install -g @infisical/cli
 
       - name: Login to Infisical
-        run: infisical login --token ${{ secrets.INFISICAL_TOKEN }}
+        run: infisical login --jwt ${{ secrets.INFISICAL_TOKEN }}
 
       - name: Pull secrets to .env
         run: infisical pull --tags dockersetup --env-file src/backend/.env
