@@ -104,7 +104,7 @@ async def get_int_role_in_group(
     account = await get_account_or_404(
         session=session,
         user_id=user_id,
-        group_id=group_id,
+        space_id=group_id,
     )
 
     return account.role

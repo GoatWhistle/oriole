@@ -1,12 +1,12 @@
 __all__ = [
     "GroupNotFoundException",
     "GroupInviteNotFoundException",
-    "AccountNotFoundInGroupException",
+    "AccountNotFoundInSpaceException",
     "UserNotMemberException",
     "UserNotAdminException",
     "UserNotOwnerException",
     "UserNotAdminOrOwnerException",
-    "AccountAlreadyInGroupException",
+    "AccountAlreadyInSpaceException",
     "GroupInviteExpiredException",
     "GroupInviteInactiveException",
 ]
@@ -14,7 +14,7 @@ __all__ = [
 from .existence import (
     GroupNotFoundException,
     GroupInviteNotFoundException,
-    AccountNotFoundInGroupException,
+    AccountNotFoundInSpaceException,
 )
 from .membership import (
     UserNotMemberException,
@@ -23,7 +23,7 @@ from .membership import (
     UserNotAdminOrOwnerException,
 )
 from .rules import (
-    AccountAlreadyInGroupException,
+    AccountAlreadyInSpaceException,
     GroupInviteExpiredException,
     GroupInviteInactiveException,
 )

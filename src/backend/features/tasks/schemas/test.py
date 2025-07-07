@@ -14,8 +14,6 @@ class TestCreate(TestBase):
 class TestRead(TestBase):
     id: int
     task_id: int
-    module_id: int
-    space_id: int
 
     model_config = ConfigDict(from_attributes=True)
 
