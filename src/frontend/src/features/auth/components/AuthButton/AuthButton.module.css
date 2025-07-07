@@ -6,12 +6,14 @@
 }
 
 .loading {
+  color: #fff;
   width: 100px;
 }
 
 .link {
   font-size: 20px;
-  color: black;
+  font-weight: 600;
+  color: #fff;
   text-decoration: none;
 }
 

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Button, Modal, Form, Input } from 'antd';
+import { PlusOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 
 import { fetchCheckAuth } from '../../../api/check_auth.jsx';
@@ -49,10 +50,11 @@ const CreateGroupButton = () => {
   return (
     <div className={styles.container}>
       <Button type="primary" onClick={showModal} className={styles.createButton}>
-        Создать группу
+          <PlusOutlined />
+          Создать группу
       </Button>
       <Modal
-        title="Создание новой группы"
+        title="Новая группа"
         open={open}
         onOk={form.submit}
         confirmLoading={confirmLoading}

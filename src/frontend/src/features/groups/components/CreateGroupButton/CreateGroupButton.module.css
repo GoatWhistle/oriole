@@ -1,18 +1,25 @@
 .container {
+  background-color: #7883e2;
+  border-color: #7883e2;
   margin-bottom: 20px;
+  border: 4px solid #4656d8;
+  border-radius: 10px;
+  height: 32px;
+  font-weight: 600;
 }
 
 .createButton {
-  background-color: #1890ff;
-  border-color: #1890ff;
+  background-color: #7883e2;
+  border-color: #7883e2;
 }
 
 .createButton:hover {
-  background-color: #40a9ff;
-  border-color: #40a9ff;
+  background-color: #78dbe2;
+  border-color: #7883e2;
 }
 
-.modal {
+.modal .ant-modal-content {
+  background-color: #2D283E;
   max-width: 600px;
 }
 

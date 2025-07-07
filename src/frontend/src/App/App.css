@@ -16,3 +16,7 @@ body, html, #root {
 * {
   font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
+
+.ant-modal-content {
+  background-color: #a170d7 !important;
+}
