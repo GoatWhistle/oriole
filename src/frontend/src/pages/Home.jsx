@@ -3,6 +3,7 @@ import Header from "/src/features/components/Header/Header.jsx";
 import GroupList from "/src/features/groups/components/GroupList/GroupList.jsx";
 import ModuleList from "/src/features/modules/components/ModuleList/ModuleList.jsx";
 import CreateGroupButton from "/src/features/groups/components/CreateGroupButton/CreateGroupButton.jsx";
+import myGif from "../presets/oriole-footer.gif";
 
 import { Card, Typography } from 'antd';
 const { Title } = Typography;
@@ -14,7 +15,7 @@ export default function Home() {
       <div style={{
         maxWidth: 1200,
         margin: '0 auto',
-        padding: '100px'
+        padding: '150px'
       }}>
         <div style={{
           display: 'flex',
@@ -22,26 +23,14 @@ export default function Home() {
           gap: '40px',
           flexWrap: 'wrap'
         }}>
-          <div style={{ width: 350 }}>
-            <Card
-              title={<span style={{ fontSize: '18px' }}>Мои группы</span>}
-              bordered={false}
-              style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}
-            >
-              <GroupList />
-            </Card>
-          </div>
-
-          <div style={{ width: 350 }}>
-            <Card
-              title={<span style={{ fontSize: '18px' }}>Мои модули</span>}
-              bordered={false}
-              style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}
-            >
-              <ModuleList />
-            </Card>
-          </div>
+          <GroupList />
+          <ModuleList />
           <CreateGroupButton />
+          <img
+            src={myGif}
+            alt="Описание гифки"
+            style={{ width: '300px', height: 'auto' }}
+          />
         </div>
       </div>
     </div>
