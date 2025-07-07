@@ -32,6 +32,8 @@ services:
       context: ./
     volumes:
       - ./src/frontend:/frontend
+    environment:
+      IS_DEV: true
     depends_on:
       - backend
     ports:
@@ -219,7 +221,7 @@ services:
       - GF_SECURITY_ADMIN_PASSWORD=admin
       - GF_SECURITY_ADMIN_USER=admin
     volumes:
-      - ./logging/grafana/database.yaml:/etc/grafana/provisioing/datasources/datasources.yaml
+      - ./logging/grafana/database.yaml:/etc/grafana/provisioning/datasources/datasources.yaml
       - grafana_data:/var/lib/grafana
       - ./logging/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards
       - ./logging/grafana/dashboards:/var/lib/grafana/dashboards
