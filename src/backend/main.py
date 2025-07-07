@@ -65,7 +65,7 @@ app.include_router(
 
 @app.get("/api/ping")
 async def ping():
-    return {"message": "ping", "is_dev": is_dev}
+    return {"message": "pong"}
 
 
 if __name__ == "__main__":
