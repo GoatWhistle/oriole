@@ -28,8 +28,13 @@ jobs:
       - name: Run pre-commit hooks
         run: poetry run pre-commit run --all-files --show-diff-on-failure --color always
 
-      - name: Install Infisical CLI
-        run: curl -sSfL https://infisical.com/install.sh | sh
+      - name: Install Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install Infiscle Cli
+        run: npm install -g @infisical/cli
 
       - name: Login to Infisical
         run: infisical login --token ${{ secrets.INFISICAL_TOKEN }}
