@@ -1,6 +1,6 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from features.users.models.user import User, UserProfile
+from features.users.models import User, UserProfile
 from features.users.schemas.telegram_user import TelegramUserData
 
 
