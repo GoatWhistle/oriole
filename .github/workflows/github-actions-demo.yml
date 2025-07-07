@@ -101,7 +101,7 @@ jobs:
         run: sleep 10
 
       - name: Run tests in backend container
-        run: docker compose exec -T backend pytest src/tests/
+        run: PYTHONPATH=src/backend pytest src/tests/
 
       - name: Tear down containers
         if: always()
