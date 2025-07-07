@@ -15,6 +15,7 @@ COPY pyproject.toml poetry.lock ./
 RUN poetry install --without dev
 
 COPY src/backend ./
+COPY src/tests ./
 
 FROM base AS migrations
 
