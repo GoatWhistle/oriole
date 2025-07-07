@@ -1,0 +1,114 @@
+name: CI for App with pre-commit and tests
+
+on:
+  push:
+    branches: [ develop, main ]
+  pull_request:
+    branches: [ develop, main ]
+
+jobs:
+  pre-commit:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install pre-commit
+        run: |
+          python -m pip install --upgrade pip
+          pip install poetry
+          poetry install --no-interaction --no-ansi
+
+      - name: Run pre-commit hooks
+        run: poetry run pre-commit run --all-files --show-diff-on-failure --color always
+
+  test:
+    needs: pre-commit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install pre-commit
+        run: |
+          python -m pip install --upgrade pip
+          pip install poetry
+          poetry install --no-interaction --no-ansi
+
+      - name: Create .env file
+        run: |
+          echo "BACKEND_PORT=${{ secrets.BACKEND_PORT }}" > ./src/backend/.env
+          echo "DB_URL=${{ secrets.DB_URL }}" >> ./src/backend/.env
+          echo "POSTGRES_DB=${{ secrets.POSTGRES_DB }}" >> ./src/backend/.env
+          echo "POSTGRES_USER=${{ secrets.POSTGRES_USER }}" >> ./src/backend/.env
+          echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> ./src/backend/.env
+          echo "PGDATA=${{ secrets.PGDATA }}" >> ./src/backend/.env
+          echo "POSTGRES_PORT=${{ secrets.POSTGRES_PORT }}" >> ./src/backend/.env
+          echo "ADMIN_PORT=${{ secrets.ADMIN_PORT }}" >> ./src/backend/.env
+          echo "REDIS_PORT=${{ secrets.REDIS_PORT }}" >> ./src/backend/.env
+
+      - name: Create .env file
+        run: |
+          echo "APP_CONFIG__DB__URL=${{ secrets.APP_CONFIG__DB__URL }}" > ./src/backend/.env.app_config
+          echo "APP_CONFIG__RUN__PORT=${{ secrets.APP_CONFIG__RUN__PORT }}" >> ./src/backend/.env.app_config
+          echo "APP_CONFIG__RUN__HOST=${{ secrets.APP_CONFIG__RUN__HOST }}" >> ./src/backend/.env.app_config
+
+          echo "APP_CONFIG__SMTP_EMAIL__SERVER=${{ secrets.APP_CONFIG__SMTP_EMAIL__SERVER }}" >> ./src/backend/.env.app_config
+          echo "APP_CONFIG__SMTP_EMAIL__PORT=${{ secrets.APP_CONFIG__SMTP_EMAIL__PORT }}" >> ./src/backend/.env.app_config
+          echo "APP_CONFIG__SMTP_EMAIL__USER=${{ secrets.APP_CONFIG__SMTP_EMAIL__USER }}" >> ./src/backend/.env.app_config
+          echo "APP_CONFIG__SMTP_EMAIL__PASSWORD=${{ secrets.APP_CONFIG__SMTP_EMAIL__PASSWORD }}" >> ./src/backend/.env.app_config
+
+          echo "APP_CONFIG__REDIS__PORT=${{ secrets.APP_CONFIG__REDIS__PORT }}" >> ./src/backend/.env.app_config
+          echo "APP_CONFIG__REDIS__URL=${{ secrets.APP_CONFIG__REDIS__URL }}" >> ./src/backend/.env.app_config
+          echo "APP_CONFIG__REDIS__SOCKET_TIMEOUT=${{ secrets.APP_CONFIG__REDIS__SOCKET_TIMEOUT }}" >> ./src/backend/.env.app_config
+
+          echo "APP_CONFIG__REDIS__LIMITER_ENABLED=${{ secrets.APP_CONFIG__REDIS__LIMITER_ENABLED }}" >> ./src/backend/.env.app_config
+          echo "APP_CONFIG__REDIS__LIMITER_STRATEGY=${{ secrets.APP_CONFIG__REDIS__LIMITER_STRATEGY }}" >> ./src/backend/.env.app_config
+          echo "APP_CONFIG__REDIS__LIMITER_DEFAULT=${{ secrets.APP_CONFIG__REDIS__LIMITER_DEFAULT }}" >> ./src/backend/.env.app_config
+
+          echo "APP_CONFIG__SENTRY__DSN=${{ secrets.APP_CONFIG__SENTRY__DSN }}" >> ./src/backend/.env.app_config
+
+      - name: Create jwt-private.pem
+        run: echo "${{ secrets.JWT-PRIVATE }}" > ./src/backend/jwt-private.pem
+
+      - name: Create jwt-public.pem
+        run: echo "${{ secrets.JWT-PUBLIC }}" > ./src/backend/jwt-public.pem
+
+      - name: Show .env file
+        run: cat ./src/backend/.env
+
+      - name: Show .env.app_config file
+        run: cat ./src/backend/.env.app_config
+
+      - name: Show directory structure
+        run: tree -a -L 3 ./
+
+      - name: List env and py files
+        run: find ./src -name ".env*"
+
+      - name: Build and start services
+        run: docker compose --env-file src/backend/.env up -d --build
+
+      - name: Show running containers
+        run: docker ps -a
+
+      - name: Wait for services to be ready
+        run: sleep 10
+
+      - name: Run tests in backend container
+        run: PYTHONPATH=src/backend poetry run pytest src/tests/
+
+      - name: Tear down containers
+        if: always()
+        run: docker compose down -v
