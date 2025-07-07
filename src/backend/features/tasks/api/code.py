@@ -1,6 +1,6 @@
 from http import HTTPStatus
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, Request, UploadFile, File
 from sqlalchemy.ext.asyncio import AsyncSession
 
 import features.solutions.services.code as solution_service
@@ -138,6 +138,24 @@ async def create_code_solution(
     session: AsyncSession = Depends(db_helper.dependency_session_getter),
     user_id: int = Depends(get_current_active_auth_user_id),
 ):
+    data = await solution_service.create_code_solution(session, user_id, solution_in)
+    return create_json_response(data=data)
+
+
+@router.post(
+    "/{task_id}/solutions/upload",
+    status_code=HTTPStatus.OK,
+    response_model=SuccessResponse,
+)
+async def create_code_solution_file(
+    task_id: int,
+    file: UploadFile = File(...),
+    session: AsyncSession = Depends(db_helper.dependency_session_getter),
+    user_id: int = Depends(get_current_active_auth_user_id),
+):
+    code_text = (await file.read()).decode("utf-8")
+    solution_in = CodeSolutionCreate(code=code_text, task_id=task_id)
+
     data = await solution_service.create_code_solution(session, user_id, solution_in)
     return create_json_response(data=data)
 

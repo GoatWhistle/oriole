@@ -65,8 +65,8 @@ async def get_test_by_id(
 
 async def delete_test(
     session: AsyncSession,
-    test_id: int,
     user_id: int,
+    test_id: int,
 ) -> None:
     test = await get_test_or_404(session, test_id)
     task = await get_task_or_404(session, test.task_id)

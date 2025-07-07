@@ -27,6 +27,7 @@ class GunicornConfig(BaseModel):
 
 class DbConfig(BaseModel):
     url: PostgresDsn
+    sync_url: PostgresDsn
     echo: bool = False
     echo_pool: bool = False
     max_overflow: int = 10
