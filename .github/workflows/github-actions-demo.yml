@@ -73,6 +73,12 @@ jobs:
 
           echo "APP_CONFIG__SENTRY__DSN=${{ secrets.APP_CONFIG__SENTRY__DSN }}" >> ./src/backend/.env.app_config
 
+      - name: Create jwt-private.pem
+        run: echo "${{ secrets.JWT-PRIVATE }}" > ./src/backend/jwt-private.pem
+
+      - name: Create jwt-public.pem
+        run: echo "${{ secrets.JWT-PUBLIC }}" > ./src/backend/jwt-public.pem
+
       - name: Show .env file
         run: cat ./src/backend/.env
 
@@ -80,11 +86,13 @@ jobs:
         run: cat ./src/backend/.env.app_config
 
       - name: Show directory structure
-        run: tree -a -L 3 ./src/backend
+        run: tree -a -L 3 ./
 
       - name: List env and py files
-        run: find ./src -name "*.env"
+        run: find ./src -name ".env*"
 
+      - name: Show running containers
+        run: docker ps -a
 
       - name: Build and start services
         run: docker compose --env-file src/backend/.env up -d --build
