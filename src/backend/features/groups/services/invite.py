@@ -97,7 +97,7 @@ async def delete_group_invites(
     await check_user_exists(session, user_id)
 
     _ = await get_group_or_404(session, group_id)
-    account = await get_account_or_404(session, group_id, user_id)
+    account = await get_account_or_404(session, user_id, group_id)
 
     check_user_is_admin_or_owner(account.role)
 

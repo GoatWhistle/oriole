@@ -1,6 +1,6 @@
-from sqlalchemy import delete, select
 from typing import Type
 
+from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from features.solutions.models import BaseSolution
@@ -38,9 +38,9 @@ async def get_solutions_by_account_id_and_task_id(
     session: AsyncSession,
     account_id: int,
     task_id: int,
-) -> list[BaseSolution] | None:
+) -> list[BaseSolution]:
     solutions = await get_solutions(session, [account_id], [task_id])
-    return solutions if solutions else None
+    return list(solutions)
 
 
 async def get_solutions_by_account_ids_and_task_ids(
