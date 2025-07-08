@@ -1,20 +1,19 @@
 """create chat and messages tables
 
 Revision ID: 1b724a06b8e4
-Revises: 7b400eaf49d4
+Revises: 3fe8ddc2e1b1
 Create Date: 2025-07-03 12:46:12.012151
 
 """
 
 from typing import Sequence, Union
 
-from alembic import op
 import sqlalchemy as sa
-
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision: str = "1b724a06b8e4"
-down_revision: Union[str, None] = "7b400eaf49d4"
+down_revision: Union[str, None] = "3fe8ddc2e1b1"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

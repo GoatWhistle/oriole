@@ -1,20 +1,20 @@
 """add telegram_id to users
 
 Revision ID: d142939da173
-Revises: 3fe8ddc2e1b1
+Revises: 1b724a06b8e4
 Create Date: 2025-07-06 10:39:32.701547
 
 """
 
 from typing import Sequence, Union
 
-from alembic import op
 import sqlalchemy as sa
+from alembic import op
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
 revision: str = "d142939da173"
-down_revision: Union[str, None] = "3fe8ddc2e1b1"
+down_revision: Union[str, None] = "1b724a06b8e4"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
