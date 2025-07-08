@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Выбор группы — Oriole Chat</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #fafafa;
+      padding: 40px;
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .group-list {
+      max-width: 500px;
+      margin: 0 auto;
+    }
+
+    .group-item {
+      margin-bottom: 15px;
+    }
+
+    .group-button {
+      background-color: #52c41a;
+      color: white;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      width: 100%;
+      font-size: 16px;
+      font-weight: bold;
+    }
+
+    .group-button:hover {
+      background-color: #73d13d;
+    }
+  </style>
+</head>
+<body>
+  <h2>Выберите группу</h2>
+  <div class="group-list" id="groups">Загрузка групп...</div>
+
+  <script>
+    const API_URL = "http://127.0.0.1:8000";
+
+    async function loadGroups() {
+      const token = localStorage.getItem("access_token");
+      const userId = localStorage.getItem("user_id");
+
+      try {
+        const response = await fetch(`${API_URL}/api/groups/`, {
+          headers: { Authorization: "Bearer " + token }
+        });
+
+        if (!response.ok) {
+          document.getElementById("groups").innerHTML = "<p>Не удалось загрузить группы</p>";
+          return;
+        }
+
+        const data = await response.json();
+        const groups = data.data;
+
+        const container = document.getElementById("groups");
+        container.innerHTML = "";
+
+        if (!groups.length) {
+          container.innerHTML = "<p>У вас нет групп</p>";
+          return;
+        }
+
+        groups.forEach(group => {
+          const div = document.createElement("div");
+          div.className = "group-item";
+
+          const btn = document.createElement("button");
+          btn.className = "group-button";
+          btn.innerText = group.name || `Группа ${group.id}`;
+          btn.onclick = () => {
+            window.location.href = `chat.html?group_id=${group.id}&user_id=${userId}`;
+          };
+
+          div.appendChild(btn);
+          container.appendChild(div);
+        });
+
+      } catch (err) {
+        document.getElementById("groups").innerHTML = "<p>Ошибка загрузки</p>";
+        console.error(err);
+      }
+    }
+
+    window.onload = loadGroups;
+  </script>
+</body>
+</html>

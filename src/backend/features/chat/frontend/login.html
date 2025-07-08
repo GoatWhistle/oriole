@@ -1,206 +1,118 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8"/>
-    <title>Вход — Oriole</title>
-    <style>
-        /* Базовые стили */
-        *, *::before, *::after {
-            box-sizing: border-box;
-        }
+  <meta charset="UTF-8">
+  <title>Вход — Oriole Chat</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f0f2f5;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
 
-        body {
-            margin: 0;
-            padding: 0;
-            height: 100vh;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #f5f7fa;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #333;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
-        }
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      width: 360px;
+    }
 
-        .form-box {
-            background: white;
-            padding: 2.5rem 3rem;
-            max-width: 400px;
-            width: 100%;
-            border-radius: 10px;
-            box-shadow: 0 6px 15px rgb(0 120 212 / 0.25);
-            border: 2px solid #0078d4;
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
 
-        h2 {
-            margin: 0 0 1rem 0;
-            color: #0078d4;
-            font-weight: 700;
-            font-size: 1.8rem;
-            user-select: none;
-            text-align: center;
-        }
+    input {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 15px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+    }
 
-        input[type="email"],
-        input[type="password"] {
-            padding: 0.85rem 1rem;
-            font-size: 1rem;
-            border: 2px solid #0078d4;
-            border-radius: 30px;
-            outline-offset: 2px;
-            transition: border-color 0.3s, box-shadow 0.3s;
-            color: #333;
-            background: #fefefe;
-            box-shadow: inset 0 1px 3px rgb(0 120 212 / 0.2);
-            user-select: text;
-        }
+    button {
+      width: 100%;
+      padding: 10px;
+      background: #1890ff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+    }
 
-        input[type="email"]:focus,
-        input[type="password"]:focus {
-            border-color: #005a9e;
-            box-shadow: 0 0 8px #005a9eaa;
-        }
-
-        button {
-            background-color: #0078d4;
-            border: none;
-            border-radius: 30px;
-            color: white;
-            padding: 0.85rem 1.5rem;
-            font-size: 1.1rem;
-            font-weight: 700;
-            cursor: pointer;
-            box-shadow: 0 6px 12px rgb(0 120 212 / 0.45);
-            transition: background-color 0.3s, box-shadow 0.3s;
-            user-select: none;
-        }
-
-        button:hover,
-        button:focus {
-            background-color: #005a9e;
-            box-shadow: 0 8px 16px rgb(0 90 158 / 0.6);
-            outline: none;
-        }
-
-        #error {
-            color: #d00000;
-            font-weight: 600;
-            text-align: center;
-            min-height: 1.4em;
-            user-select: none;
-        }
-
-        /* Адаптив */
-        @media (max-width: 480px) {
-            .form-box {
-                padding: 2rem 1.5rem;
-                max-width: 90%;
-            }
-
-            h2 {
-                font-size: 1.5rem;
-            }
-
-            button {
-                font-size: 1rem;
-            }
-        }
-    </style>
+    button:hover {
+      background: #40a9ff;
+    }
+  </style>
 </head>
 <body>
+  <div class="container">
+    <h2>Вход в чат</h2>
 
-<div class="form-box" id="login-box">
-    <h2>Oriole Вход</h2>
-    <input type="email" id="email" placeholder="Email" autocomplete="username"/>
-    <input type="password" id="password" placeholder="Пароль" autocomplete="current-password"/>
+    <label for="email">Email:</label>
+    <input type="email" id="email" placeholder="example@mail.com" required />
+
+    <label for="password">Пароль:</label>
+    <input type="password" id="password" placeholder="Введите пароль" required />
+
     <button onclick="login()">Войти</button>
-    <p id="error"></p>
-</div>
+  </div>
 
-<script>
+  <script>
+    const API_URL = "http://127.0.0.1:8000";
+
     async function login() {
-        const email = document.getElementById("email").value.trim();
-        const password = document.getElementById("password").value.trim();
-        const error = document.getElementById("error");
-        error.textContent = "";
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
 
-        const formData = new URLSearchParams();
-        formData.append("username", email);
-        formData.append("password", password);
+      const formData = new URLSearchParams();
+      formData.append('username', email);
+      formData.append('password', password);
 
-        try {
-            const res = await fetch("http://127.0.0.1:8000/api/auth/token", {
-                method: "POST",
-                headers: {"Content-Type": "application/x-www-form-urlencoded"},
-                body: formData
-            });
-
-            if (!res.ok) throw new Error(`Ошибка авторизации: ${res.status}`);
-
-            const data = await res.json();
-            const token = data.access_token;
-            if (!token) throw new Error("Токен не получен");
-
-            localStorage.setItem("access_token", token);
-
-            const userRes = await fetch("http://127.0.0.1:8000/api/auth/me", {
-                headers: {Authorization: `Bearer ${token}`}
-            });
-            if (!userRes.ok) throw new Error("Ошибка получения пользователя");
-            const user = await userRes.json();
-
-            const groupsRes = await fetch("http://127.0.0.1:8000/api/groups", {
-                headers: {Authorization: `Bearer ${token}`}
-            });
-            if (!groupsRes.ok) throw new Error("Ошибка получения групп");
-
-            const groups = await groupsRes.json();
-            showGroups(groups.data, user.id);
-        } catch (e) {
-            console.error(e);
-            error.textContent = e.message;
-        }
-    }
-
-    function showGroups(groups, userId) {
-        document.getElementById("login-box").style.display = "none";
-        const groupList = document.getElementById("group-list");
-        document.getElementById("groups").style.display = "block";
-
-        groupList.innerHTML = "";
-        groups.forEach(group => {
-            const div = document.createElement("div");
-            div.className = "group-item";
-            div.textContent = `${group.title} — ${group.description || 'Без описания'}`;
-            div.onclick = async () => {
-                try {
-                    const res = await fetch(`http://127.0.0.1:8000/api/chat/account?group_id=${group.id}`, {
-                        headers: { Authorization: `Bearer ${localStorage.getItem("access_token")}` }
-                    });
-
-                    if (!res.ok) throw new Error("Не удалось получить account_id");
-
-                    const account = await res.json();
-                    window.location.href = `chat.html?group_id=${group.id}&account_id=${account.id}`;
-                } catch (e) {
-                    console.error(e);
-                    alert("Ошибка при переходе в чат");
-                }
-            };
-
-            groupList.appendChild(div);
+      try {
+        const response = await fetch(`${API_URL}/api/auth/token`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded"
+          },
+          body: formData
         });
+
+        if (!response.ok) {
+          alert("Ошибка входа: " + response.status);
+          return;
+        }
+
+        const data = await response.json();
+        const token = data.access_token;
+        localStorage.setItem("access_token", token);
+
+        const meRes = await fetch(`${API_URL}/api/auth/me`, {
+          headers: { Authorization: "Bearer " + token }
+        });
+
+        if (!meRes.ok) {
+          alert("Ошибка получения пользователя");
+          return;
+        }
+
+        const me = await meRes.json();
+        const userId = me.id;
+        localStorage.setItem("user_id", userId);
+
+        window.location.href = "groups.html";
+
+      } catch (err) {
+        alert("Ошибка сети или сервера");
+        console.error(err);
+      }
     }
-</script>
-
-<div id="groups" style="display:none; max-width:400px; margin:2rem auto; font-family: 'Segoe UI', sans-serif;">
-    <h2 style="color:#0078d4; text-align:center; user-select:none;">Ваши группы</h2>
-    <div id="group-list" style="display:flex; flex-direction:column; gap:0.5rem;"></div>
-</div>
-
+  </script>
 </body>
 </html>

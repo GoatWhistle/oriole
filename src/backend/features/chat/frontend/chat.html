@@ -123,13 +123,11 @@
             user-select: text;
         }
 
-        /* Цвет фона для reply preview в sent (свои) */
         .message.sent .reply-to-block > div {
             background-color: rgba(255 255 255 / 0.3);
             color: white;
         }
 
-        /* Цвет фона для reply preview в received (чужие) */
         .message.received .reply-to-block > div {
             background-color: #fff8cc;
             color: #333;
@@ -246,7 +244,7 @@
         }
 
         .edited-label {
-            color: #ffcc00; /* жёлтый */
+            color: #ffcc00;
             font-weight: 700;
             margin-top: 6px;
             font-size: 0.85rem;
@@ -254,7 +252,7 @@
         }
 
         button.save-btn {
-            background-color: #ffcc00 !important; /* жёлтый */
+            background-color: #ffcc00 !important;
             color: #000 !important;
             border: none !important;
             padding: 6px 12px !important;
@@ -289,366 +287,245 @@
         <button class="send-btn" id="sendBtn">➤</button>
     </footer>
 </div>
+    <script>
+        const params   = new URLSearchParams(window.location.search);
+        const groupId  = params.get("group_id");
+        const userId   = params.get("user_id");
 
-<script>
-    const params = new URLSearchParams(window.location.search);
-    const groupId = params.get("group_id");
-    const accountId = params.get("account_id");
-    const connectionId = crypto.randomUUID();
-    let socket;
-    let replyToId = null;
-    let replyToAccountId = null;
-    let replyToText = "";
-
-    function formatTimestamp(ts) {
-        if (!ts) return "";
-        return new Date(ts).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
-    }
-
-    function scrollToMessage(messageId) {
-        const target = document.getElementById("msg-" + messageId);
-        if (target) {
-            const replyBlock = target.querySelector('.reply-to-block');
-            if (replyBlock) {
-                replyBlock.style.display = 'none';
-                setTimeout(() => {
-                    replyBlock.style.display = '';
-                }, 1500);
-            }
-
-            target.scrollIntoView({behavior: "smooth", block: "center"});
-            target.classList.add("highlighted");
-            setTimeout(() => target.classList.remove("highlighted"), 1000);
+        if (!groupId || !userId) {
+          alert("❌ Не указан group_id или user_id");
+          throw new Error("group_id или user_id отсутствует");
         }
-    }
 
-    function addMessage(msg, cssClass) {
-        const messages = document.getElementById("messages");
+
+
+      const connectionId = crypto.randomUUID();
+      let socket;
+      let replyToId   = null;
+      let replyToText = "";
+
+      function updateStatus(text) {
+        document.getElementById("status").textContent = text;
+      }
+
+      function formatTimestamp(ts) {
+        return ts
+          ? new Date(ts).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'})
+          : "";
+      }
+
+      function addMessage(msg, cssClass) {
+        const container = document.getElementById("messages");
         const div = document.createElement("div");
-        div.className = `message ${cssClass}`;
-        div.id = "msg-" + msg.message_id;
+        const isOwn = String(msg.user_id) === String(userId);
+        div.className = `message ${isOwn ? "sent" : "received"}`;
+        div.id        = "msg-" + msg.message_id;
 
-        const accountIdSpan = document.createElement("div");
-        accountIdSpan.className = "user-id";
-        accountIdSpan.textContent = msg.account_id;
-        div.appendChild(accountIdSpan);
+        const uid = document.createElement("div");
+        uid.className   = "user-id";
+        uid.textContent = msg.user_id;
+        div.append(uid);
 
         if (msg.reply_to && msg.reply_to_text) {
-            const replyBlock = document.createElement("div");
-            replyBlock.className = "reply-to-block";
-            replyBlock.title = "Перейти к сообщению";
-            replyBlock.style.cursor = "pointer";
-
-            replyBlock.textContent = `ОТВЕТ ПОЛЬЗОВАТЕЛЮ ${msg.reply_to}:`;
-            const replyText = document.createElement("div");
-            replyText.textContent = msg.reply_to_text.length > 100 ? msg.reply_to_text.slice(0, 97) + "..." : msg.reply_to_text;
-
-            replyBlock.appendChild(replyText);
-            replyBlock.onclick = (e) => {
-                e.stopPropagation();
-                scrollToMessage(msg.reply_to);
-            };
-            div.appendChild(replyBlock);
+          const rb = document.createElement("div");
+          rb.className  = "reply-to-block";
+          rb.textContent = `ОТВЕТ ПОЛЬЗОВАТЕЛЮ ${msg.reply_to}:`;
+          const rt = document.createElement("div");
+          rt.textContent = msg.reply_to_text.length > 100
+            ? msg.reply_to_text.slice(0,97)+"..."
+            : msg.reply_to_text;
+          rb.append(rt);
+          rb.onclick = e => {
+            e.stopPropagation();
+            document.getElementById("msg-"+msg.reply_to)
+                    .scrollIntoView({behavior:"smooth",block:"center"});
+          };
+          div.append(rb);
         }
 
-        const textSpan = document.createElement("div");
-        textSpan.textContent = msg.message;
-        div.appendChild(textSpan);
+        const textDiv = document.createElement("div");
+        textDiv.textContent = msg.message;
+        div.append(textDiv);
 
-        const bottomRow = document.createElement("div");
-        bottomRow.className = "bottom-row";
+        const bottom = document.createElement("div");
+        bottom.className = "bottom-row";
+        const ts = document.createElement("div");
+        ts.className   = "timestamp";
+        ts.textContent = formatTimestamp(msg.timestamp);
+        bottom.append(ts);
+        div.append(bottom);
 
-        const timeSpan = document.createElement("div");
-        timeSpan.className = "timestamp";
-        timeSpan.textContent = formatTimestamp(msg.timestamp);
+        container.append(div);
+        container.scrollTop = container.scrollHeight;
+      }
 
-        bottomRow.appendChild(timeSpan);
-        div.appendChild(bottomRow);
-
-        messages.appendChild(div);
-        messages.scrollTop = messages.scrollHeight;
-    }
-
-    function cancelReply() {
-        replyToId = null;
-        replyToAccountId = null;
+      function cancelReply() {
+        replyToId   = null;
         replyToText = "";
         document.getElementById("replyPreview").style.display = "none";
-        document.querySelectorAll('.reply-btn.active').forEach(btn => btn.classList.remove('active'));
-    }
+      }
 
-    function updateStatus(text) {
-        document.getElementById("status").textContent = text;
-    }
-
-    function connect() {
-        if (!groupId || !accountId) {
-            updateStatus("❌ Не указан group_id или account_id");
-            return;
-        }
-
-        socket = new WebSocket(`ws://127.0.0.1:8000/api/websocket/?group_id=${groupId}&account_id=${accountId}`);
-
-        socket.onopen = () => {
-            updateStatus(`🟢 Подключено как аккаунт ${accountId} в группе ${groupId}`);
-        };
-
-        socket.onmessage = (event) => {
-            try {
-                const data = JSON.parse(event.data);
-                if (data.type === "history") {
-                    data.messages.forEach(msg => {
-                        const cssClass = msg.account_id == accountId ? "sent" : "received";
-                        addMessage(msg, cssClass);
-                    });
-                } else if (data.edit) {
-                    const msgDiv = document.getElementById('msg-' + data.message_id);
-                    if (msgDiv) {
-                        const bottomRow = msgDiv.querySelector('.bottom-row');
-                        const textDiv = bottomRow.previousSibling;
-                        if (textDiv && textDiv.tagName === "DIV") {
-                            textDiv.textContent = data.message;
-                        }
-                    }
-                } else if (data.delete) {
-                    const msgDiv = document.getElementById('msg-' + data.message_id);
-                    if (msgDiv) {
-                        msgDiv.remove();
-                    }
-                } else {
-                    const cssClass = data.account_id == accountId ? "sent" : "received";
-                    addMessage(data, cssClass);
-                }
-            } catch {
-                addMessage({
-                    account_id: 0,
-                    message: "⚠️ Ошибка при получении сообщения",
-                    timestamp: null,
-                    message_id: "err"
-                }, "received");
-            }
-        };
-
-        socket.onclose = () => updateStatus("🔴 Соединение закрыто");
-        socket.onerror = () => updateStatus("⚠️ Ошибка соединения");
-    }
-
-    function sendMessage() {
+      function sendMessage() {
         const input = document.getElementById("input");
-        const text = input.value.trim();
-        if (!text || !socket || socket.readyState !== WebSocket.OPEN) return;
-
-        const message = {
-            account_id: accountId,
-            connectionId,
-            message: text,
-            reply_to: replyToId,
-            reply_to_text: replyToText
-        };
-
-        socket.send(JSON.stringify(message));
+        const text  = input.value.trim();
+        if (!text || !socket || socket.readyState!==WebSocket.OPEN) return;
+        socket.send(JSON.stringify({
+          user_id: userId,
+          connectionId,
+          message: text,
+          reply_to: replyToId,
+          reply_to_text: replyToText
+        }));
         input.value = "";
         cancelReply();
-    }
+      }
 
-    document.getElementById("sendBtn").addEventListener("click", sendMessage);
-    document.getElementById("input").addEventListener("keydown", e => {
-        if (e.key === "Enter") {
-            e.preventDefault();
-            sendMessage();
+      function connect() {
+        if (!groupId||!userId) {
+          updateStatus("❌ Не указан group_id или user_id");
+          return;
         }
-    });
-
-    // === Контекстное меню ===
-    const contextMenu = document.createElement('div');
-    contextMenu.id = 'contextMenu';
-    contextMenu.className = 'context-menu';
-    document.body.appendChild(contextMenu);
-
-    let currentContextMsgId = null;
-    let currentContextMsgAccountId = null;
-
-    const btnReply = document.createElement('button');
-    btnReply.textContent = 'Ответить';
-    const btnEdit = document.createElement('button');
-    btnEdit.textContent = 'Редактировать';
-    const btnDelete = document.createElement('button');
-    btnDelete.textContent = 'Удалить';
-
-    contextMenu.appendChild(btnReply);
-    contextMenu.appendChild(btnEdit);
-    contextMenu.appendChild(btnDelete);
-
-    function hideContextMenu() {
-        contextMenu.style.display = 'none';
-        currentContextMsgId = null;
-        currentContextMsgAccountId = null;
-    }
-
-    document.addEventListener('click', (e) => {
-        if (contextMenu.style.display === 'block') {
-            hideContextMenu();
-        }
-    });
-
-    function showContextMenu(x, y) {
-        contextMenu.style.left = `${x}px`;
-        contextMenu.style.top = `${y}px`;
-        contextMenu.style.display = 'block';
-    }
-
-    document.getElementById('messages').addEventListener('contextmenu', (e) => {
-        const messageDiv = e.target.closest('.message');
-        if (!messageDiv) return;
-        e.preventDefault();
-
-        const msgId = messageDiv.id.replace('msg-', '');
-        const msgAccountId = messageDiv.querySelector('.user-id').textContent;
-
-        currentContextMsgId = msgId;
-        currentContextMsgAccountId = msgAccountId;
-
-        if (msgAccountId === accountId) {
-            btnEdit.style.display = 'block';
-            btnDelete.style.display = 'block';
-        } else {
-            btnEdit.style.display = 'none';
-            btnDelete.style.display = 'none';
-        }
-
-        showContextMenu(e.pageX, e.pageY);
-    });
-
-    btnReply.addEventListener('click', () => {
-        if (!currentContextMsgId) return;
-        const msgDiv = document.getElementById('msg-' + currentContextMsgId);
-        if (!msgDiv) return;
-
-        const replyAccountId = msgDiv.querySelector('.user-id').textContent;
-        const bottomRow = msgDiv.querySelector('.bottom-row');
-        const allDivs = Array.from(msgDiv.querySelectorAll('div'));
-        const textDiv = allDivs.find(div => div.nextSibling === bottomRow);
-        const replyMsgText = textDiv?.textContent || '';
-
-        replyToId = currentContextMsgId;
-        replyToAccountId = replyAccountId;
-        replyToText = replyMsgText;
-
-        const preview = document.getElementById('replyPreview');
-        preview.style.display = 'block';
-        document.getElementById('replyToText').textContent = replyToText;
-
-        hideContextMenu();
-    });
-
-    btnEdit.addEventListener('click', () => {
-        if (!currentContextMsgId) return;
-
-        const msgDiv = document.getElementById('msg-' + currentContextMsgId);
-        if (!msgDiv) return;
-
-        const bottomRow = msgDiv.querySelector('.bottom-row');
-        const textDiv = bottomRow.previousSibling;
-
-        if (msgDiv.querySelector('textarea.edit-textarea')) return;
-        textDiv.style.display = 'none';
-
-        const textarea = document.createElement('textarea');
-        textarea.className = 'edit-textarea';
-        textarea.value = textDiv.textContent;
-        textarea.style.width = '100%';
-        textarea.style.fontSize = '1rem';
-        textarea.style.padding = '6px 10px';
-        textarea.style.borderRadius = '12px';
-        textarea.style.resize = 'vertical';
-        textarea.rows = 3;
-
-        const saveBtn = document.createElement('button');
-        saveBtn.textContent = 'Сохранить';
-        saveBtn.className = 'save-btn';
-        saveBtn.style.marginRight = '8px';
-
-        const cancelBtn = document.createElement('button');
-        cancelBtn.textContent = 'Отмена';
-        cancelBtn.style.backgroundColor = '#ccc';
-        cancelBtn.style.border = 'none';
-        cancelBtn.style.padding = '6px 12px';
-        cancelBtn.style.borderRadius = '14px';
-        cancelBtn.style.cursor = 'pointer';
-
-        const btnContainer = document.createElement('div');
-        btnContainer.style.marginTop = '6px';
-        btnContainer.appendChild(saveBtn);
-        btnContainer.appendChild(cancelBtn);
-
-        textDiv.parentNode.insertBefore(textarea, bottomRow);
-        textDiv.parentNode.insertBefore(btnContainer, bottomRow);
-
-        cancelBtn.onclick = () => {
-            textarea.remove();
-            btnContainer.remove();
-            textDiv.style.display = '';
+        socket = new WebSocket(`ws://127.0.0.1:8000/api/websocket/?group_id=${groupId}&user_id=${userId}`);
+        socket.onopen    = () => updateStatus(`🟢 Подключено как ${userId} в группе ${groupId}`);
+        socket.onmessage = e => {
+          let d;
+          try{ d=JSON.parse(e.data); }catch{return;}
+            if(d.type==="history"){
+  d.messages.forEach(addMessage);
+}
+           else if(d.edit){
+            const md = document.getElementById("msg-"+d.message_id);
+            if(md) md.querySelector(".bottom-row")
+                    .previousElementSibling.textContent = d.message;
+          } else if(d.delete){
+            document.getElementById("msg-"+d.message_id)?.remove();
+          } else {
+               addMessage(d);
+          }
         };
+        socket.onclose = ()=>updateStatus("🔴 Соединение закрыто");
+        socket.onerror = ()=>updateStatus("⚠️ Ошибка соединения");
+      }
 
-        saveBtn.onclick = () => {
-            const newText = textarea.value.trim();
-            if (!newText) {
-                alert('Текст сообщения не может быть пустым.');
-                return;
-            }
+      document.getElementById("sendBtn")
+              .addEventListener("click", sendMessage);
+      document.getElementById("input")
+              .addEventListener("keydown", e=>{
+        if(e.key==="Enter"){ e.preventDefault(); sendMessage(); }
+      });
 
-            const editMsg = {
-                account_id: accountId,
-                connectionId,
-                message_id: currentContextMsgId,
-                message: newText,
-                edit: true
-            };
-            socket.send(JSON.stringify(editMsg));
+      const contextMenu = document.createElement("div");
+      contextMenu.id = "contextMenu";
+      contextMenu.className = "context-menu";
+      document.body.append(contextMenu);
 
-            textDiv.textContent = newText;
+      let currentContextMsgId     = null;
+      let currentContextMsgUserId = null;
 
-            let editedLabel = msgDiv.querySelector('.edited-label');
-            if (!editedLabel) {
-                editedLabel = document.createElement('div');
-                editedLabel.className = 'edited-label';
-                editedLabel.textContent = 'Изменено';
-                msgDiv.appendChild(editedLabel);
-            }
+      const btnReply  = Object.assign(document.createElement("button"), {textContent:"Ответить"});
+      const btnEdit   = Object.assign(document.createElement("button"), {textContent:"Редактировать"});
+      const btnDelete = Object.assign(document.createElement("button"), {textContent:"Удалить"});
+      contextMenu.append(btnReply, btnEdit, btnDelete);
 
-            textarea.remove();
-            btnContainer.remove();
-            textDiv.style.display = '';
-
-            hideContextMenu();
-        };
-
-        hideContextMenu();
-    });
-
-    btnDelete.addEventListener('click', () => {
-        if (!currentContextMsgId) return;
-
-        if (!confirm('Удалить сообщение?')) {
-            hideContextMenu();
-            return;
+      function hideContextMenu(){
+        contextMenu.style.display = "none";
+      }
+      document.addEventListener("click", e=>{
+        if(contextMenu.style.display==="block" && !e.target.closest(".context-menu")){
+          hideContextMenu();
         }
+      });
+      function showContextMenu(x,y){
+        contextMenu.style.left = x+"px";
+        contextMenu.style.top  = y+"px";
+        contextMenu.style.display = "block";
+      }
 
-        const deleteMsg = {
-            account_id: accountId,
+      document.getElementById("messages")
+        .addEventListener("contextmenu", e=>{
+          const md = e.target.closest(".message");
+          if(!md) return;
+          e.preventDefault();
+          currentContextMsgId     = md.id.replace("msg-","");
+          currentContextMsgUserId = md.querySelector(".user-id").textContent;
+          btnEdit.style.display   = currentContextMsgUserId===userId?"block":"none";
+          btnDelete.style.display = currentContextMsgUserId===userId?"block":"none";
+          showContextMenu(e.pageX,e.pageY);
+        });
+
+      btnReply.addEventListener("click", ()=>{
+        if(!currentContextMsgId) return;
+        const md = document.getElementById("msg-"+currentContextMsgId);
+        const ch = Array.from(md.children);
+        const idx = ch.findIndex(el=>el.classList.contains("bottom-row"));
+        replyToId   = currentContextMsgId;
+        replyToText = idx>0 ? ch[idx-1].textContent : "";
+        document.getElementById("replyPreview").style.display = "block";
+        document.getElementById("replyToText").textContent     = replyToText;
+        hideContextMenu(); currentContextMsgId = null;
+      });
+
+      btnEdit.addEventListener("click", ()=>{
+        if(!currentContextMsgId) return;
+        const md = document.getElementById("msg-"+currentContextMsgId);
+        const ch = Array.from(md.children);
+        const idx = ch.findIndex(el=>el.classList.contains("bottom-row"));
+        const txt = idx>0?ch[idx-1]:null;
+        if(!txt) return;
+        txt.style.display = "none";
+        const ta = document.createElement("textarea");
+        ta.className = "edit-textarea";
+        ta.value     = txt.textContent;
+        ta.rows      = 3;
+        Object.assign(ta.style,{width:"100%",padding:"6px 10px",borderRadius:"12px"});
+        const sb = document.createElement("button"); sb.textContent="Сохранить";
+        const cb = document.createElement("button"); cb.textContent="Отмена";
+        const bc = document.createElement("div"); bc.style.marginTop="6px";
+        bc.append(sb,cb);
+        txt.after(bc); txt.after(ta);
+
+        cb.onclick = ()=>{
+          ta.remove(); bc.remove(); txt.style.display="";
+          hideContextMenu(); currentContextMsgId=null;
+        };
+        sb.onclick = ()=>{
+            const nt = ta.value.trim();
+          if(!nt) return alert("Пустой текст");
+          socket.send(JSON.stringify({
+            user_id: userId,
             connectionId,
             message_id: currentContextMsgId,
-            delete: true
+            message: nt,
+            edit: true
+          }));
+          txt.textContent=nt;
+          if(!md.querySelector(".edited-label")){
+            const lbl=document.createElement("div");
+            lbl.className="edited-label"; lbl.textContent="Изменено";
+            md.append(lbl);
+          }
+          ta.remove(); bc.remove(); txt.style.display="";
+          hideContextMenu(); currentContextMsgId=null;
         };
-        socket.send(JSON.stringify(deleteMsg));
+      });
 
-        const msgDiv = document.getElementById('msg-' + currentContextMsgId);
-        if (msgDiv) {
-            msgDiv.remove();
+      btnDelete.addEventListener("click", ()=>{
+        if(!currentContextMsgId) return;
+        if(!confirm("Удалить сообщение?")){
+          hideContextMenu(); currentContextMsgId=null; return;
         }
+        socket.send(JSON.stringify({
+          user_id: userId,
+          connectionId,
+          message_id: currentContextMsgId,
+          delete: true
+        }));
+        document.getElementById("msg-"+currentContextMsgId)?.remove();
+        hideContextMenu(); currentContextMsgId=null;
+      });
 
-        hideContextMenu();
-    });
-
-    window.onload = connect;
+      window.onload = connect;
 </script>
+
+</body>
+</html>

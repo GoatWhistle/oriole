@@ -15,7 +15,7 @@ async def handle_websocket(
     account = await get_account_or_404(session, user_id, group_id)
     account_id = account.id
 
-    await connection_manager.connect(websocket, group_id, account_id)
+    await connection_manager.connect(websocket, group_id, user_id)
 
     chat = await get_chat_by_group_id(session, group_id)
     chat_id = chat.id
@@ -24,7 +24,7 @@ async def handle_websocket(
     cache_key = f"chat:history:{group_id}"
 
     try:
-        history = await crud.get_message_history(group_id, repo)
+        history = await crud.get_message_history(group_id, repo, user_id)
         await websocket.send_text(json.dumps({"type": "history", "messages": history}))
 
         while True:
@@ -36,8 +36,7 @@ async def handle_websocket(
 
             if data.get("edit"):
                 updated = await crud.update_message(
-                    account_id=account_id,
-                    message_id=data.get("message_id"),
+                    message_id=int(data.get("message_id")),
                     repo=repo,
                     new_text=data.get("message"),
                 )
@@ -48,7 +47,7 @@ async def handle_websocket(
                         json.dumps(
                             {
                                 "edit": True,
-                                "account_id": account_id,
+                                "user_id": user_id,
                                 "message": updated.text,
                                 "timestamp": updated.timestamp.isoformat(),
                                 "connectionId": data.get("connectionId"),
@@ -63,6 +62,7 @@ async def handle_websocket(
                     message_id=int(data.get("message_id")),
                     repo=repo,
                     account_id=account_id,
+                    user_id=user_id,
                 )
                 if deleted:
                     await redis_connection.redis.delete(cache_key)
@@ -71,8 +71,8 @@ async def handle_websocket(
                         json.dumps(
                             {
                                 "delete": True,
-                                "message_id": int(data.get("message_id")),
-                                "connectionId": int(data.get("connectionId")),
+                                "message_id": data.get("message_id"),
+                                "connectionId": data.get("connectionId"),
                             }
                         ),
                     )
@@ -85,6 +85,7 @@ async def handle_websocket(
                     chat_id=chat_id,
                     account_id=account_id,
                     repo=repo,
+                    user_id=user_id,
                 )
                 await redis_connection.redis.delete(cache_key)
                 await connection_manager.broadcast(

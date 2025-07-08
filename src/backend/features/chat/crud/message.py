@@ -3,13 +3,18 @@ import json
 
 
 from core.redis import redis_connection
-from ..exeptions import InvalidMessageIdException, MessageNotFoundOrForbiddenException
+from ..exeptions import MessageNotFoundOrForbiddenException
 from ..models.message import Message
 from ..repositories.messange_repo import MessageRepository
 
 
 async def save_new_message(
-    data, group_id: int, chat_id: int, account_id: int, repo: MessageRepository
+    data,
+    group_id: int,
+    chat_id: int,
+    account_id: int,
+    repo: MessageRepository,
+    user_id: int,
 ):
 
     timestamp = datetime.now(timezone.utc)
@@ -26,11 +31,10 @@ async def save_new_message(
         timestamp=timestamp,
         reply_to=reply_to,
     )
-
     await repo.save_new_message(message)
 
     return {
-        "user_id": account_id,
+        "user_id": user_id,
         "message": message.text,
         "timestamp": timestamp.isoformat(),
         "connectionId": data.get("connectionId"),
@@ -40,7 +44,7 @@ async def save_new_message(
     }
 
 
-async def get_message_history(group_id: int, repo: MessageRepository):
+async def get_message_history(group_id: int, repo: MessageRepository, user_id: int):
 
     cache_key = f"chat:history:{group_id}"
     cached = await redis_connection.redis.get(cache_key)
@@ -53,7 +57,7 @@ async def get_message_history(group_id: int, repo: MessageRepository):
 
     history = [
         {
-            "user_id": msg.account_id,
+            "user_id": user_id,
             "message": msg.text,
             "timestamp": msg.timestamp.isoformat(),
             "message_id": msg.id,
@@ -72,13 +76,9 @@ async def get_message_history(group_id: int, repo: MessageRepository):
 async def delete_message(
     account_id: int,
     message_id: int,
+    user_id: int,
     repo: MessageRepository,
 ):
-
-    try:
-        message_id = int(message_id)
-    except (ValueError, TypeError):
-        raise InvalidMessageIdException(message_id)
 
     message = await repo.get_by_id(message_id)
     if not message or message.account_id != account_id:
@@ -89,19 +89,12 @@ async def delete_message(
 
 
 async def update_message(
-    account_id: int,
     message_id: int,
     new_text: str,
     repo: MessageRepository,
 ):
-
-    try:
-        message_id = int(message_id)
-    except (ValueError, TypeError):
-        raise InvalidMessageIdException(message_id)
-
     message = await repo.get_by_id(message_id)
-    if not message or message.account_id != account_id:
+    if not message:
         raise MessageNotFoundOrForbiddenException(message_id)
 
     await repo.update_message(message, new_text)
