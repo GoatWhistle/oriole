@@ -22,6 +22,6 @@ COPY ./src/backend/nginx_conf.sh /nginx_conf.sh
 
 RUN chmod +x /nginx_conf.sh
 
-ENTRYPOINT ["/nginx_conf.sh"]
+ENTRYPOINT ["sh", "./nginx_conf.sh"]
 
 CMD ["nginx", "-g", "daemon off;"]
