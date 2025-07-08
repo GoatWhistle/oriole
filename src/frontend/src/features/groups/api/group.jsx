@@ -8,7 +8,7 @@ export const createGroup = async (groupData) => {
 };
 
 export const fetchGroup = async (groupId) => {
-  const response = await axios.get(`/api/groups/${groupId}/`);
+  const response = await axios.get(`/api/groups/${groupId}/?include=accounts&include=modules`);
   return response.data;
 };
 
