@@ -6,7 +6,7 @@ export const createModule = async (moduleData) => {
 };
 
 export const getModule = async (module_id) => {
-  const response = await axios.get(`/api/modules/${module_id}/`);
+  const response = await axios.get(`/api/modules/${module_id}/?include=tasks`);
   return response.data;
 };
 
