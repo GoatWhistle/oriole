@@ -20,8 +20,9 @@ COPY src/tests ./
 FROM base AS migrations
 
 RUN apt-get update && \
-    apt-get install -y netcat-openbsd postgresql-client && \
-    apt-get clean && \
+    apt-get install -y --no-install-recommends \
+        netcat-openbsd \
+        postgresql-client && \
     rm -rf /var/lib/apt/lists/*
 
 RUN chmod +x migations_update.sh
