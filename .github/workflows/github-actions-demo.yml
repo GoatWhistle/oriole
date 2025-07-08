@@ -78,6 +78,8 @@ jobs:
           echo "APP_CONFIG__REDIS__LIMITER_DEFAULT=${{ secrets.APP_CONFIG__REDIS__LIMITER_DEFAULT }}" >> ./src/backend/.env.app_config
 
           echo "APP_CONFIG__SENTRY__DSN=${{ secrets.APP_CONFIG__SENTRY__DSN }}" >> ./src/backend/.env.app_config
+          echo "APP_CONFIG__TELEGRAM__BOT_TOKEN=${{ secrets.APP_CONFIG__TELEGRAM__BOT_TOKEN }}" >> ./src/backend/.env.app_config
+          echo "APP_CONFIG__DB__SYNC_URL=${{ secrets.APP_CONFIG__DB__SYNC_URL }}" >> ./src/backend/.env.app_config
 
       - name: Create jwt-private.pem
         run: echo "${{ secrets.JWT-PRIVATE }}" > ./src/backend/jwt-private.pem
