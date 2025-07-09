@@ -29,7 +29,7 @@ class User(Base, IdIntPkMixin):
         default=0,
     )
 
-    messages: Mapped[list["Message"]] = relationship(back_populates="sender")
+    # messages: Mapped[list["Message"]] = relationship(back_populates="sender")
     profile: Mapped["UserProfile"] = relationship(
         back_populates="user", cascade="all, delete-orphan"
     )
