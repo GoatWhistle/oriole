@@ -15,16 +15,28 @@ sync_engine = create_engine(str(settings.db.sync_url))
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=sync_engine)
 
 
-def run_code_in_container(code, input_data, mem_limit, time_limit):
+def run_code_in_container(
+    code: str,
+    input_data: str,
+    mem_limit: str,
+    time_limit: float,
+    runtime: dict,
+):
     client = docker.from_env()
 
     container = None
     timed_out = False
 
     try:
+        image, build_logs = client.images.build(
+            path=runtime["build_path"],
+            dockerfile="Dockerfile",
+            tag=runtime["image"],
+            rm=True,
+        )
         container = client.containers.run(
-            image="python:3.9-slim",
-            command=["python", "-c", code],
+            image=image,
+            command=runtime["command"](code),
             stdin_open=bool(input_data),
             stdout=True,
             stderr=True,
@@ -34,6 +46,12 @@ def run_code_in_container(code, input_data, mem_limit, time_limit):
             mem_limit=mem_limit,
             memswap_limit=mem_limit,
             oom_kill_disable=False,
+            read_only=True,
+            privileged=False,
+            nano_cpus=1_000_000_000,
+            user="nobody",
+            security_opt=["no-new-privileges:true"],
+            cap_drop=["ALL"],
         )
 
         if input_data:
@@ -59,7 +77,7 @@ def run_code_in_container(code, input_data, mem_limit, time_limit):
 
 
 @app.task(name="core.celery.code_check_task.check_code")
-def check_code(solution_id):
+def check_code(solution_id, runtime):
     with SessionLocal() as session:
         solution = session.get(CodeSolution, solution_id)
         if not solution:
@@ -76,7 +94,7 @@ def check_code(solution_id):
 
         for test in tests:
             stdout, stderr, status_code, timed_out, oom_killed = run_code_in_container(
-                solution.code, test.input_data, mem_limit, time_limit
+                solution.code, test.input_data, mem_limit, time_limit, runtime
             )
 
             result = analyze_result(
@@ -90,7 +108,7 @@ def check_code(solution_id):
             result = {"status": "success", "correct": True}
 
         session.commit()
-        return None
+        return result
 
 
 def analyze_result(stdout, stderr, status_code, timed_out, oom_killed, solution, test):
