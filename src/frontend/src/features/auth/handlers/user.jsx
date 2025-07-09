@@ -1,4 +1,4 @@
-import { login, forgotPassword, register } from '../api/user.jsx';
+import { login, forgotPassword, register, authViaTelegram } from '../api/user.jsx';
 import { fetchError } from '../../api/error.jsx';
 
 export const handleLogin = async (values, navigate, setLoading) => {
@@ -53,6 +53,21 @@ export const handleRegister = async (values, navigate, setLoading) => {
     return true;
   } catch (error) {
       fetchError(error, `Ошибка сервера: ${error.response.status}`);
+  } finally {
+    setLoading(false);
+  }
+};
+
+export const handleAuthViaTelegram = async (setLoading) => {
+  try {
+    setLoading(true);
+    const response = await authViaTelegram();
+
+    if (response) {
+      return true;
+    }
+  } catch (error) {
+      fetchError(error, `Не удалось войти через Telegram`);
   } finally {
     setLoading(false);
   }
