@@ -135,10 +135,13 @@ async def delete_test(
 )
 async def create_code_solution(
     solution_in: CodeSolutionCreate,
+    language: str,
     session: AsyncSession = Depends(db_helper.dependency_session_getter),
     user_id: int = Depends(get_current_active_auth_user_id),
 ):
-    data = await solution_service.create_code_solution(session, user_id, solution_in)
+    data = await solution_service.create_code_solution(
+        session, user_id, solution_in, language
+    )
     return create_json_response(data=data)
 
 

@@ -9,3 +9,8 @@ class NotFoundException(AppException):
 
 class BadRequest(AppException):
     detail: str = "Bad request"
+
+
+class LanguageNotFountException(AppException):
+    status_code = int = status.HTTP_404_NOT_FOUND
+    detail: str = "Language not found"
