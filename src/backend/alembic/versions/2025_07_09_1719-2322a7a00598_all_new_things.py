@@ -1,8 +1,8 @@
-"""New tables
+"""ALL NEW THINGS
 
-Revision ID: 7b400eaf49d4
+Revision ID: 2322a7a00598
 Revises: 67e9ec5d837c
-Create Date: 2025-06-08 21:54:39.244604
+Create Date: 2025-07-09 17:19:53.064621
 
 """
 
@@ -13,7 +13,7 @@ import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision: str = "7b400eaf49d4"
+revision: str = "2322a7a00598"
 down_revision: Union[str, None] = "67e9ec5d837c"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -50,13 +50,86 @@ def upgrade() -> None:
             name=op.f("fk_modules_admin_id_user_profiles"),
         ),
         sa.ForeignKeyConstraint(
-            ["group_id"],
-            ["groups.id"],
-            name=op.f("fk_modules_group_id_groups"),
+            ["group_id"], ["groups.id"], name=op.f("fk_modules_group_id_groups")
         ),
         sa.PrimaryKeyConstraint("id", name=op.f("pk_modules")),
     )
     op.create_index(op.f("ix_modules_id"), "modules", ["id"], unique=False)
+    op.create_table(
+        "chat",
+        sa.Column("id", sa.Integer(), autoincrement=True, nullable=False),
+        sa.Column("group_id", sa.Integer(), nullable=False),
+        sa.Column("creator_id", sa.Integer(), nullable=False),
+        sa.ForeignKeyConstraint(
+            ["creator_id"], ["accounts.id"], name=op.f("fk_chat_creator_id_accounts")
+        ),
+        sa.ForeignKeyConstraint(
+            ["group_id"], ["groups.id"], name=op.f("fk_chat_group_id_groups")
+        ),
+        sa.PrimaryKeyConstraint("id", name=op.f("pk_chat")),
+    )
+    op.create_table(
+        "chat_account_association",
+        sa.Column("chat_id", sa.Integer(), nullable=False),
+        sa.Column("account_id", sa.Integer(), nullable=False),
+        sa.Column("id", sa.Integer(), nullable=False),
+        sa.ForeignKeyConstraint(
+            ["account_id"],
+            ["accounts.id"],
+            name=op.f("fk_chat_account_association_account_id_accounts"),
+            ondelete="CASCADE",
+        ),
+        sa.ForeignKeyConstraint(
+            ["chat_id"],
+            ["chat.id"],
+            name=op.f("fk_chat_account_association_chat_id_chat"),
+            ondelete="CASCADE",
+        ),
+        sa.PrimaryKeyConstraint("id", name=op.f("pk_chat_account_association")),
+    )
+    op.create_index(
+        op.f("ix_chat_account_association_id"),
+        "chat_account_association",
+        ["id"],
+        unique=False,
+    )
+    op.create_table(
+        "messages",
+        sa.Column("id", sa.Integer(), autoincrement=True, nullable=False),
+        sa.Column("group_id", sa.Integer(), nullable=False),
+        sa.Column("account_id", sa.Integer(), nullable=False),
+        sa.Column("chat_id", sa.Integer(), nullable=False),
+        sa.Column("reply_to", sa.Integer(), nullable=True),
+        sa.Column("text", sa.Text(), nullable=False),
+        sa.Column(
+            "timestamp",
+            sa.DateTime(timezone=True),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
+        sa.ForeignKeyConstraint(
+            ["account_id"],
+            ["accounts.id"],
+            name=op.f("fk_messages_account_id_accounts"),
+            ondelete="CASCADE",
+        ),
+        sa.ForeignKeyConstraint(
+            ["chat_id"],
+            ["chat.id"],
+            name=op.f("fk_messages_chat_id_chat"),
+            ondelete="CASCADE",
+        ),
+        sa.ForeignKeyConstraint(
+            ["group_id"],
+            ["groups.id"],
+            name=op.f("fk_messages_group_id_groups"),
+            ondelete="CASCADE",
+        ),
+        sa.ForeignKeyConstraint(
+            ["reply_to"], ["messages.id"], name=op.f("fk_messages_reply_to_messages")
+        ),
+        sa.PrimaryKeyConstraint("id", name=op.f("pk_messages")),
+    )
     op.create_table(
         "user_replies",
         sa.Column("account_id", sa.Integer(), nullable=False),
@@ -71,34 +144,18 @@ def upgrade() -> None:
             name=op.f("fk_user_replies_account_id_accounts"),
         ),
         sa.ForeignKeyConstraint(
-            ["task_id"],
-            ["tasks.id"],
-            name=op.f("fk_user_replies_task_id_tasks"),
+            ["task_id"], ["tasks.id"], name=op.f("fk_user_replies_task_id_tasks")
         ),
         sa.PrimaryKeyConstraint("id", name=op.f("pk_user_replies")),
     )
     op.create_index(op.f("ix_user_replies_id"), "user_replies", ["id"], unique=False)
-
-    op.drop_constraint(
-        op.f("fk_tasks_assignment_id_assignments"), "tasks", type_="foreignkey"
-    )
-    op.drop_column("tasks", "assignment_id")
-
     op.drop_index(op.f("ix_user_replys_id"), table_name="user_replys")
     op.drop_table("user_replys")
     op.drop_index(op.f("ix_assignments_id"), table_name="assignments")
-    op.drop_table("assignments")
-
-    op.add_column("tasks", sa.Column("module_id", sa.Integer(), nullable=False))
-
-    op.create_foreign_key(
-        op.f("fk_tasks_module_id_modules"),
-        "tasks",
-        "modules",
-        ["module_id"],
-        ["id"],
+    op.drop_constraint(
+        op.f("fk_tasks_assignment_id_assignments"), "tasks", type_="foreignkey"
     )
-
+    op.drop_table("assignments")
     op.alter_column(
         "group_invites",
         "code",
@@ -106,7 +163,12 @@ def upgrade() -> None:
         type_=sa.String(length=8),
         existing_nullable=False,
     )
+    op.add_column("tasks", sa.Column("module_id", sa.Integer(), nullable=False))
 
+    op.create_foreign_key(
+        op.f("fk_tasks_module_id_modules"), "tasks", "modules", ["module_id"], ["id"]
+    )
+    op.drop_column("tasks", "assignment_id")
     op.alter_column(
         "user_profiles",
         "patronymic",
@@ -114,12 +176,31 @@ def upgrade() -> None:
         type_=sa.String(length=31),
         existing_nullable=False,
     )
+    op.add_column("users", sa.Column("telegram_id", sa.BigInteger(), nullable=True))
+    op.alter_column(
+        "users", "email", existing_type=sa.VARCHAR(length=127), nullable=True
+    )
+    op.alter_column(
+        "users", "hashed_password", existing_type=sa.VARCHAR(length=1023), nullable=True
+    )
+    op.create_index(op.f("ix_users_telegram_id"), "users", ["telegram_id"], unique=True)
     # ### end Alembic commands ###
 
 
 def downgrade() -> None:
     """Downgrade schema."""
     # ### commands auto generated by Alembic - please adjust! ###
+    op.drop_index(op.f("ix_users_telegram_id"), table_name="users")
+    op.alter_column(
+        "users",
+        "hashed_password",
+        existing_type=sa.VARCHAR(length=1023),
+        nullable=False,
+    )
+    op.alter_column(
+        "users", "email", existing_type=sa.VARCHAR(length=127), nullable=False
+    )
+    op.drop_column("users", "telegram_id")
     op.alter_column(
         "user_profiles",
         "patronymic",
@@ -149,17 +230,9 @@ def downgrade() -> None:
     )
     op.create_table(
         "assignments",
+        sa.Column("title", sa.VARCHAR(length=127), autoincrement=False, nullable=False),
         sa.Column(
-            "title",
-            sa.VARCHAR(length=127),
-            autoincrement=False,
-            nullable=False,
-        ),
-        sa.Column(
-            "description",
-            sa.VARCHAR(length=255),
-            autoincrement=False,
-            nullable=False,
+            "description", sa.VARCHAR(length=255), autoincrement=False, nullable=False
         ),
         sa.Column("is_contest", sa.BOOLEAN(), autoincrement=False, nullable=False),
         sa.Column("admin_id", sa.INTEGER(), autoincrement=False, nullable=False),
@@ -216,10 +289,7 @@ def downgrade() -> None:
         sa.Column("account_id", sa.INTEGER(), autoincrement=False, nullable=False),
         sa.Column("task_id", sa.INTEGER(), autoincrement=False, nullable=False),
         sa.Column(
-            "user_answer",
-            sa.VARCHAR(length=255),
-            autoincrement=False,
-            nullable=False,
+            "user_answer", sa.VARCHAR(length=255), autoincrement=False, nullable=False
         ),
         sa.Column("is_correct", sa.BOOLEAN(), autoincrement=False, nullable=False),
         sa.Column("id", sa.INTEGER(), autoincrement=True, nullable=False),
@@ -236,15 +306,19 @@ def downgrade() -> None:
             name=op.f("fk_user_replys_account_id_accounts"),
         ),
         sa.ForeignKeyConstraint(
-            ["task_id"],
-            ["tasks.id"],
-            name=op.f("fk_user_replys_task_id_tasks"),
+            ["task_id"], ["tasks.id"], name=op.f("fk_user_replys_task_id_tasks")
         ),
         sa.PrimaryKeyConstraint("id", name=op.f("pk_user_replys")),
     )
     op.create_index(op.f("ix_user_replys_id"), "user_replys", ["id"], unique=False)
     op.drop_index(op.f("ix_user_replies_id"), table_name="user_replies")
     op.drop_table("user_replies")
+    op.drop_table("messages")
+    op.drop_index(
+        op.f("ix_chat_account_association_id"), table_name="chat_account_association"
+    )
+    op.drop_table("chat_account_association")
+    op.drop_table("chat")
     op.drop_index(op.f("ix_modules_id"), table_name="modules")
     op.drop_table("modules")
     # ### end Alembic commands ###
