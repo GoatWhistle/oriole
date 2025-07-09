@@ -36,3 +36,8 @@ export const register = async (userData) => {
   });
   return response.data;
 };
+
+export const authViaTelegram = async () => {
+  const response = await axios.post('/api/auth-via-telegram/telegram');
+  return response.data;
+};
