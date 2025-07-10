@@ -64,7 +64,6 @@ class Telegram(BaseModel):
     registration_lifetime_seconds: int = 86400
 
 
-
 class AuthJWT(BaseModel):
     private_key_path: Path = BASE_DIR / "jwt-private.pem"
     public_key_path: Path = BASE_DIR / "jwt-public.pem"

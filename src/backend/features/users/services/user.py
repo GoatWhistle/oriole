@@ -1,30 +1,27 @@
 from fastapi import Response, Request
-from sqlalchemy.ext.asyncio import AsyncSession
 from pydantic import EmailStr
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.celery.email_tasks import send_confirmation_email
 from features.accounts.services.account import leave_from_space
 from features.groups.services.group import get_user_groups
 from features.groups.validators import get_group_or_404, get_account_or_404
+from features.users.crud.user_profile import (
+    update_profile,
+    get_user_profile_by_user_id,
+)
 from features.users.schemas import (
     UserProfileUpdate,
     UserProfileRead,
     UserProfileUpdatePartial,
 )
-from features.groups.services.account import leave_from_group
-from utils.JWT import create_email_update_token
-
+from features.users.services.token_operations import clear_auth_tokens
 from features.users.validators.existence import (
     has_any_token,
     ensure_user_exists,
     ensure_user_exists_by_email,
 )
-from features.users.services.token_operations import clear_auth_tokens
-
-from features.users.crud.user_profile import (
-    update_profile,
-    get_user_profile_by_user_id,
-)
+from utils.JWT import create_email_update_token
 
 
 async def delete_user(

@@ -1,20 +1,19 @@
-"""Add base classes
+"""Add new tasks and solutions objects
 
-Revision ID: e4b002f2da08
-Revises: 3fe8ddc2e1b1
-Create Date: 2025-07-04 08:04:19.260164
+Revision ID: 0454238a41fe
+Revises: 2322a7a00598
+Create Date: 2025-07-10 09:32:58.127503
 
 """
 
 from typing import Sequence, Union
 
-from alembic import op
 import sqlalchemy as sa
-
+from alembic import op
 
 # revision identifiers, used by Alembic.
-revision: str = "e4b002f2da08"
-down_revision: Union[str, None] = "3fe8ddc2e1b1"
+revision: str = "0454238a41fe"
+down_revision: Union[str, None] = "2322a7a00598"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
@@ -27,7 +26,13 @@ def upgrade() -> None:
         sa.Column("space_type", sa.String(length=50), nullable=False),
         sa.Column("title", sa.String(length=100), nullable=False),
         sa.Column("description", sa.String(length=200), nullable=False),
+        sa.Column("creator_id", sa.Integer(), nullable=False),
         sa.Column("id", sa.Integer(), nullable=False),
+        sa.ForeignKeyConstraint(
+            ["creator_id"],
+            ["user_profiles.user_id"],
+            name=op.f("fk_spaces_creator_id_user_profiles"),
+        ),
         sa.PrimaryKeyConstraint("id", name=op.f("pk_spaces")),
     )
     op.create_index(op.f("ix_spaces_id"), "spaces", ["id"], unique=False)
@@ -35,21 +40,24 @@ def upgrade() -> None:
         op.f("ix_spaces_space_type"), "spaces", ["space_type"], unique=False
     )
     op.create_table(
-        "courses",
+        "code_tasks",
         sa.Column("id", sa.Integer(), nullable=False),
+        sa.Column("time_limit", sa.Integer(), nullable=False),
+        sa.Column("memory_limit", sa.Integer(), nullable=False),
         sa.ForeignKeyConstraint(
-            ["id"], ["spaces.id"], name=op.f("fk_courses_id_spaces")
+            ["id"],
+            ["tasks.id"],
+            name=op.f("fk_code_tasks_id_tasks"),
+            ondelete="CASCADE",
         ),
-        sa.PrimaryKeyConstraint("id", name=op.f("pk_courses")),
+        sa.PrimaryKeyConstraint("id", name=op.f("pk_code_tasks")),
     )
     op.create_table(
         "solutions",
         sa.Column("task_type", sa.String(length=50), nullable=False),
         sa.Column("account_id", sa.Integer(), nullable=False),
         sa.Column("task_id", sa.Integer(), nullable=False),
-        sa.Column("user_answer", sa.JSON(), nullable=False),
         sa.Column("is_correct", sa.Boolean(), nullable=False),
-        sa.Column("user_attempts", sa.Integer(), nullable=False),
         sa.Column(
             "submitted_at",
             sa.DateTime(timezone=True),
@@ -91,8 +99,22 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint("id", name=op.f("pk_string_match_tasks")),
     )
     op.create_table(
+        "code_solutions",
+        sa.Column("id", sa.Integer(), nullable=False),
+        sa.Column("code", sa.String(), nullable=False),
+        sa.Column("status", sa.String(), server_default="submitting", nullable=False),
+        sa.ForeignKeyConstraint(
+            ["id"],
+            ["solutions.id"],
+            name=op.f("fk_code_solutions_id_solutions"),
+            ondelete="CASCADE",
+        ),
+        sa.PrimaryKeyConstraint("id", name=op.f("pk_code_solutions")),
+    )
+    op.create_table(
         "string_match_solutions",
         sa.Column("id", sa.Integer(), nullable=False),
+        sa.Column("user_answer", sa.String(length=300), nullable=False),
         sa.ForeignKeyConstraint(
             ["id"],
             ["solutions.id"],
@@ -101,6 +123,21 @@ def upgrade() -> None:
         ),
         sa.PrimaryKeyConstraint("id", name=op.f("pk_string_match_solutions")),
     )
+    op.create_table(
+        "tests",
+        sa.Column("task_id", sa.Integer(), nullable=False),
+        sa.Column("correct_output", sa.String(), nullable=False),
+        sa.Column("input_data", sa.String(), nullable=True),
+        sa.Column("is_public", sa.Boolean(), nullable=False),
+        sa.Column("id", sa.Integer(), nullable=False),
+        sa.ForeignKeyConstraint(
+            ["task_id"],
+            ["code_tasks.id"],
+            name=op.f("fk_tests_task_id_code_tasks"),
+        ),
+        sa.PrimaryKeyConstraint("id", name=op.f("pk_tests")),
+    )
+    op.create_index(op.f("ix_tests_id"), "tests", ["id"], unique=False)
     op.drop_index(op.f("ix_user_replies_id"), table_name="user_replies")
     op.drop_table("user_replies")
     op.add_column("accounts", sa.Column("space_id", sa.Integer(), nullable=False))
@@ -116,22 +153,27 @@ def upgrade() -> None:
         ondelete="CASCADE",
     )
     op.drop_column("accounts", "group_id")
+    op.add_column("group_invites", sa.Column("space_id", sa.Integer(), nullable=False))
+    op.drop_constraint(
+        op.f("fk_group_invites_group_id_groups"),
+        "group_invites",
+        type_="foreignkey",
+    )
+    op.create_foreign_key(
+        op.f("fk_group_invites_space_id_spaces"),
+        "group_invites",
+        "spaces",
+        ["space_id"],
+        ["id"],
+        ondelete="CASCADE",
+    )
+    op.drop_column("group_invites", "group_id")
     op.drop_index(op.f("ix_groups_id"), table_name="groups")
     op.create_foreign_key(
         op.f("fk_groups_id_spaces"), "groups", "spaces", ["id"], ["id"]
     )
-    op.drop_column("groups", "title")
     op.drop_column("groups", "description")
-    op.drop_constraint(
-        op.f("fk_messages_reply_to_messages"), "messages", type_="foreignkey"
-    )
-    op.create_foreign_key(
-        op.f("fk_messages_reply_to_messages"),
-        "messages",
-        "messages",
-        ["reply_to"],
-        ["id"],
-    )
+    op.drop_column("groups", "title")
     op.add_column("modules", sa.Column("creator_id", sa.Integer(), nullable=False))
     op.add_column("modules", sa.Column("space_id", sa.Integer(), nullable=False))
     op.alter_column(
@@ -157,6 +199,13 @@ def upgrade() -> None:
         type_="foreignkey",
     )
     op.create_foreign_key(
+        op.f("fk_modules_creator_id_user_profiles"),
+        "modules",
+        "user_profiles",
+        ["creator_id"],
+        ["user_id"],
+    )
+    op.create_foreign_key(
         op.f("fk_modules_space_id_spaces"),
         "modules",
         "spaces",
@@ -164,17 +213,11 @@ def upgrade() -> None:
         ["id"],
         ondelete="CASCADE",
     )
-    op.create_foreign_key(
-        op.f("fk_modules_creator_id_user_profiles"),
-        "modules",
-        "user_profiles",
-        ["creator_id"],
-        ["user_id"],
-    )
-    op.drop_column("modules", "admin_id")
     op.drop_column("modules", "is_contest")
     op.drop_column("modules", "group_id")
+    op.drop_column("modules", "admin_id")
     op.add_column("tasks", sa.Column("task_type", sa.String(length=50), nullable=False))
+    op.add_column("tasks", sa.Column("creator_id", sa.Integer(), nullable=False))
     op.add_column("tasks", sa.Column("can_attempt", sa.Boolean(), nullable=False))
     op.add_column("tasks", sa.Column("manual_grading", sa.Boolean(), nullable=False))
     op.alter_column(
@@ -192,6 +235,13 @@ def upgrade() -> None:
         existing_nullable=False,
     )
     op.create_index(op.f("ix_tasks_task_type"), "tasks", ["task_type"], unique=False)
+    op.create_foreign_key(
+        op.f("fk_tasks_creator_id_user_profiles"),
+        "tasks",
+        "user_profiles",
+        ["creator_id"],
+        ["user_id"],
+    )
     op.drop_column("tasks", "correct_answer")
     op.alter_column(
         "user_profiles",
@@ -219,7 +269,7 @@ def upgrade() -> None:
         "hashed_password",
         existing_type=sa.VARCHAR(length=1023),
         type_=sa.String(length=1000),
-        existing_nullable=False,
+        existing_nullable=True,
     )
     # ### end Alembic commands ###
 
@@ -232,7 +282,7 @@ def downgrade() -> None:
         "hashed_password",
         existing_type=sa.String(length=1000),
         type_=sa.VARCHAR(length=1023),
-        existing_nullable=False,
+        existing_nullable=True,
     )
     op.alter_column(
         "user_profiles",
@@ -259,6 +309,9 @@ def downgrade() -> None:
         "tasks",
         sa.Column("correct_answer", sa.VARCHAR(), autoincrement=False, nullable=False),
     )
+    op.drop_constraint(
+        op.f("fk_tasks_creator_id_user_profiles"), "tasks", type_="foreignkey"
+    )
     op.drop_index(op.f("ix_tasks_task_type"), table_name="tasks")
     op.alter_column(
         "tasks",
@@ -276,7 +329,12 @@ def downgrade() -> None:
     )
     op.drop_column("tasks", "manual_grading")
     op.drop_column("tasks", "can_attempt")
+    op.drop_column("tasks", "creator_id")
     op.drop_column("tasks", "task_type")
+    op.add_column(
+        "modules",
+        sa.Column("admin_id", sa.INTEGER(), autoincrement=False, nullable=False),
+    )
     op.add_column(
         "modules",
         sa.Column("group_id", sa.INTEGER(), autoincrement=False, nullable=False),
@@ -285,17 +343,13 @@ def downgrade() -> None:
         "modules",
         sa.Column("is_contest", sa.BOOLEAN(), autoincrement=False, nullable=False),
     )
-    op.add_column(
-        "modules",
-        sa.Column("admin_id", sa.INTEGER(), autoincrement=False, nullable=False),
+    op.drop_constraint(
+        op.f("fk_modules_space_id_spaces"), "modules", type_="foreignkey"
     )
     op.drop_constraint(
         op.f("fk_modules_creator_id_user_profiles"),
         "modules",
         type_="foreignkey",
-    )
-    op.drop_constraint(
-        op.f("fk_modules_space_id_spaces"), "modules", type_="foreignkey"
     )
     op.create_foreign_key(
         op.f("fk_modules_admin_id_user_profiles"),
@@ -327,16 +381,14 @@ def downgrade() -> None:
     )
     op.drop_column("modules", "space_id")
     op.drop_column("modules", "creator_id")
-    op.drop_constraint(
-        op.f("fk_messages_reply_to_messages"), "messages", type_="foreignkey"
-    )
-    op.create_foreign_key(
-        op.f("fk_messages_reply_to_messages"),
-        "messages",
-        "messages",
-        ["reply_to"],
-        ["id"],
-        ondelete="CASCADE",
+    op.add_column(
+        "groups",
+        sa.Column(
+            "title",
+            sa.VARCHAR(length=127),
+            autoincrement=False,
+            nullable=False,
+        ),
     )
     op.add_column(
         "groups",
@@ -347,17 +399,25 @@ def downgrade() -> None:
             nullable=False,
         ),
     )
-    op.add_column(
-        "groups",
-        sa.Column(
-            "title",
-            sa.VARCHAR(length=127),
-            autoincrement=False,
-            nullable=False,
-        ),
-    )
     op.drop_constraint(op.f("fk_groups_id_spaces"), "groups", type_="foreignkey")
     op.create_index(op.f("ix_groups_id"), "groups", ["id"], unique=False)
+    op.add_column(
+        "group_invites",
+        sa.Column("group_id", sa.INTEGER(), autoincrement=False, nullable=False),
+    )
+    op.drop_constraint(
+        op.f("fk_group_invites_space_id_spaces"),
+        "group_invites",
+        type_="foreignkey",
+    )
+    op.create_foreign_key(
+        op.f("fk_group_invites_group_id_groups"),
+        "group_invites",
+        "groups",
+        ["group_id"],
+        ["id"],
+    )
+    op.drop_column("group_invites", "space_id")
     op.add_column(
         "accounts",
         sa.Column("group_id", sa.INTEGER(), autoincrement=False, nullable=False),
@@ -399,12 +459,15 @@ def downgrade() -> None:
         sa.PrimaryKeyConstraint("id", name=op.f("pk_user_replies")),
     )
     op.create_index(op.f("ix_user_replies_id"), "user_replies", ["id"], unique=False)
+    op.drop_index(op.f("ix_tests_id"), table_name="tests")
+    op.drop_table("tests")
     op.drop_table("string_match_solutions")
+    op.drop_table("code_solutions")
     op.drop_table("string_match_tasks")
     op.drop_index(op.f("ix_solutions_task_type"), table_name="solutions")
     op.drop_index(op.f("ix_solutions_id"), table_name="solutions")
     op.drop_table("solutions")
-    op.drop_table("courses")
+    op.drop_table("code_tasks")
     op.drop_index(op.f("ix_spaces_space_type"), table_name="spaces")
     op.drop_index(op.f("ix_spaces_id"), table_name="spaces")
     op.drop_table("spaces")

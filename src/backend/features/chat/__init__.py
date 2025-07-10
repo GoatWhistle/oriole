@@ -1,4 +1,6 @@
 __all__ = [
+    "Chat",
+    "ChatAccountAssociation",
     "Message",
 ]
-from .models import Message
+from .models import Chat, ChatAccountAssociation, Message

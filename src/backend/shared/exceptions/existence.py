@@ -1,4 +1,5 @@
 from http import HTTPStatus
+
 from shared.exceptions import AppException
 
 
@@ -12,5 +13,5 @@ class BadRequest(AppException):
 
 
 class LanguageNotFountException(AppException):
-    status_code = int = status.HTTP_404_NOT_FOUND
+    status_code: int = HTTPStatus.NOT_FOUND
     detail: str = "Language not found"
