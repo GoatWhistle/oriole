@@ -29,9 +29,9 @@ async def create_code_solution(
     )
     runtime = get_runtime_or_404(language)
     module = await get_module_or_404(session, task.module_id)
-    group = await get_group_or_404(session, module.space_id)
+    _ = await get_group_or_404(session, module.space_id)
     account = await get_account_or_404(session, user_id, module.space_id)
-    tests = await get_tests_or_404(session, task.id)
+    _ = await get_tests_or_404(session, task.id)
 
     check_is_active(task.is_active)
 
