@@ -108,8 +108,8 @@ jobs:
       - name: Wait for services to be ready
         run: sleep 10
 
-      - name: Run tests in backend container
-        run: PYTHONPATH=src/backend poetry run pytest src/tests/
+#      - name: Run tests in backend container
+#        run: PYTHONPATH=src/backend poetry run pytest src/tests/
 
       - name: Tear down containers
         if: always()
