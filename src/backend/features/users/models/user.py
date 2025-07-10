@@ -23,7 +23,6 @@ class User(Base, IdIntPkMixin):
         unique=True,
         index=True,
         nullable=True,
-        default=0,
     )
 
     profile: Mapped["UserProfile"] = relationship(
