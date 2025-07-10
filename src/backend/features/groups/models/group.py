@@ -10,10 +10,10 @@ from shared.enums import SpaceTypeEnum
 if TYPE_CHECKING:
     from features import Chat
 
+
 class Group(Space):
     __mapper_args__ = {"polymorphic_identity": SpaceTypeEnum.GROUP.value}
     id: Mapped[int] = mapped_column(ForeignKey("spaces.id"), primary_key=True)
-
 
     chat: Mapped["Chat"] = relationship(
         "Chat", back_populates="group", uselist=False, cascade="all, delete-orphan"

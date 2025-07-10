@@ -1,6 +1,7 @@
 __all__ = [
     "BaseSolution",
     "StringMatchSolution",
+    "CodeSolution",
 ]
 
-from .models import BaseSolution, StringMatchSolution
+from .models import BaseSolution, StringMatchSolution, CodeSolution

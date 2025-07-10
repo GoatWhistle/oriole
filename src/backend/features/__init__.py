@@ -5,6 +5,7 @@ __all__ = [
     "Module",
     "BaseSolution",
     "StringMatchSolution",
+    "CodeSolution",
     "BaseTask",
     "StringMatchTask",
     "CodeTask",
@@ -18,12 +19,10 @@ __all__ = [
 ]
 
 from .accounts import Account
+from .chat import Chat, ChatAccountAssociation, Message
 from .groups import Group, GroupInvite
 from .modules import Module
-from .solutions import BaseSolution, StringMatchSolution
+from .solutions import BaseSolution, StringMatchSolution, CodeSolution
 from .spaces import Space
 from .tasks import BaseTask, StringMatchTask, CodeTask, Test
 from .users import User, UserProfile
-from .chat.models.message import Message
-from .chat.models.chat import Chat
-from .chat.models.chat_account_association import ChatAccountAssociation
