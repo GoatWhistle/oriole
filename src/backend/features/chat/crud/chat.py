@@ -2,8 +2,8 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from features import Group, Account
+from features.chat.exeptions import ChatAlreadyExistsException
 from features.chat.models.chat import Chat
-
 from features.groups.validators import (
     get_group_or_404,
 )
@@ -15,8 +15,10 @@ async def create_chat_for_group(
     account_id: int,
 ) -> Chat:
     group = await get_group_or_404(session, group_id)
-    if group.chat is not None:
-        return group.chat
+    result = await session.execute(select(Chat).where(Chat.group_id == group.id))
+    chat = result.scalars().first()
+    if chat:
+        raise ChatAlreadyExistsException
     chat = Chat(
         group_id=group.id,
         creator_id=account_id,

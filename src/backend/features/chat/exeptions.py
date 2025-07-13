@@ -1,19 +1,23 @@
-from fastapi import HTTPException
 from starlette import status
 
-
-class AccountNotFoundError(HTTPException):
-    def __init__(self, detail: str = "Account not found for current user"):
-        super().__init__(status_code=status.HTTP_404_NOT_FOUND, detail=detail)
+from shared.exceptions import AppException
 
 
-class InvalidMessageIdException(Exception):
-    def __init__(self, message_id: int):
-        self.message = f"Invalid message_id: {message_id}"
-        super().__init__(self.message)
+class AccountNotFoundError(AppException):
+    detail = "Account not found"
+    status_code = status.HTTP_404_NOT_FOUND
 
 
-class MessageNotFoundOrForbiddenException(Exception):
-    def __init__(self, message_id: int):
-        self.message = f"Message with id {message_id} not found or permission denied"
-        super().__init__(self.message)
+class InvalidMessageIdException(AppException):
+    detail = "Invalid message id"
+    status_code = status.HTTP_400_BAD_REQUEST
+
+
+class MessageNotFoundOrForbiddenException(AppException):
+    detail = "Message not found"
+    status_code = status.HTTP_403_FORBIDDEN
+
+
+class ChatAlreadyExistsException(AppException):
+    detail = "Chat already exists"
+    status_code = status.HTTP_400_BAD_REQUEST

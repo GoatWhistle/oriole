@@ -76,7 +76,6 @@ async def get_message_history(group_id: int, repo: MessageRepository, user_id: i
 async def delete_message(
     account_id: int,
     message_id: int,
-    user_id: int,
     repo: MessageRepository,
 ):
 
