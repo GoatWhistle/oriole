@@ -62,7 +62,6 @@ async def handle_websocket(
                     message_id=int(data.get("message_id")),
                     repo=repo,
                     account_id=account_id,
-                    user_id=user_id,
                 )
                 if deleted:
                     await redis_connection.redis.delete(cache_key)

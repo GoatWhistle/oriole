@@ -14,9 +14,13 @@ router = APIRouter()
 async def create_chat(
     group_id: int,
     session: AsyncSession = Depends(db_helper.dependency_session_getter),
-    user_id: int = Depends(get_current_account_id),
+    account_id: int = Depends(get_current_account_id),
 ):
-    chat = await crud.create_chat_for_group(session, group_id, user_id)
+    chat = await crud.create_chat_for_group(
+        session=session,
+        account_id=account_id,
+        group_id=group_id,
+    )
     return chat
 
 
