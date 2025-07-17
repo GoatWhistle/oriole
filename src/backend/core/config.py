@@ -57,6 +57,7 @@ class ApiPrefix(BaseModel):
     websocket: str = "/websocket"
     chat: str = "/chat"
     spaces: str = "/spaces"
+    notifications: str = "/notifications"
 
 
 class Telegram(BaseModel):

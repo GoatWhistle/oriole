@@ -12,7 +12,7 @@ if TYPE_CHECKING:
     from features.accounts.models import Account
     from features.tasks.models import BaseTask
     from features.spaces.models import Space
-
+    from features.notifications.models import Notification
 
 class UserProfile(Base):
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), primary_key=True)
@@ -35,6 +35,10 @@ class UserProfile(Base):
     created_tasks: Mapped[list["BaseTask"]] = relationship(
         back_populates="creator", cascade="all, delete-orphan"
     )
-
+    notifications: Mapped[list["Notification"]] = relationship(
+        back_populates="user",
+        cascade="all, delete-orphan",
+        order_by="Notification.created_at.desc()"
+    )
     def get_validation_schema(self) -> UserProfileRead:
         return UserProfileRead.model_validate(self)

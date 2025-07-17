@@ -11,6 +11,7 @@ from features.users.api.telegram_auth import router as telegram_auth
 from features.users.api.email_access import router as email_access_router
 from features.users.api.user import router as users_router
 from features.chat.api.сhat import router as chats_router
+from features.notifications.api.notification import router as notifications_router
 
 
 router = APIRouter(prefix=settings.api.prefix)
@@ -72,4 +73,10 @@ router.include_router(
     router=chats_router,
     tags=[settings.api.chat[1:].capitalize()],
     prefix=settings.api.chat,
+)
+
+router.include_router(
+    router=notifications_router,
+    tags=[settings.api.notifications[1:].capitalize()],
+    prefix=settings.api.notifications,
 )
