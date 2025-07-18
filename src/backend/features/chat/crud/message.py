@@ -1,7 +1,6 @@
 from datetime import datetime, timezone
 import json
 
-
 from core.redis import redis_connection
 from ..exeptions import MessageNotFoundOrForbiddenException
 from ..models.message import Message
@@ -14,9 +13,7 @@ async def save_new_message(
     chat_id: int,
     account_id: int,
     repo: MessageRepository,
-    user_id: int,
 ):
-
     timestamp = datetime.now(timezone.utc)
     try:
         reply_to = int(data.get("reply_to"))
@@ -34,7 +31,7 @@ async def save_new_message(
     await repo.save_new_message(message)
 
     return {
-        "user_id": user_id,
+        "account_id": message.account_id,
         "message": message.text,
         "timestamp": timestamp.isoformat(),
         "connectionId": data.get("connectionId"),
@@ -44,8 +41,7 @@ async def save_new_message(
     }
 
 
-async def get_message_history(group_id: int, repo: MessageRepository, user_id: int):
-
+async def get_message_history(group_id: int, repo: MessageRepository):
     cache_key = f"chat:history:{group_id}"
     cached = await redis_connection.redis.get(cache_key)
 
@@ -57,7 +53,7 @@ async def get_message_history(group_id: int, repo: MessageRepository, user_id: i
 
     history = [
         {
-            "user_id": user_id,
+            "account_id": msg.account_id,
             "message": msg.text,
             "timestamp": msg.timestamp.isoformat(),
             "message_id": msg.id,
@@ -78,13 +74,19 @@ async def delete_message(
     message_id: int,
     repo: MessageRepository,
 ):
-
     message = await repo.get_by_id(message_id)
+
     if not message or message.account_id != account_id:
         raise MessageNotFoundOrForbiddenException(message_id)
-
     await repo.delete(message)
-    return message
+    return {
+        "account_id": message.account_id,
+        "message": message.text,
+        "timestamp": message.timestamp.isoformat(),
+        "message_id": message.id,
+        "reply_to": message.reply_to,
+        "reply_to_text": message.reply_to_message,
+    }
 
 
 async def update_message(
@@ -97,4 +99,11 @@ async def update_message(
         raise MessageNotFoundOrForbiddenException(message_id)
 
     await repo.update_message(message, new_text)
-    return message
+    return {
+        "account_id": message.account_id,
+        "message": message.text,
+        "timestamp": message.timestamp.isoformat(),
+        "message_id": message.id,
+        "reply_to": message.reply_to,
+        "reply_to_text": message.reply_to_message,
+    }
