@@ -16,7 +16,6 @@ __all__ = [
     "SpaceJoinRequestUpdate",
 ]
 
-
 from .space import (
     SpaceBase,
     SpaceCreate,

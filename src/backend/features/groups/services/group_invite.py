@@ -27,7 +27,7 @@ async def create_group_invite(
     check_user_is_admin_or_owner(account.role)
 
     group_invite = await group_invite_crud.create_group_invite(
-        session, group_invite_create, user_id
+        session, group_invite_create, account.id
     )
     base_url = str(request.base_url).rstrip("/")
     return group_invite.get_validation_schema(base_url=base_url)

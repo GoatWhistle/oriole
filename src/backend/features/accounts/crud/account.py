@@ -94,7 +94,7 @@ async def delete_solutions_by_account_id(
     account_id: int,
 ) -> None:
     await session.execute(
-        delete(BaseSolution).where(BaseSolution.account_id == account_id)
+        delete(BaseSolution).where(BaseSolution.creator_id == account_id)
     )
 
 

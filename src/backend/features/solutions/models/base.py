@@ -10,8 +10,8 @@ from features.solutions.schemas import BaseSolutionRead
 from shared.enums import TaskTypeEnum
 
 if TYPE_CHECKING:
-    from features.accounts.models import Account
     from features.tasks.models import BaseTask
+    from features.accounts.models import Account
 
 
 class BaseSolution(Base, IdIntPkMixin):
@@ -25,11 +25,8 @@ class BaseSolution(Base, IdIntPkMixin):
         "with_polymorphic": "*",
     }
 
-    creator_id: Mapped[int] = mapped_column(ForeignKey("accounts.user_id"))
+    creator_id: Mapped[int] = mapped_column(ForeignKey("accounts.id"))
     task_id: Mapped[int] = mapped_column(ForeignKey("tasks.id"))
-
-    creator: Mapped["Account"] = relationship(back_populates="created_solutions")
-    task: Mapped["BaseTask"] = relationship(back_populates="solutions")
 
     is_correct: Mapped[bool] = mapped_column(default=False)
     submitted_at: Mapped[datetime] = mapped_column(
@@ -39,3 +36,6 @@ class BaseSolution(Base, IdIntPkMixin):
     @abstractmethod
     def get_validation_schema(self) -> BaseSolutionRead:
         return BaseSolutionRead.model_validate(self)
+
+    creator: Mapped["Account"] = relationship(back_populates="created_solutions")
+    task: Mapped["BaseTask"] = relationship(back_populates="solutions")

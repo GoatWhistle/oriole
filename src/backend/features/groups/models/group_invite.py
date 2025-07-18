@@ -1,13 +1,9 @@
-from typing import TYPE_CHECKING
-
 from sqlalchemy import ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from features.groups.schemas import GroupInviteRead
+from features.spaces.models import SpaceInvite
 from shared.enums import SpaceTypeEnum
-
-if TYPE_CHECKING:
-    from features.spaces.models import SpaceInvite
 
 
 class GroupInvite(SpaceInvite):
@@ -18,4 +14,5 @@ class GroupInvite(SpaceInvite):
 
     def get_validation_schema(self, base_url: str | None = None) -> GroupInviteRead:
         base_url = base_url or "http://localhost:8000"
-        return GroupInviteRead.model_validate(self, context={"base_url": base_url})
+        pydantic_obj = GroupInviteRead.from_orm(self)
+        return pydantic_obj.model_copy(update={"base_url": base_url})

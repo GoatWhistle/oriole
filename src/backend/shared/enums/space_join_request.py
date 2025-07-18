@@ -13,5 +13,7 @@ class SpaceJoinRequestStatusUpdateEnum(str, Enum):
     REJECTED = "rejected"
 
 
-class SpaceJoinRequestStatusEnum(SpaceJoinRequestStatusUpdateEnum):
+class SpaceJoinRequestStatusEnum(str, Enum):
+    APPROVED = "approved"
+    REJECTED = "rejected"
     PENDING = "pending"

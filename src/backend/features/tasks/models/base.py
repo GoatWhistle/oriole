@@ -29,15 +29,8 @@ class BaseTask(Base, IdIntPkMixin):
     title: Mapped[str] = mapped_column(String(100))
     description: Mapped[str] = mapped_column(String(500))
 
-    creator_id: Mapped[int] = mapped_column(ForeignKey("accounts.user_id"))
+    creator_id: Mapped[int] = mapped_column(ForeignKey("accounts.id"))
     module_id: Mapped[int] = mapped_column(ForeignKey("modules.id"))
-
-    creator: Mapped["Account"] = relationship(back_populates="created_tasks")
-    module: Mapped["Module"] = relationship(back_populates="tasks")
-
-    solutions: Mapped[list["BaseSolution"]] = relationship(
-        back_populates="task", cascade="all, delete-orphan"
-    )
 
     can_attempt: Mapped[bool] = mapped_column(default=False)
     manual_grading: Mapped[bool] = mapped_column(default=False)
@@ -58,3 +51,7 @@ class BaseTask(Base, IdIntPkMixin):
     @abstractmethod
     def get_validation_schema(self) -> BaseTaskRead:
         return BaseTaskRead.model_validate(self)
+
+    creator: Mapped["Account"] = relationship(back_populates="created_tasks")
+    module: Mapped["Module"] = relationship(back_populates="tasks")
+    solutions: Mapped[list["BaseSolution"]] = relationship(back_populates="task")
