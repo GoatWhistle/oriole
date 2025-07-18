@@ -2,7 +2,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 import features.accounts.crud.account as account_crud
 import features.groups.crud.group as group_crud
-import features.groups.crud.invite as group_invite_crud
+import features.groups.crud.group_invite as group_invite_crud
 import features.groups.mappers as mapper
 import features.modules.crud.module as module_crud
 import features.solutions.crud.base as solutions_crud

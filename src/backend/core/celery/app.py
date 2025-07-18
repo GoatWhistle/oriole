@@ -11,8 +11,8 @@ app = Celery(
 
 
 app.conf.beat_schedule = {
-    "check-deadlines-every-20-seconds": {
-        "task": "core.celery.tasks.run_deadline_checks",
+    "check-activity-every-20-seconds": {
+        "task": "core.celery.tasks.run_activity_checks",
         "schedule": 20.0,
     }
 }

@@ -10,6 +10,8 @@ if TYPE_CHECKING:
     from features.users.models import UserProfile
     from features.spaces.models import Space
     from features.solutions.models import BaseSolution
+    from features.modules.models import Module
+    from features.tasks.models import BaseTask
     from features import Chat
     from features import ChatAccountAssociation
     from features import Message
@@ -24,16 +26,18 @@ class Account(Base, IdIntPkMixin):
     space_id: Mapped[int] = mapped_column(ForeignKey("spaces.id", ondelete="CASCADE"))
     space: Mapped["Space"] = relationship(back_populates="accounts")
 
-    done_tasks: Mapped[list["BaseSolution"]] = relationship(back_populates="account")
+    created_modules: Mapped[list["Module"]] = relationship(back_populates="creator")
+    created_tasks: Mapped[list["BaseTask"]] = relationship(back_populates="creator")
+    created_solutions: Mapped[list["BaseSolution"]] = relationship(
+        back_populates="creator"
+    )
 
     messages: Mapped[List["Message"]] = relationship(
         back_populates="account", cascade="all, delete-orphan"
     )
-
     chat_links: Mapped[List["ChatAccountAssociation"]] = relationship(
         back_populates="account", cascade="all, delete-orphan"
     )
-
     chats: Mapped[List["Chat"]] = relationship(
         secondary="chat_account_association", back_populates="accounts", viewonly=True
     )

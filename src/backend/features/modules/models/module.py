@@ -10,17 +10,17 @@ from features.modules.schemas import ModuleRead
 if TYPE_CHECKING:
     from features.tasks.models import BaseTask
     from features.spaces.models import Space
-    from features.users.models import UserProfile
+    from features.accounts.models import Account
 
 
 class Module(Base, IdIntPkMixin):
     title: Mapped[str] = mapped_column(String(100))
     description: Mapped[str] = mapped_column(String(200))
 
-    creator_id: Mapped[int] = mapped_column(ForeignKey("user_profiles.user_id"))
+    creator_id: Mapped[int] = mapped_column(ForeignKey("accounts.user_id"))
     space_id: Mapped[int] = mapped_column(ForeignKey("spaces.id", ondelete="CASCADE"))
 
-    creator: Mapped["UserProfile"] = relationship(back_populates="created_modules")
+    creator: Mapped["Account"] = relationship(back_populates="created_modules")
     space: Mapped["Space"] = relationship(back_populates="modules")
 
     tasks: Mapped[list["BaseTask"]] = relationship(
