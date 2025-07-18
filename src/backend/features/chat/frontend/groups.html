@@ -80,9 +80,14 @@
           const btn = document.createElement("button");
           btn.className = "group-button";
           btn.innerText = group.name || `Группа ${group.id}`;
-          btn.onclick = () => {
-            window.location.href = `chat.html?group_id=${group.id}&user_id=${userId}`;
-          };
+          btn.onclick = async () => {
+            const meRes = await fetch(`${API_URL}/api/auth/me`, {
+                headers: { Authorization: "Bearer " + token }
+             });
+            const me = await meRes.json();
+            window.location.href = `chat.html?group_id=${group.id}&user_id=${me.id}`;
+};
+
 
           div.appendChild(btn);
           container.appendChild(div);

@@ -266,6 +266,23 @@
             background-color: #e6b800 !important;
         }
 
+        #scrollDownBtn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #0078d4;
+            border: none;
+            border-radius: 50%;
+            width: 44px;
+            height: 44px;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+            display: none;
+            z-index: 10000;
+            user-select: none;
+        }
 
     </style>
 </head>
@@ -287,245 +304,9 @@
         <button class="send-btn" id="sendBtn">➤</button>
     </footer>
 </div>
-    <script>
-        const params   = new URLSearchParams(window.location.search);
-        const groupId  = params.get("group_id");
-        const userId   = params.get("user_id");
 
-        if (!groupId || !userId) {
-          alert("❌ Не указан group_id или user_id");
-          throw new Error("group_id или user_id отсутствует");
-        }
+<button id="scrollDownBtn" title="Прокрутить вниз">↓</button>
 
-
-
-      const connectionId = crypto.randomUUID();
-      let socket;
-      let replyToId   = null;
-      let replyToText = "";
-
-      function updateStatus(text) {
-        document.getElementById("status").textContent = text;
-      }
-
-      function formatTimestamp(ts) {
-        return ts
-          ? new Date(ts).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'})
-          : "";
-      }
-
-      function addMessage(msg, cssClass) {
-        const container = document.getElementById("messages");
-        const div = document.createElement("div");
-        const isOwn = String(msg.user_id) === String(userId);
-        div.className = `message ${isOwn ? "sent" : "received"}`;
-        div.id        = "msg-" + msg.message_id;
-
-        const uid = document.createElement("div");
-        uid.className   = "user-id";
-        uid.textContent = msg.user_id;
-        div.append(uid);
-
-        if (msg.reply_to && msg.reply_to_text) {
-          const rb = document.createElement("div");
-          rb.className  = "reply-to-block";
-          rb.textContent = `ОТВЕТ ПОЛЬЗОВАТЕЛЮ ${msg.reply_to}:`;
-          const rt = document.createElement("div");
-          rt.textContent = msg.reply_to_text.length > 100
-            ? msg.reply_to_text.slice(0,97)+"..."
-            : msg.reply_to_text;
-          rb.append(rt);
-          rb.onclick = e => {
-            e.stopPropagation();
-            document.getElementById("msg-"+msg.reply_to)
-                    .scrollIntoView({behavior:"smooth",block:"center"});
-          };
-          div.append(rb);
-        }
-
-        const textDiv = document.createElement("div");
-        textDiv.textContent = msg.message;
-        div.append(textDiv);
-
-        const bottom = document.createElement("div");
-        bottom.className = "bottom-row";
-        const ts = document.createElement("div");
-        ts.className   = "timestamp";
-        ts.textContent = formatTimestamp(msg.timestamp);
-        bottom.append(ts);
-        div.append(bottom);
-
-        container.append(div);
-        container.scrollTop = container.scrollHeight;
-      }
-
-      function cancelReply() {
-        replyToId   = null;
-        replyToText = "";
-        document.getElementById("replyPreview").style.display = "none";
-      }
-
-      function sendMessage() {
-        const input = document.getElementById("input");
-        const text  = input.value.trim();
-        if (!text || !socket || socket.readyState!==WebSocket.OPEN) return;
-        socket.send(JSON.stringify({
-          user_id: userId,
-          connectionId,
-          message: text,
-          reply_to: replyToId,
-          reply_to_text: replyToText
-        }));
-        input.value = "";
-        cancelReply();
-      }
-
-      function connect() {
-        if (!groupId||!userId) {
-          updateStatus("❌ Не указан group_id или user_id");
-          return;
-        }
-        socket = new WebSocket(`ws://127.0.0.1:8000/api/websocket/?group_id=${groupId}&user_id=${userId}`);
-        socket.onopen    = () => updateStatus(`🟢 Подключено как ${userId} в группе ${groupId}`);
-        socket.onmessage = e => {
-          let d;
-          try{ d=JSON.parse(e.data); }catch{return;}
-            if(d.type==="history"){
-  d.messages.forEach(addMessage);
-}
-           else if(d.edit){
-            const md = document.getElementById("msg-"+d.message_id);
-            if(md) md.querySelector(".bottom-row")
-                    .previousElementSibling.textContent = d.message;
-          } else if(d.delete){
-            document.getElementById("msg-"+d.message_id)?.remove();
-          } else {
-               addMessage(d);
-          }
-        };
-        socket.onclose = ()=>updateStatus("🔴 Соединение закрыто");
-        socket.onerror = ()=>updateStatus("⚠️ Ошибка соединения");
-      }
-
-      document.getElementById("sendBtn")
-              .addEventListener("click", sendMessage);
-      document.getElementById("input")
-              .addEventListener("keydown", e=>{
-        if(e.key==="Enter"){ e.preventDefault(); sendMessage(); }
-      });
-
-      const contextMenu = document.createElement("div");
-      contextMenu.id = "contextMenu";
-      contextMenu.className = "context-menu";
-      document.body.append(contextMenu);
-
-      let currentContextMsgId     = null;
-      let currentContextMsgUserId = null;
-
-      const btnReply  = Object.assign(document.createElement("button"), {textContent:"Ответить"});
-      const btnEdit   = Object.assign(document.createElement("button"), {textContent:"Редактировать"});
-      const btnDelete = Object.assign(document.createElement("button"), {textContent:"Удалить"});
-      contextMenu.append(btnReply, btnEdit, btnDelete);
-
-      function hideContextMenu(){
-        contextMenu.style.display = "none";
-      }
-      document.addEventListener("click", e=>{
-        if(contextMenu.style.display==="block" && !e.target.closest(".context-menu")){
-          hideContextMenu();
-        }
-      });
-      function showContextMenu(x,y){
-        contextMenu.style.left = x+"px";
-        contextMenu.style.top  = y+"px";
-        contextMenu.style.display = "block";
-      }
-
-      document.getElementById("messages")
-        .addEventListener("contextmenu", e=>{
-          const md = e.target.closest(".message");
-          if(!md) return;
-          e.preventDefault();
-          currentContextMsgId     = md.id.replace("msg-","");
-          currentContextMsgUserId = md.querySelector(".user-id").textContent;
-          btnEdit.style.display   = currentContextMsgUserId===userId?"block":"none";
-          btnDelete.style.display = currentContextMsgUserId===userId?"block":"none";
-          showContextMenu(e.pageX,e.pageY);
-        });
-
-      btnReply.addEventListener("click", ()=>{
-        if(!currentContextMsgId) return;
-        const md = document.getElementById("msg-"+currentContextMsgId);
-        const ch = Array.from(md.children);
-        const idx = ch.findIndex(el=>el.classList.contains("bottom-row"));
-        replyToId   = currentContextMsgId;
-        replyToText = idx>0 ? ch[idx-1].textContent : "";
-        document.getElementById("replyPreview").style.display = "block";
-        document.getElementById("replyToText").textContent     = replyToText;
-        hideContextMenu(); currentContextMsgId = null;
-      });
-
-      btnEdit.addEventListener("click", ()=>{
-        if(!currentContextMsgId) return;
-        const md = document.getElementById("msg-"+currentContextMsgId);
-        const ch = Array.from(md.children);
-        const idx = ch.findIndex(el=>el.classList.contains("bottom-row"));
-        const txt = idx>0?ch[idx-1]:null;
-        if(!txt) return;
-        txt.style.display = "none";
-        const ta = document.createElement("textarea");
-        ta.className = "edit-textarea";
-        ta.value     = txt.textContent;
-        ta.rows      = 3;
-        Object.assign(ta.style,{width:"100%",padding:"6px 10px",borderRadius:"12px"});
-        const sb = document.createElement("button"); sb.textContent="Сохранить";
-        const cb = document.createElement("button"); cb.textContent="Отмена";
-        const bc = document.createElement("div"); bc.style.marginTop="6px";
-        bc.append(sb,cb);
-        txt.after(bc); txt.after(ta);
-
-        cb.onclick = ()=>{
-          ta.remove(); bc.remove(); txt.style.display="";
-          hideContextMenu(); currentContextMsgId=null;
-        };
-        sb.onclick = ()=>{
-            const nt = ta.value.trim();
-          if(!nt) return alert("Пустой текст");
-          socket.send(JSON.stringify({
-            user_id: userId,
-            connectionId,
-            message_id: currentContextMsgId,
-            message: nt,
-            edit: true
-          }));
-          txt.textContent=nt;
-          if(!md.querySelector(".edited-label")){
-            const lbl=document.createElement("div");
-            lbl.className="edited-label"; lbl.textContent="Изменено";
-            md.append(lbl);
-          }
-          ta.remove(); bc.remove(); txt.style.display="";
-          hideContextMenu(); currentContextMsgId=null;
-        };
-      });
-
-      btnDelete.addEventListener("click", ()=>{
-        if(!currentContextMsgId) return;
-        if(!confirm("Удалить сообщение?")){
-          hideContextMenu(); currentContextMsgId=null; return;
-        }
-        socket.send(JSON.stringify({
-          user_id: userId,
-          connectionId,
-          message_id: currentContextMsgId,
-          delete: true
-        }));
-        document.getElementById("msg-"+currentContextMsgId)?.remove();
-        hideContextMenu(); currentContextMsgId=null;
-      });
-
-      window.onload = connect;
-</script>
-
+<script src="chat_js.js"></script>
 </body>
 </html>

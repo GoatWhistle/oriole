@@ -6,9 +6,9 @@ class ConnectionManager:
     def __init__(self):
         self.group_connections: Dict[int, List[Tuple[WebSocket, int]]] = {}
 
-    async def connect(self, websocket: WebSocket, group_id: int, user_id: int):
+    async def connect(self, websocket: WebSocket, group_id: int, account_id: int):
         await websocket.accept()
-        self.group_connections.setdefault(group_id, []).append((websocket, user_id))
+        self.group_connections.setdefault(group_id, []).append((websocket, account_id))
 
     async def disconnect(self, group_id: int, websocket: WebSocket):
         conns = self.group_connections.get(group_id, [])

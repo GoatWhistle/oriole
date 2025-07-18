@@ -1,6 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from features import Message
+from sqlalchemy.orm import joinedload
 
 
 class MessageRepository:
@@ -17,7 +18,13 @@ class MessageRepository:
         return result.scalars().all()
 
     async def get_by_id(self, message_id: int):
-        return await self.session.get(Message, message_id)
+        stmt = (
+            select(Message)
+            .where(Message.id == message_id)
+            .options(joinedload(Message.reply_to_message))
+        )
+        result = await self.session.execute(stmt)
+        return result.scalars().first()
 
     async def save_new_message(self, message: Message):
         self.session.add(message)
