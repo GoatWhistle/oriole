@@ -35,7 +35,7 @@ async def create_module(
     check_end_time_not_in_past(module_in.end_datetime)
     check_end_time_is_after_start_time(module_in.start_datetime, module_in.end_datetime)
 
-    module = await module_crud.create_module(session, module_in, user_id)
+    module = await module_crud.create_module(session, module_in, account.id)
     return module.get_validation_schema()
 
 

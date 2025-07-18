@@ -28,12 +28,14 @@ class SpaceInvite(Base, IdIntPkMixin):
     title: Mapped[str] = mapped_column(String(100))
 
     space_id: Mapped[int] = mapped_column(ForeignKey("spaces.id"))
-    creator_id: Mapped[int] = mapped_column(ForeignKey("user_profiles.user_id"))
+    creator_id: Mapped[int] = mapped_column(ForeignKey("accounts.id"))
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.timezone("UTC", func.now())
     )
-    expires_at: Mapped[datetime | None] = mapped_column(nullable=True)
+    expires_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
 
     max_usages: Mapped[int | None] = mapped_column(nullable=True)
     users_usages: Mapped[int] = mapped_column(default=0)
@@ -47,7 +49,7 @@ class SpaceInvite(Base, IdIntPkMixin):
         return SpaceInviteRead.model_validate(self)
 
     space: Mapped["Space"] = relationship(back_populates="invites")
-    creator: Mapped["Account"] = relationship(back_populates="created_spaces")
+    creator: Mapped["Account"] = relationship(back_populates="created_space_invites")
     space_join_requests: Mapped[list["SpaceJoinRequest"]] = relationship(
         back_populates="space_invite"
     )

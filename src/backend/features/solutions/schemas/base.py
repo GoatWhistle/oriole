@@ -14,7 +14,7 @@ class BaseSolutionCreate(BaseSolutionModel):
 class BaseSolutionRead(BaseSolutionModel):
     id: int
 
-    account_id: int
+    creator_id: int
 
     is_correct: bool = False
     submitted_at: datetime

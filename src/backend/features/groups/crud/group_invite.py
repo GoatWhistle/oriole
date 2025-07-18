@@ -33,11 +33,10 @@ async def create_group_invite(
 ) -> GroupInvite:
     group_invite = GroupInvite(
         **group_invite_in.model_dump(),
-        code=generate_unique_group_invite_code(session),
+        code=await generate_unique_group_invite_code(session),
         creator_id=creator_id,
-        created_at=get_current_utc(),
-        user_usages=0,
-        is_actuve=True,
+        users_usages=0,
+        is_active=True,
     )
     session.add(group_invite)
     await session.commit()

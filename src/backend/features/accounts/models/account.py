@@ -8,7 +8,7 @@ from features.accounts.schemas import AccountRead
 
 if TYPE_CHECKING:
     from features.users.models import UserProfile
-    from features.spaces.models import Space
+    from features.spaces.models import Space, SpaceInvite
     from features.solutions.models import BaseSolution
     from features.modules.models import Module
     from features.tasks.models import BaseTask
@@ -26,6 +26,9 @@ class Account(Base, IdIntPkMixin):
     space_id: Mapped[int] = mapped_column(ForeignKey("spaces.id", ondelete="CASCADE"))
     space: Mapped["Space"] = relationship(back_populates="accounts")
 
+    created_space_invites: Mapped[list["SpaceInvite"]] = relationship(
+        back_populates="creator"
+    )
     created_modules: Mapped[list["Module"]] = relationship(back_populates="creator")
     created_tasks: Mapped[list["BaseTask"]] = relationship(back_populates="creator")
     created_solutions: Mapped[list["BaseSolution"]] = relationship(

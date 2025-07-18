@@ -8,9 +8,8 @@ from shared.enums import TaskTypeEnum, SolutionStatusEnum
 
 class CodeSolution(BaseSolution):
     __tablename__ = "code_solutions"
-    __mapper_args__ = {
-        "polymorphic_identity": TaskTypeEnum.CODE,
-    }
+    __mapper_args__ = {"polymorphic_identity": TaskTypeEnum.CODE.value}
+
     id: Mapped[int] = mapped_column(
         ForeignKey("solutions.id", ondelete="CASCADE"), primary_key=True
     )

@@ -4,8 +4,9 @@ from fastapi import APIRouter, Depends, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from database import db_helper
+from features.accounts.services import account as account_service
 from features.groups.schemas import GroupInviteCreate, GroupInviteUpdate
-from features.groups.services import group_invite as service
+from features.groups.services import group_invite as group_invite_service
 from features.users.services.auth import get_current_active_auth_user_id
 from utils.response_func import create_json_response
 from utils.schemas import SuccessResponse, SuccessListResponse
@@ -24,7 +25,7 @@ async def create_group_invite(
     session: AsyncSession = Depends(db_helper.dependency_session_getter),
     user_id: int = Depends(get_current_active_auth_user_id),
 ):
-    data = await service.create_group_invite(
+    data = await group_invite_service.create_group_invite(
         session, user_id, request, group_invite_create
     )
     return create_json_response(data=data)
@@ -41,7 +42,7 @@ async def get_group_invite_by_id(
     session: AsyncSession = Depends(db_helper.dependency_session_getter),
     user_id: int = Depends(get_current_active_auth_user_id),
 ):
-    data = await service.get_group_invite_by_id(
+    data = await group_invite_service.get_group_invite_by_id(
         session, user_id, request, group_invite_id
     )
     return create_json_response(data=data)
@@ -59,7 +60,7 @@ async def get_group_invites_in_group(
     session: AsyncSession = Depends(db_helper.dependency_session_getter),
     user_id: int = Depends(get_current_active_auth_user_id),
 ):
-    data = await service.get_group_invites_in_group(
+    data = await group_invite_service.get_group_invites_in_group(
         session, user_id, request, group_id, is_active
     )
     return create_json_response(data=data)
@@ -77,7 +78,7 @@ async def update_group_invite(
     session: AsyncSession = Depends(db_helper.dependency_session_getter),
     user_id: int = Depends(get_current_active_auth_user_id),
 ):
-    data = await service.update_group_invite(
+    data = await group_invite_service.update_group_invite(
         session, user_id, request, group_invite_id, group_invite_update
     )
     return create_json_response(data=data)
@@ -91,8 +92,8 @@ async def delete_group_invite(
     group_invite_id: int,
     session: AsyncSession = Depends(db_helper.dependency_session_getter),
     user_id: int = Depends(get_current_active_auth_user_id),
-) -> None:
-    await service.delete_group_invite(session, user_id, group_invite_id)
+):
+    await group_invite_service.delete_group_invite(session, user_id, group_invite_id)
 
 
 @router.delete(
@@ -103,5 +104,19 @@ async def delete_group_invites_in_group(
     group_id: int,
     session: AsyncSession = Depends(db_helper.dependency_session_getter),
     user_id: int = Depends(get_current_active_auth_user_id),
-) -> None:
-    await service.delete_group_invites_in_group(session, user_id, group_id)
+):
+    await group_invite_service.delete_group_invites_in_group(session, user_id, group_id)
+
+
+@router.put(
+    "/{group_id}/invites/{group_invite_code}/",
+    response_model=SuccessResponse,
+    status_code=HTTPStatus.OK,
+)
+async def join_to_group(
+    group_invite_code: str,
+    session: AsyncSession = Depends(db_helper.dependency_session_getter),
+    user_id: int = Depends(get_current_active_auth_user_id),
+):
+    data = await account_service.join_to_group(session, user_id, group_invite_code)
+    return create_json_response(data=data)

@@ -17,7 +17,7 @@ class Module(Base, IdIntPkMixin):
     title: Mapped[str] = mapped_column(String(100))
     description: Mapped[str] = mapped_column(String(200))
 
-    creator_id: Mapped[int] = mapped_column(ForeignKey("accounts.user_id"))
+    creator_id: Mapped[int] = mapped_column(ForeignKey("accounts.id"))
     space_id: Mapped[int] = mapped_column(ForeignKey("spaces.id", ondelete="CASCADE"))
 
     creator: Mapped["Account"] = relationship(back_populates="created_modules")
