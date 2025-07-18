@@ -10,12 +10,12 @@ from features.groups.schemas import GroupCreate
 
 async def create_group(
     session: AsyncSession,
-    group_in: GroupCreate,
-    user_id: int,
+    group_create: GroupCreate,
+    creator_id: int,
 ) -> Group:
     group = Group(
-        **group_in.model_dump(),
-        creator_id=user_id,
+        **group_create.model_dump(),
+        creator_id=creator_id,
     )
     session.add(group)
     await session.commit()

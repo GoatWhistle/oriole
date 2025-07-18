@@ -15,11 +15,11 @@ class GroupBase(SpaceBase):
     pass
 
 
-class GroupCreate(SpaceCreate):
+class GroupCreate(GroupBase, SpaceCreate):
     pass
 
 
-class GroupRead(SpaceRead):
+class GroupRead(GroupBase, SpaceRead):
     def to_with_accounts(
         self,
         accounts: list[AccountReadWithProfileData],
@@ -64,5 +64,5 @@ class GroupReadWithAccountsAndModules(
     pass
 
 
-class GroupUpdate(SpaceUpdate):
+class GroupUpdate(GroupBase, SpaceUpdate):
     pass

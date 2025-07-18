@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 
 from .group import router as group_router
-from .invite import router as invite_router
+from .group_invite import router as invite_router
 
 router = APIRouter()
 

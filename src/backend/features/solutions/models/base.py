@@ -25,10 +25,10 @@ class BaseSolution(Base, IdIntPkMixin):
         "with_polymorphic": "*",
     }
 
-    account_id: Mapped[int] = mapped_column(ForeignKey("accounts.id"))
+    creator_id: Mapped[int] = mapped_column(ForeignKey("accounts.user_id"))
     task_id: Mapped[int] = mapped_column(ForeignKey("tasks.id"))
 
-    account: Mapped["Account"] = relationship(back_populates="done_tasks")
+    creator: Mapped["Account"] = relationship(back_populates="created_solutions")
     task: Mapped["BaseTask"] = relationship(back_populates="solutions")
 
     is_correct: Mapped[bool] = mapped_column(default=False)

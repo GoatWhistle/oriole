@@ -2,6 +2,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 import features.accounts.crud.account as account_crud
 import features.accounts.mappers as mapper
+import features.spaces.crud.space_join_request as space_join_request_crud
+import features.spaces.mappers as space_mapper
 import features.users.crud.user_profile as user_profile_crud
 from features.accounts.schemas import (
     AccountRole,
@@ -13,9 +15,17 @@ from features.groups.validators import (
     check_user_is_member,
     check_user_is_owner,
     check_user_is_admin,
+    get_group_invite_by_code_or_404,
+    is_account_exists,
 )
-from features.spaces.validators import get_space_or_404
+from features.spaces.schemas import SpaceJoinStatusRead, SpaceJoinRequestCreate
+from features.spaces.validators import (
+    get_space_or_404,
+    check_space_invite_active,
+    is_space_join_requests_exists,
+)
 from features.users.validators import check_user_exists
+from shared.enums.space_join_request import SpaceJoinStatusEnum
 
 
 async def get_accounts_in_space(
@@ -127,3 +137,42 @@ async def leave_from_space(
                 new_owner.role = AccountRole.OWNER
 
     await account_crud.delete_account(session, account)
+
+
+async def join_to_group(
+    session: AsyncSession,
+    user_id: int,
+    group_invite_code: str,
+) -> SpaceJoinStatusRead:
+    group_invite = await get_group_invite_by_code_or_404(session, group_invite_code)
+    check_space_invite_active(group_invite.is_active)
+
+    if await is_account_exists(session, user_id, group_invite.space_id):
+        return space_mapper.build_space_join_status_read(
+            SpaceJoinStatusEnum.ALREADY_JOINED, user_id, group_invite.space_id
+        )
+
+    if await is_space_join_requests_exists(session, user_id, group_invite.space_id):
+        return space_mapper.build_space_join_status_read(
+            SpaceJoinStatusEnum.ALREADY_REQUESTED, user_id, group_invite.space_id
+        )
+
+    if group_invite.needs_approval:
+        space_join_request_create = SpaceJoinRequestCreate(
+            user_id=user_id,
+            space_id=group_invite.space_id,
+            space_invite_id=group_invite.id,
+        )
+        await space_join_request_crud.create_space_join_request(
+            session, space_join_request_create
+        )
+        return space_mapper.build_space_join_status_read(
+            SpaceJoinStatusEnum.REQUESTED, user_id, group_invite.space_id
+        )
+    else:
+        await account_crud.create_account(
+            session, user_id, group_invite.space_id, AccountRole.MEMBER.value
+        )
+        return space_mapper.build_space_join_status_read(
+            SpaceJoinStatusEnum.JOINED, user_id, group_invite.space_id
+        )

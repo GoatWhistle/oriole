@@ -10,8 +10,8 @@ from shared.enums import SpaceTypeEnum
 
 if TYPE_CHECKING:
     from features.modules.models import Module
-    from features.groups.models import GroupInvite
     from features.accounts.models import Account
+    from features.spaces.models import SpaceInvite, SpaceJoinRequest
     from features.users.models import UserProfile
 
 
@@ -28,12 +28,15 @@ class Space(Base, IdIntPkMixin):
     description: Mapped[str] = mapped_column(String(200))
 
     creator_id: Mapped[int] = mapped_column(ForeignKey("user_profiles.user_id"))
-    creator: Mapped["UserProfile"] = relationship(back_populates="created_spaces")
-
-    accounts: Mapped[list["Account"]] = relationship(back_populates="space")
-    modules: Mapped[list["Module"]] = relationship(back_populates="space")
-    invites: Mapped[list["GroupInvite"]] = relationship(back_populates="space")
 
     @abstractmethod
     def get_validation_schema(self) -> SpaceRead:
         return SpaceRead.model_validate(self)
+
+    creator: Mapped["UserProfile"] = relationship(back_populates="created_spaces")
+    accounts: Mapped[list["Account"]] = relationship(back_populates="space")
+    modules: Mapped[list["Module"]] = relationship(back_populates="space")
+    invites: Mapped[list["SpaceInvite"]] = relationship(back_populates="space")
+    space_join_requests: Mapped[list["SpaceJoinRequest"]] = relationship(
+        back_populates="space"
+    )

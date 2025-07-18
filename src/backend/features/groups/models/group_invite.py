@@ -1,21 +1,21 @@
-from datetime import datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import ForeignKey, String, DateTime, func
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy import ForeignKey, String
+from sqlalchemy.orm import Mapped, mapped_column
 
-from database import Base, IdIntPkMixin
+from features.groups.schemas import GroupInviteRead
+from shared.enums import SpaceTypeEnum
 
 if TYPE_CHECKING:
-    from features.spaces.models import Space
+    from features.spaces.models import SpaceInvite
 
 
-class GroupInvite(Base, IdIntPkMixin):
-    space_id: Mapped[int] = mapped_column(ForeignKey("spaces.id", ondelete="CASCADE"))
-    space: Mapped["Space"] = relationship(back_populates="invites")
+class GroupInvite(SpaceInvite):
+    __mapper_args__ = {"polymorphic_identity": SpaceTypeEnum.GROUP.value}
+    id: Mapped[int] = mapped_column(ForeignKey("space_invites.id"), primary_key=True)
 
-    code: Mapped[str] = mapped_column(String(8), unique=True, index=True)
-    expires_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.timezone("UTC", func.now())
-    )
-    is_active: Mapped[bool] = mapped_column(default=True)
+    code: Mapped[str] = mapped_column(String(16), unique=True, index=True)
+
+    def get_validation_schema(self, base_url: str | None = None) -> GroupInviteRead:
+        base_url = base_url or "http://localhost:8000"
+        return GroupInviteRead.model_validate(self, context={"base_url": base_url})

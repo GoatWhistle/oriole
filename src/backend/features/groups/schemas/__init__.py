@@ -1,17 +1,27 @@
 __all__ = [
     "GroupCreate",
     "GroupRead",
-    "GroupUpdate",
     "GroupReadWithAccounts",
     "GroupReadWithModules",
     "GroupReadWithAccountsAndModules",
+    "GroupUpdate",
+    "GroupInviteBase",
+    "GroupInviteCreate",
+    "GroupInviteRead",
+    "GroupInviteUpdate",
 ]
 
 from .group import (
     GroupCreate,
     GroupRead,
-    GroupUpdate,
     GroupReadWithAccounts,
     GroupReadWithModules,
     GroupReadWithAccountsAndModules,
+    GroupUpdate,
+)
+from .group_invite import (
+    GroupInviteBase,
+    GroupInviteCreate,
+    GroupInviteRead,
+    GroupInviteUpdate,
 )
