@@ -15,7 +15,9 @@ from features.users.models import UserProfile
 
 
 def build_group_read_with_accounts(
-    group: Group, accounts: list[Account], user_profiles: list[UserProfile]
+    group: Group,
+    accounts: list[Account],
+    user_profiles: list[UserProfile],
 ) -> GroupReadWithAccounts:
     accounts_schemas = build_account_read_with_profile_data_list(
         accounts, user_profiles

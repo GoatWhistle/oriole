@@ -1,6 +1,4 @@
-from urllib.parse import urljoin
-
-from pydantic import Field, computed_field
+from pydantic import Field
 
 from features.spaces.schemas import (
     SpaceInviteBase,
@@ -19,15 +17,15 @@ class GroupInviteCreate(GroupInviteBase, SpaceInviteCreate):
 
 
 class GroupInviteRead(GroupInviteBase, SpaceInviteRead):
-    code: str = Field(exclude=True)
+    code: str
 
-    @computed_field
-    @property
-    def url(self) -> str:
-        base_url: str = self.__pydantic_context__.get(
-            "base_url", "http://localhost:8000"
-        )
-        return urljoin(base_url, f"/groups/join/{self.code}")
+    def to_with_link(self, link: str) -> "GroupInviteReadWithLink":
+        return GroupInviteReadWithLink(**self.model_dump(), link=link)
+
+
+class GroupInviteReadWithLink(GroupInviteRead):
+    code: str = Field(exclude=True)
+    link: str
 
 
 class GroupInviteUpdate(GroupInviteBase, SpaceInviteUpdate):
