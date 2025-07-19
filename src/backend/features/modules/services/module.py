@@ -39,7 +39,7 @@ async def create_module(
     return module.get_validation_schema()
 
 
-async def get_module_by_id(
+async def get_module(
     session: AsyncSession,
     user_id: int,
     module_id: int,

@@ -18,7 +18,7 @@ from features.tasks.schemas import (
 from features.tasks.validators import get_task_or_404
 
 
-async def get_task_by_id(
+async def get_task(
     session: AsyncSession,
     user_id: int,
     task_id: int,

@@ -35,13 +35,13 @@ async def create_group(
     response_model=SuccessResponse,
     status_code=HTTPStatus.OK,
 )
-async def get_group_by_id(
+async def get_group(
     group_id: int,
     session: AsyncSession = Depends(db_helper.dependency_session_getter),
     user_id: int = Depends(get_current_active_auth_user_id),
     include: list[str] | None = Query(None),
 ):
-    data = await service.get_group_by_id(session, user_id, group_id, include)
+    data = await service.get_group(session, user_id, group_id, include)
     return create_json_response(data=data)
 
 

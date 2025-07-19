@@ -36,7 +36,7 @@ async def create_group(
     return group.get_validation_schema()
 
 
-async def get_group_by_id(
+async def get_group(
     session: AsyncSession,
     user_id: int,
     group_id: int,

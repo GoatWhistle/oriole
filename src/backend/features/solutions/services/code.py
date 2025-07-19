@@ -39,7 +39,7 @@ async def create_code_solution(
     return CodeSolutionRead.model_validate(solution)
 
 
-async def get_code_solution_by_id(
+async def get_code_solution(
     session: AsyncSession,
     user_id: int,
     solution_id: int,
@@ -63,9 +63,7 @@ async def get_user_solutions_by_task_id(
     account = await get_account_or_404(session, user_id, module.space_id)
 
     solutions = await base_solution_crud.get_solutions_by_account_id_and_task_id(
-        session,
-        account.id,
-        task_id,
+        session, account.id, task_id
     )
     solutions = solutions or []
     return [CodeSolutionRead.model_validate(solution) for solution in solutions]

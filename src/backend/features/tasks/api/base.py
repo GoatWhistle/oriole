@@ -18,13 +18,13 @@ router = APIRouter()
     response_model=SuccessResponse,
     status_code=HTTPStatus.OK,
 )
-async def get_task_by_id(
+async def get_task(
     task_id: int,
     include: list[str] | None = Query(None),
     session: AsyncSession = Depends(db_helper.dependency_session_getter),
     user_id: int = Depends(get_current_active_auth_user_id),
 ):
-    data = await task_service.get_task_by_id(session, user_id, task_id, include)
+    data = await task_service.get_task(session, user_id, task_id, include)
     return create_json_response(data=data)
 
 
@@ -67,7 +67,7 @@ async def delete_task(
     response_model=SuccessResponse,
     status_code=HTTPStatus.OK,
 )
-async def get_solution_by_id(
+async def get_solution(
     solution_id: int,
     session: AsyncSession = Depends(db_helper.dependency_session_getter),
     user_id: int = Depends(get_current_active_auth_user_id),

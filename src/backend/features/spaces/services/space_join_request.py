@@ -15,7 +15,7 @@ from features.spaces.validators.existence import (
 from shared.enums import SpaceJoinRequestStatusEnum
 
 
-async def get_space_join_request_by_id(
+async def get_space_join_request(
     session: AsyncSession,
     user_id: int,
     space_join_request_id: int,
@@ -31,7 +31,7 @@ async def get_space_join_request_by_id(
     return space_join_request.get_validation_schema()
 
 
-async def get_space_join_requests_by_space_id(
+async def get_space_join_requests_in_space(
     session: AsyncSession,
     user_id: int,
     space_id: int,
@@ -83,7 +83,7 @@ async def update_space_join_request(
     return space_join_request.get_validation_schema()
 
 
-async def update_space_join_requests_by_space_id(
+async def update_space_join_requests_in_space(
     session: AsyncSession,
     user_id: int,
     space_id: int,
@@ -137,7 +137,7 @@ async def delete_space_join_request(
     await space_join_request_crud.delete_space_join_request(session, space_join_request)
 
 
-async def delete_space_join_requests_by_space_id(
+async def delete_space_join_requests_in_space(
     session: AsyncSession,
     user_id: int,
     space_id: int,
