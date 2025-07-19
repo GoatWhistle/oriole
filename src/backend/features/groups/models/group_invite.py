@@ -12,7 +12,5 @@ class GroupInvite(SpaceInvite):
 
     code: Mapped[str] = mapped_column(String(16), unique=True, index=True)
 
-    def get_validation_schema(self, base_url: str | None = None) -> GroupInviteRead:
-        base_url = base_url or "http://localhost:8000"
-        pydantic_obj = GroupInviteRead.from_orm(self)
-        return pydantic_obj.model_copy(update={"base_url": base_url})
+    def get_validation_schema(self) -> GroupInviteRead:
+        return GroupInviteRead.model_validate(self)

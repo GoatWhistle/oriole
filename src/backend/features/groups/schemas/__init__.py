@@ -8,6 +8,7 @@ __all__ = [
     "GroupInviteBase",
     "GroupInviteCreate",
     "GroupInviteRead",
+    "GroupInviteReadWithLink",
     "GroupInviteUpdate",
 ]
 
@@ -23,5 +24,6 @@ from .group_invite import (
     GroupInviteBase,
     GroupInviteCreate,
     GroupInviteRead,
+    GroupInviteReadWithLink,
     GroupInviteUpdate,
 )

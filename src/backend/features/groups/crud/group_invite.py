@@ -104,7 +104,7 @@ async def update_group_invites_activity():
         for group_invite in group_invites:
             if group_invite.expires_at is None:
                 continue
-            new_status = group_invite.expires_at <= get_current_utc()
+            new_status = group_invite.expires_at >= get_current_utc()
             if group_invite.is_active != new_status:
                 group_invite.is_active = new_status
                 updated = True
