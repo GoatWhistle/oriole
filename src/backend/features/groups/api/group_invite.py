@@ -36,13 +36,13 @@ async def create_group_invite(
     response_model=SuccessResponse,
     status_code=HTTPStatus.OK,
 )
-async def get_group_invite_by_id(
+async def get_group_invite(
     request: Request,
     group_invite_id: int,
     session: AsyncSession = Depends(db_helper.dependency_session_getter),
     user_id: int = Depends(get_current_active_auth_user_id),
 ):
-    data = await group_invite_service.get_group_invite_by_id(
+    data = await group_invite_service.get_group_invite(
         session, user_id, request, group_invite_id
     )
     return create_json_response(data=data)

@@ -32,13 +32,13 @@ async def create_module(
     response_model=SuccessResponse,
     status_code=HTTPStatus.OK,
 )
-async def get_module_by_id(
+async def get_module(
     module_id: int,
     session: AsyncSession = Depends(db_helper.dependency_session_getter),
     user_id: int = Depends(get_current_active_auth_user_id),
     include: list[str] | None = Query(None),
 ):
-    data = await service.get_module_by_id(session, user_id, module_id, include)
+    data = await service.get_module(session, user_id, module_id, include)
     return create_json_response(data=data)
 
 

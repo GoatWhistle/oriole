@@ -47,7 +47,7 @@ async def update_test(
     return test.get_validation_schema()
 
 
-async def get_test_by_id(
+async def get_test(
     session: AsyncSession,
     user_id: int,
     test_id: int,

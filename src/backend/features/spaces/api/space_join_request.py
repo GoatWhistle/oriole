@@ -19,14 +19,12 @@ router = APIRouter()
     response_model=SuccessResponse,
     status_code=HTTPStatus.OK,
 )
-async def get_space_join_request_by_id(
+async def get_space_join_request(
     space_join_request_id: int,
     session: AsyncSession = Depends(db_helper.dependency_session_getter),
     user_id: int = Depends(get_current_active_auth_user_id),
 ):
-    data = await service.get_space_join_request_by_id(
-        session, user_id, space_join_request_id
-    )
+    data = await service.get_space_join_request(session, user_id, space_join_request_id)
     return create_json_response(data=data)
 
 
@@ -35,13 +33,13 @@ async def get_space_join_request_by_id(
     response_model=SuccessListResponse,
     status_code=HTTPStatus.OK,
 )
-async def get_space_join_requests_by_space_id(
+async def get_space_join_requests_in_space(
     space_id: int,
     status: SpaceJoinRequestStatusEnum | None = None,
     session: AsyncSession = Depends(db_helper.dependency_session_getter),
     user_id: int = Depends(get_current_active_auth_user_id),
 ):
-    data = await service.get_space_join_requests_by_space_id(
+    data = await service.get_space_join_requests_in_space(
         session, user_id, space_id, status
     )
     return create_json_response(data=data)
@@ -69,13 +67,13 @@ async def update_space_join_request(
     response_model=SuccessListResponse,
     status_code=HTTPStatus.OK,
 )
-async def update_space_join_requests_by_space_id(
+async def update_space_join_requests_in_space(
     space_join_request_id: int,
     space_join_request_update: SpaceJoinRequestUpdate,
     session: AsyncSession = Depends(db_helper.dependency_session_getter),
     user_id: int = Depends(get_current_active_auth_user_id),
 ):
-    data = await service.update_space_join_requests_by_space_id(
+    data = await service.update_space_join_requests_in_space(
         session, user_id, space_join_request_id, space_join_request_update
     )
     return create_json_response(data=data)
@@ -97,9 +95,9 @@ async def delete_space_join_request(
     "/{space_id}/requests/",
     status_code=HTTPStatus.NO_CONTENT,
 )
-async def delete_space_join_requests_by_space_id(
+async def delete_space_join_requests_in_space(
     space_id: int,
     session: AsyncSession = Depends(db_helper.dependency_session_getter),
     user_id: int = Depends(get_current_active_auth_user_id),
 ) -> None:
-    await service.delete_space_join_requests_by_space_id(session, user_id, space_id)
+    await service.delete_space_join_requests_in_space(session, user_id, space_id)

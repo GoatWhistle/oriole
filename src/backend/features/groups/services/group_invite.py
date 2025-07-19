@@ -33,7 +33,7 @@ async def create_group_invite(
     return mapper.build_group_invite_read_with_link(group_invite, request)
 
 
-async def get_group_invite_by_id(
+async def get_group_invite(
     session: AsyncSession,
     user_id: int,
     request: Request,

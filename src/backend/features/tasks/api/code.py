@@ -70,12 +70,12 @@ async def create_test(
     response_model=SuccessResponse,
     status_code=HTTPStatus.OK,
 )
-async def get_test_by_id(
+async def get_test(
     test_id: int,
     session: AsyncSession = Depends(db_helper.dependency_session_getter),
     user_id: int = Depends(get_current_active_auth_user_id),
 ):
-    data = await test_service.get_test_by_id(session, user_id, test_id)
+    data = await test_service.get_test(session, user_id, test_id)
     return create_json_response(data=data)
 
 
@@ -165,12 +165,12 @@ async def create_code_solution_file(
     response_model=SuccessResponse,
     status_code=HTTPStatus.OK,
 )
-async def get_code_solution_by_id(
+async def get_code_solution(
     solution_id: int,
     session: AsyncSession = Depends(db_helper.dependency_session_getter),
     user_id: int = Depends(get_current_active_auth_user_id),
 ):
-    data = await solution_service.get_code_solution_by_id(session, user_id, solution_id)
+    data = await solution_service.get_code_solution(session, user_id, solution_id)
     return create_json_response(data=data)
 
 
