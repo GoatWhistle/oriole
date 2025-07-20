@@ -65,6 +65,7 @@ app.include_router(
 
 @app.get("/api/ping")
 async def ping():
+    a = 2 + ""
     return {"message": "pong"}
 
 

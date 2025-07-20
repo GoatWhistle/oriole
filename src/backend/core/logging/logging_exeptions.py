@@ -1,11 +1,14 @@
+import traceback
+
 from fastapi import Request
 from fastapi.responses import JSONResponse
 from logging import getLogger
 import json
 from uuid import uuid4
-
+import traceback
 
 logger = getLogger("app")
+traceback_logger = getLogger("traceback_logger")
 
 
 async def global_exception_handler(request: Request, exc: Exception):
@@ -28,6 +31,7 @@ async def global_exception_handler(request: Request, exc: Exception):
             separators=(",", ":"),
         )
     )
+    traceback_logger.error(traceback.format_exc())
 
     response = JSONResponse(
         status_code=500,
