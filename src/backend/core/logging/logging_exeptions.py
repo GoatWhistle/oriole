@@ -1,11 +1,10 @@
-import traceback
-
 from fastapi import Request
 from fastapi.responses import JSONResponse
 from logging import getLogger
 import json
 from uuid import uuid4
 import traceback
+
 
 logger = getLogger("app")
 traceback_logger = getLogger("traceback_logger")
