@@ -5,6 +5,7 @@ import time
 import logging
 import json
 from core.logging.logging_exeptions import global_exception_handler
+import os
 
 
 logger = logging.getLogger("app")
@@ -12,6 +13,7 @@ logger = logging.getLogger("app")
 
 class LoggingMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
+        is_dev = os.getenv("IS_DEV", "false").lower() == "true"
         request_id = request.headers.get("X-Request-ID", str(uuid4()))
         request.state.request_id = request_id
 
@@ -25,6 +27,9 @@ class LoggingMiddleware(BaseHTTPMiddleware):
                 body_data = str(body)
         except Exception as e:
             body_data = f"<error reading body: {e}>"
+
+        if not (is_dev):
+            body_data = ""
 
         logger.info(
             json.dumps(
