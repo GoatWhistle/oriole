@@ -24,13 +24,13 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 6,
+  "id": 3,
   "links": [],
   "panels": [
     {
       "datasource": {
         "type": "loki",
-        "uid": "dd24312f-9b2d-4b69-9532-d9880fa910b6"
+        "uid": "loki"
       },
       "fieldConfig": {
         "defaults": {},
@@ -59,12 +59,11 @@
         {
           "datasource": {
             "type": "loki",
-            "uid": "dd24312f-9b2d-4b69-9532-d9880fa910b6"
+            "uid": "loki"
           },
           "direction": "backward",
           "editorMode": "code",
           "expr": "{job=\"docker-logs\", container_name=\"backend\", logger=\"app\"} | json | line_format \"{{ printf \\\"%-23s | %-5s | %-10s | %-15s | %-6s | %-20s | %-3s | %-36s | %-9s\\\" .time .level .event .client_ip .method .path .status_code .request_id .process_time }}\"",
-          "hide": false,
           "queryType": "range",
           "refId": "A"
         }
@@ -75,7 +74,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "c63572fe-8bca-4a41-8996-2a2557f029b6"
+        "uid": "prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -157,7 +156,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "c63572fe-8bca-4a41-8996-2a2557f029b6"
+        "uid": "prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -239,7 +238,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "c63572fe-8bca-4a41-8996-2a2557f029b6"
+        "uid": "prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -316,14 +315,14 @@
     {
       "datasource": {
         "type": "loki",
-        "uid": "dd24312f-9b2d-4b69-9532-d9880fa910b6"
+        "uid": "loki"
       },
       "fieldConfig": {
         "defaults": {},
         "overrides": []
       },
       "gridPos": {
-        "h": 7,
+        "h": 15,
         "w": 15,
         "x": 9,
         "y": 14
@@ -345,12 +344,11 @@
         {
           "datasource": {
             "type": "loki",
-            "uid": "dd24312f-9b2d-4b69-9532-d9880fa910b6"
+            "uid": "loki"
           },
           "direction": "backward",
           "editorMode": "code",
           "expr": "{job=\"docker-logs\", container_name=\"backend\", logger!=\"app\"} | json | line_format \"{{.log}}\"",
-          "hide": false,
           "queryType": "range",
           "refId": "A"
         }
@@ -361,7 +359,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "c63572fe-8bca-4a41-8996-2a2557f029b6"
+        "uid": "prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -419,7 +417,7 @@
       },
       "gridPos": {
         "h": 8,
-        "w": 12,
+        "w": 9,
         "x": 0,
         "y": 21
       },
@@ -507,5 +505,5 @@
   "timezone": "",
   "title": "FastAPI Observability",
   "uid": "fastapi-observability",
-  "version": 24
+  "version": 1
 }
