@@ -27,9 +27,12 @@ async def get_tasks_in_module(
     page: int | None = None,
 ):
     data = await service.get_tasks_in_module(session, user_id, module_id, is_active)
+    base_url_with_query = request.url.include_query_params(
+        is_active=is_active, page=page, per_page=per_page
+    )
     return create_json_response(
         data=data,
         page=page,
         per_page=per_page,
-        base_url=f"{str(request.base_url).rstrip("/")}/api/modules/{module_id}/tasks/?is_active={is_active if is_active else False}",
+        base_url=str(base_url_with_query),
     )

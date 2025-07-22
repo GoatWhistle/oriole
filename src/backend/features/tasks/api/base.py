@@ -42,11 +42,15 @@ async def get_user_tasks(
     user_id: int = Depends(get_current_active_auth_user_id),
 ):
     data = await task_service.get_user_tasks(session, user_id, is_active)
+    base_url_with_query = request.url.include_query_params(
+        is_active=is_active, page=page, per_page=per_page
+    )
+
     return create_json_response(
         data=data,
         page=page,
         per_page=per_page,
-        base_url=f"{str(request.base_url).rstrip("/")}/api/tasks/base/?is_active={is_active if is_active else False}",
+        base_url=str(base_url_with_query),
     )
 
 
@@ -82,12 +86,21 @@ async def get_solution(
     status_code=HTTPStatus.OK,
 )
 async def get_solutions_in_task(
+    request: Request,
     task_id: int,
+    page: int | None = None,
+    per_page: int | None = None,
     session: AsyncSession = Depends(db_helper.dependency_session_getter),
     user_id: int = Depends(get_current_active_auth_user_id),
 ):
     data = await solution_service.get_solutions_in_task(session, user_id, task_id)
-    return create_json_response(data=data)
+
+    return create_json_response(
+        data=data,
+        page=page,
+        per_page=per_page,
+        base_url=f"{str(request.base_url).rstrip("/")}/api/tasks/{task_id}/solutions/",
+    )
 
 
 @router.delete(
