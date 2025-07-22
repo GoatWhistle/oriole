@@ -41,9 +41,9 @@ export const handleFetchGroup = async (groupId) => {
   }
 };
 
-export const handleLeaveGroup = async (groupId) => {
+export const handleLeaveGroup = async (spaceId) => {
   try {
-    await leaveGroup(groupId);
+    await leaveGroup(spaceId);
     return true;
   } catch (error) {
     return fetchError(error, 'Не удалось выйти из группы');

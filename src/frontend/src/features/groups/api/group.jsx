@@ -12,8 +12,8 @@ export const fetchGroup = async (groupId) => {
   return response.data;
 };
 
-export const leaveGroup = async (groupId) => {
-  await axios.delete(`/api/groups/${groupId}/leave/`);
+export const leaveGroup = async (spaceId) => {
+  await axios.delete(`/api/spaces/${spaceId}/leave/`);
 };
 
 export const updateGroup = async (groupId, data) => {
