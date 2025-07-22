@@ -28,7 +28,7 @@ export const forgotPassword = async (email) => {
 };
 
 export const register = async (userData) => {
-  const response = await axios.post('/api/auth/register', userData, {
+  const response = await axios.post("/api/auth/register/", userData, {
     headers: {
       'Content-Type': 'application/json',
       'Accept': 'application/json',

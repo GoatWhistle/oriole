@@ -3,27 +3,27 @@ import { fetchError } from '../../api/error'
 import { promoteUser, demoteUser, kickUser, loadGroups, showGroupList } from '../../groups/api/user';
 
 
-export const handlePromoteUser = async (groupId, userId) => {
+export const handlePromoteUser = async (spaceId, userId) => {
   try {
-    await promoteUser(groupId, userId);
+    await promoteUser(spaceId, userId);
     return { userId, newRole: 1 };
   } catch (error) {
     return fetchError(error, 'Не удалось повысить пользователя');
   }
 };
 
-export const handleDemoteUser = async (groupId, userId) => {
+export const handleDemoteUser = async (spaceId, userId) => {
   try {
-    await demoteUser(groupId, userId);
+    await demoteUser(spaceId, userId);
     return { userId, newRole: 2 };
   } catch (error) {
     return fetchError(error, 'Не удалось понизить пользователя');
   }
 };
 
-export const handleKickUser = async (groupId, userId) => {
+export const handleKickUser = async (spaceId, userId) => {
   try {
-    await removeUserFromGroup(groupId, userId);
+    await removeUserFromGroup(spaceId, userId);
     return userId;
   } catch (error) {
     return fetchError(error, 'Не удалось удалить пользователя');

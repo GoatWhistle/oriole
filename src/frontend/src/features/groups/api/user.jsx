@@ -1,15 +1,15 @@
 import axios from 'axios';
 
-export const promoteUser = async (groupId, userId) => {
-  await axios.patch(`/api/groups/${groupId}/promote/${userId}/`);
+export const promoteUser = async (spaceId, userId) => {
+  await axios.patch(`/api/spaces/${spaceId}/promote/${userId}/`);
 };
 
-export const demoteUser = async (groupId, userId) => {
-  await axios.patch(`/api/groups/${groupId}/demote/${userId}/`);
+export const demoteUser = async (spaceId, userId) => {
+  await axios.patch(`/api/spaces/${spaceId}/demote/${userId}/`);
 };
 
-export const kickUser = async (groupId, userId) => {
-  await axios.delete(`/api/groups/${groupId}/kick/${userId}/`);
+export const kickUser = async (spaceId, userId) => {
+  await axios.delete(`/api/spaces/${spaceId}/kick/${userId}/`);
 };
 
 /* Figure out how to visualize user groups more effective */
