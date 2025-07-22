@@ -56,6 +56,8 @@ async def get_group_invite(
 async def get_group_invites_in_group(
     request: Request,
     group_id: int,
+    page: int | None = None,
+    per_page: int | None = None,
     is_active: bool | None = None,
     session: AsyncSession = Depends(db_helper.dependency_session_getter),
     user_id: int = Depends(get_current_active_auth_user_id),
@@ -63,7 +65,15 @@ async def get_group_invites_in_group(
     data = await group_invite_service.get_group_invites_in_group(
         session, user_id, request, group_id, is_active
     )
-    return create_json_response(data=data)
+    base_url_with_query = request.url.include_query_params(
+        is_active=is_active, page=page, per_page=per_page
+    )
+    return create_json_response(
+        data=data,
+        page=page,
+        per_page=per_page,
+        base_url=str(base_url_with_query),
+    )
 
 
 @router.put(
