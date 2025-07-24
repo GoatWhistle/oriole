@@ -14,20 +14,17 @@ from features.solutions.validators.membership import check_user_is_creator_of_so
 from features.tasks.validators import get_task_or_404
 from features.tasks.validators.existence import get_tests_or_404
 from shared.validators import check_is_active
-from utils.code_check import get_runtime_or_404
 
 
 async def create_code_solution(
     session: AsyncSession,
     user_id: int,
     solution_in: CodeSolutionCreate,
-    language: str,
 ) -> CodeSolutionRead:
     task = cast(
         CodeTask,
         await get_task_or_404(session, solution_in.task_id, CodeTask),
     )
-    runtime = get_runtime_or_404(language)
     module = await get_module_or_404(session, task.module_id)
     _ = await get_group_or_404(session, module.space_id)
     account = await get_account_or_404(session, user_id, module.space_id)
@@ -38,7 +35,7 @@ async def create_code_solution(
     solution = await code_solution_crud.create_solution(
         session, solution_in, account.id
     )
-    check_code.delay(solution.id, runtime)
+    check_code.delay(solution.id)
     return CodeSolutionRead.model_validate(solution)
 
 
