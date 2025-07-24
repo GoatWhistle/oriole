@@ -10,7 +10,7 @@ async def create_solution(
     user_id: int,
 ) -> CodeSolution:
     solution = CodeSolution(**solution_in.model_dump())
-    solution.account_id = user_id
+    solution.creator_id = user_id
     session.add(solution)
     await session.commit()
     await session.refresh(solution)

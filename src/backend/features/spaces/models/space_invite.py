@@ -25,7 +25,7 @@ class SpaceInvite(Base, IdIntPkMixin):
         "with_polymorphic": "*",
     }
 
-    title: Mapped[str] = mapped_column(String(100))
+    title: Mapped[str | None] = mapped_column(String(100), nullable=True)
 
     space_id: Mapped[int] = mapped_column(ForeignKey("spaces.id"))
     creator_id: Mapped[int] = mapped_column(ForeignKey("accounts.id"))
