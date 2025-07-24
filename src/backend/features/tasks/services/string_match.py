@@ -72,7 +72,12 @@ async def update_string_match_task(
     validate_task_deadlines(
         updated_start, updated_end, module.start_datetime, module.end_datetime
     )
-    validate_string_match_task_configuration(task_update)
+    if (
+        "compare_as_number" in update_data
+        and "is_case_sensitive" in update_data
+        and "normalize_whitespace" in update_data
+    ):
+        validate_string_match_task_configuration(update_data)
     task = await base_task_crud.update_task(session, task, update_data)
 
     solutions = await solution_crud.get_solutions_by_account_id_and_task_id(

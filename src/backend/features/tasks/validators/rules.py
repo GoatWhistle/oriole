@@ -8,7 +8,6 @@ from features.tasks.exceptions import (
     InvalidStringMatchTaskWithStringConfiguration,
 )
 from features.tasks.models import BaseTask
-from features.tasks.schemas import StringMatchTaskBase
 
 
 def check_counter_limit(
@@ -37,7 +36,7 @@ async def validate_solution_creation(
     return total_attempts
 
 
-def validate_string_match_task_configuration(task: StringMatchTaskBase) -> None:
+def validate_string_match_task_configuration(task) -> None:
     if task.compare_as_number:
         if task.is_case_sensitive is not None or task.normalize_whitespace is not None:
             raise InvalidStringMatchTaskWithNumberConfiguration()
