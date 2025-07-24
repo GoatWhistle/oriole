@@ -5,6 +5,7 @@ __all__ = [
     "BaseTaskReadWithCorrectness",
     "BaseTaskReadWithSolutions",
     "BaseTaskUpdate",
+    "StringMatchTaskBase",
     "StringMatchTaskCreate",
     "StringMatchTaskRead",
     "StringMatchTaskReadWithCorrectness",
@@ -38,6 +39,7 @@ from .code import (
     CodeTaskUpdate,
 )
 from .string_match import (
+    StringMatchTaskBase,
     StringMatchTaskCreate,
     StringMatchTaskRead,
     StringMatchTaskReadWithCorrectness,

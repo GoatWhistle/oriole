@@ -1,8 +1,8 @@
 """Rework group_invites and add space_join_requests
 
-Revision ID: ce79772e24c8
+Revision ID: 155b9d224935
 Revises: 0454238a41fe
-Create Date: 2025-07-18 19:42:42.703221
+Create Date: 2025-07-24 16:21:22.028333
 
 """
 
@@ -13,7 +13,7 @@ import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision: str = "ce79772e24c8"
+revision: str = "155b9d224935"
 down_revision: Union[str, None] = "0454238a41fe"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -25,7 +25,7 @@ def upgrade() -> None:
     op.create_table(
         "space_invites",
         sa.Column("space_invite_type", sa.String(length=50), nullable=False),
-        sa.Column("title", sa.String(length=100), nullable=False),
+        sa.Column("title", sa.String(length=100), nullable=True),
         sa.Column("space_id", sa.Integer(), nullable=False),
         sa.Column("creator_id", sa.Integer(), nullable=False),
         sa.Column(
@@ -116,8 +116,8 @@ def upgrade() -> None:
         ["id"],
     )
     op.drop_column("group_invites", "space_id")
-    op.drop_column("group_invites", "is_active")
     op.drop_column("group_invites", "expires_at")
+    op.drop_column("group_invites", "is_active")
     op.drop_constraint(
         op.f("fk_modules_creator_id_user_profiles"),
         "modules",
@@ -144,6 +144,24 @@ def upgrade() -> None:
         ["id"],
     )
     op.drop_column("solutions", "account_id")
+    op.add_column(
+        "string_match_tasks",
+        sa.Column("compare_as_number", sa.Boolean(), nullable=False),
+    )
+    op.alter_column(
+        "string_match_tasks",
+        "is_case_sensitive",
+        existing_type=sa.BOOLEAN(),
+        nullable=True,
+    )
+    op.alter_column(
+        "string_match_tasks",
+        "normalize_whitespace",
+        existing_type=sa.BOOLEAN(),
+        nullable=True,
+    )
+    op.drop_column("string_match_tasks", "ignore_leading_zeros_in_numbers")
+    op.drop_column("string_match_tasks", "standardize_numeric_punctuation")
     op.drop_constraint(
         op.f("fk_tasks_creator_id_user_profiles"), "tasks", type_="foreignkey"
     )
@@ -170,6 +188,37 @@ def downgrade() -> None:
         ["creator_id"],
         ["user_id"],
     )
+    op.add_column(
+        "string_match_tasks",
+        sa.Column(
+            "standardize_numeric_punctuation",
+            sa.BOOLEAN(),
+            autoincrement=False,
+            nullable=False,
+        ),
+    )
+    op.add_column(
+        "string_match_tasks",
+        sa.Column(
+            "ignore_leading_zeros_in_numbers",
+            sa.BOOLEAN(),
+            autoincrement=False,
+            nullable=False,
+        ),
+    )
+    op.alter_column(
+        "string_match_tasks",
+        "normalize_whitespace",
+        existing_type=sa.BOOLEAN(),
+        nullable=False,
+    )
+    op.alter_column(
+        "string_match_tasks",
+        "is_case_sensitive",
+        existing_type=sa.BOOLEAN(),
+        nullable=False,
+    )
+    op.drop_column("string_match_tasks", "compare_as_number")
     op.add_column(
         "solutions",
         sa.Column("account_id", sa.INTEGER(), autoincrement=False, nullable=False),
@@ -199,16 +248,16 @@ def downgrade() -> None:
     )
     op.add_column(
         "group_invites",
+        sa.Column("is_active", sa.BOOLEAN(), autoincrement=False, nullable=False),
+    )
+    op.add_column(
+        "group_invites",
         sa.Column(
             "expires_at",
             postgresql.TIMESTAMP(timezone=True),
             autoincrement=False,
             nullable=False,
         ),
-    )
-    op.add_column(
-        "group_invites",
-        sa.Column("is_active", sa.BOOLEAN(), autoincrement=False, nullable=False),
     )
     op.add_column(
         "group_invites",

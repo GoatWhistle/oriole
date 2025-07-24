@@ -12,10 +12,9 @@ from features.tasks.schemas import (
 
 
 class StringMatchTaskBase(BaseTaskModel):
-    is_case_sensitive: bool = True
-    normalize_whitespace: bool = False
-    standardize_numeric_punctuation: bool = False
-    ignore_leading_zeros_in_numbers: bool = False
+    compare_as_number: bool = False
+    is_case_sensitive: bool | None = None
+    normalize_whitespace: bool | None = None
 
 
 class StringMatchTaskCreate(StringMatchTaskBase, BaseTaskCreate):
@@ -63,7 +62,6 @@ class StringMatchTaskReadWithSolutions(
 class StringMatchTaskUpdate(BaseTaskUpdate):
     correct_answer: str | None = Field(default=None, max_length=300)
 
+    compare_as_number: bool | None = None
     is_case_sensitive: bool | None = None
     normalize_whitespace: bool | None = None
-    standardize_numeric_punctuation: bool | None = None
-    ignore_leading_zeros_in_numbers: bool | None = None
