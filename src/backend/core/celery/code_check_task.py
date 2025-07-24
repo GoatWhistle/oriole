@@ -1,9 +1,11 @@
+import os
+
 import docker
 from requests.exceptions import ReadTimeout, ConnectionError, ConnectTimeout
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from core.config import settings
+from core.config import settings, BASE_DIR
 from features import CodeTask, Test
 from features.solutions.exceptions.existence import SolutionNotFoundException
 from features.solutions.models import CodeSolution
@@ -20,7 +22,6 @@ def run_code_in_container(
     input_data: str,
     mem_limit: str,
     time_limit: float,
-    runtime: dict,
 ):
     client = docker.from_env()
 
@@ -29,14 +30,14 @@ def run_code_in_container(
 
     try:
         image, build_logs = client.images.build(
-            path=runtime["build_path"],
+            path=os.path.join(BASE_DIR, "core/celery/runtimes/python"),
             dockerfile="Dockerfile",
-            tag=runtime["image"],
+            tag="runner-python:3.9",
             rm=True,
         )
         container = client.containers.run(
             image=image,
-            command=runtime["command"](code),
+            command=["python", "-c", code],
             stdin_open=bool(input_data),
             stdout=True,
             stderr=True,
@@ -53,7 +54,6 @@ def run_code_in_container(
             security_opt=["no-new-privileges:true"],
             cap_drop=["ALL"],
         )
-
         if input_data:
             socket = container.attach_socket(params={"stdin": 1, "stream": 1})
             socket._sock.send(input_data.encode() + b"\n")
@@ -77,7 +77,7 @@ def run_code_in_container(
 
 
 @app.task(name="core.celery.code_check_task.check_code")
-def check_code(solution_id, runtime):
+def check_code(solution_id):
     with SessionLocal() as session:
         solution = session.get(CodeSolution, solution_id)
         if not solution:
@@ -94,7 +94,7 @@ def check_code(solution_id, runtime):
 
         for test in tests:
             stdout, stderr, status_code, timed_out, oom_killed = run_code_in_container(
-                solution.code, test.input_data, mem_limit, time_limit, runtime
+                solution.code, test.input_data, mem_limit, time_limit
             )
 
             result = analyze_result(
