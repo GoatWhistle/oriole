@@ -13,3 +13,13 @@ class TaskCounterLimitExceededException(RuleException):
 
 class TestIsNotPublic(RuleException):
     detail: str = "Test is not public"
+
+
+class InvalidStringMatchTaskWithNumberConfiguration(RuleException):
+    detail: str = "If compare_as_number is True, other options must be None"
+
+
+class InvalidStringMatchTaskWithStringConfiguration(RuleException):
+    detail: str = (
+        "If compare_as_number is False, string comparison options must be explicitly set"
+    )

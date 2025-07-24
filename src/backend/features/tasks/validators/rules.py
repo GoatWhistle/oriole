@@ -4,8 +4,11 @@ import features.solutions.crud.base as crud
 from features.tasks.exceptions import (
     TaskCounterLimitExceededException,
     TaskAlreadySolved,
+    InvalidStringMatchTaskWithNumberConfiguration,
+    InvalidStringMatchTaskWithStringConfiguration,
 )
 from features.tasks.models import BaseTask
+from features.tasks.schemas import StringMatchTaskBase
 
 
 def check_counter_limit(
@@ -32,3 +35,12 @@ async def validate_solution_creation(
         raise TaskAlreadySolved()
 
     return total_attempts
+
+
+def validate_string_match_task_configuration(task: StringMatchTaskBase) -> None:
+    if task.compare_as_number:
+        if task.is_case_sensitive is not None or task.normalize_whitespace is not None:
+            raise InvalidStringMatchTaskWithNumberConfiguration()
+    else:
+        if task.is_case_sensitive is None or task.normalize_whitespace is None:
+            raise InvalidStringMatchTaskWithStringConfiguration()

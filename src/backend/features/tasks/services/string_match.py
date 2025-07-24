@@ -24,6 +24,7 @@ from features.tasks.schemas import StringMatchTaskReadWithCorrectness
 from features.tasks.validators import (
     get_task_or_404,
     validate_task_deadlines,
+    validate_string_match_task_configuration,
 )
 
 
@@ -44,7 +45,7 @@ async def create_string_match_task(
         module.start_datetime,
         module.end_datetime,
     )
-
+    validate_string_match_task_configuration(task_in)
     task = await task_crud.create_string_match_task(session, task_in, account.id)
     await module_crud.increment_module_tasks_count(session, module.id)
 
@@ -71,6 +72,7 @@ async def update_string_match_task(
     validate_task_deadlines(
         updated_start, updated_end, module.start_datetime, module.end_datetime
     )
+    validate_string_match_task_configuration(task_update)
     task = await base_task_crud.update_task(session, task, update_data)
 
     solutions = await solution_crud.get_solutions_by_account_id_and_task_id(
