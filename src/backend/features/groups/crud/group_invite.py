@@ -115,6 +115,14 @@ async def update_group_invites_activity():
         await local_db_helper.dispose()
 
 
+async def increment_group_invite_user_usages_count(
+    session: AsyncSession,
+    group_invite: GroupInvite,
+) -> None:
+    group_invite.users_usages += 1
+    await session.commit()
+
+
 async def delete_group_invite(
     session: AsyncSession,
     group_invite: GroupInvite,

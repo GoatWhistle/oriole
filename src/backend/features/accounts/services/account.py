@@ -2,6 +2,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 import features.accounts.crud.account as account_crud
 import features.accounts.mappers as mapper
+import features.groups.crud.group_invite as group_invite_crud
 import features.spaces.crud.space_join_request as space_join_request_crud
 import features.spaces.mappers as space_mapper
 import features.users.crud.user_profile as user_profile_crud
@@ -157,6 +158,10 @@ async def join_to_group(
             SpaceJoinStatusEnum.ALREADY_REQUESTED, user_id, group_invite.space_id
         )
 
+    await group_invite_crud.increment_group_invite_user_usages_count(
+        session, group_invite
+    )
+
     if group_invite.needs_approval:
         space_join_request_create = SpaceJoinRequestCreate(
             user_id=user_id,
@@ -173,6 +178,7 @@ async def join_to_group(
         await account_crud.create_account(
             session, user_id, group_invite.space_id, AccountRole.MEMBER.value
         )
+
         return space_mapper.build_space_join_status_read(
             SpaceJoinStatusEnum.JOINED, user_id, group_invite.space_id
         )
