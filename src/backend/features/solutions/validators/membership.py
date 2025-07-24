@@ -6,5 +6,5 @@ def check_user_is_creator_of_solution(
     account: Account,
     solution: BaseSolution,
 ):
-    if account.id != solution.account_id:
+    if account.id != solution.creator_id:
         raise UserNotCreatorOfSolutionException()

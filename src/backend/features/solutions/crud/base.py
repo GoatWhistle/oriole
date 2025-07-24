@@ -23,7 +23,7 @@ async def get_solutions(
     conditions = []
 
     if account_ids is not None:
-        conditions.append(BaseSolution.account_id.in_(account_ids))
+        conditions.append(BaseSolution.creator_id.in_(account_ids))
     if task_ids is not None:
         conditions.append(BaseSolution.task_id.in_(task_ids))
 
