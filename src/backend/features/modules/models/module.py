@@ -11,6 +11,7 @@ if TYPE_CHECKING:
     from features.tasks.models import BaseTask
     from features.spaces.models import Space
     from features.accounts.models import Account
+    from features.modules.models import AccountModuleProgress
 
 
 class Module(Base, IdIntPkMixin):
@@ -22,6 +23,9 @@ class Module(Base, IdIntPkMixin):
 
     creator: Mapped["Account"] = relationship(back_populates="created_modules")
     space: Mapped["Space"] = relationship(back_populates="modules")
+    account_progresses: Mapped["AccountModuleProgress"] = relationship(
+        back_populates="module"
+    )
 
     tasks: Mapped[list["BaseTask"]] = relationship(
         back_populates="module", cascade="all, delete-orphan"

@@ -13,6 +13,7 @@ if TYPE_CHECKING:
     from features.modules.models import Module
     from features.solutions.models import BaseSolution
     from features.accounts.models import Account
+    from features.tasks.models import AccountTaskProgress
 
 
 class BaseTask(Base, IdIntPkMixin):
@@ -54,3 +55,6 @@ class BaseTask(Base, IdIntPkMixin):
     creator: Mapped["Account"] = relationship(back_populates="created_tasks")
     module: Mapped["Module"] = relationship(back_populates="tasks")
     solutions: Mapped[list["BaseSolution"]] = relationship(back_populates="task")
+    account_progresses: Mapped["AccountTaskProgress"] = relationship(
+        back_populates="task"
+    )

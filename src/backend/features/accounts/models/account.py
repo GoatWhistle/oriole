@@ -10,8 +10,8 @@ if TYPE_CHECKING:
     from features.users.models import UserProfile
     from features.spaces.models import Space, SpaceInvite
     from features.solutions.models import BaseSolution, SolutionFeedback
-    from features.modules.models import Module
-    from features.tasks.models import BaseTask
+    from features.modules.models import AccountModuleProgress, Module
+    from features.tasks.models import AccountTaskProgress, BaseTask
 
     from features import Chat
     from features import ChatAccountAssociation
@@ -37,6 +37,13 @@ class Account(Base, IdIntPkMixin):
     )
     created_feedbacks: Mapped[list["SolutionFeedback"]] = relationship(
         back_populates="creator"
+    )
+
+    module_progresses: Mapped["AccountModuleProgress"] = relationship(
+        back_populates="account"
+    )
+    task_progresses: Mapped["AccountTaskProgress"] = relationship(
+        back_populates="account"
     )
 
     messages: Mapped[List["Message"]] = relationship(

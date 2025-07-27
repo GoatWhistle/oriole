@@ -1,4 +1,5 @@
 __all__ = [
+    "AccountTaskProgress",
     "BaseTask",
     "StringMatchTask",
     "MultipleChoiceTask",
@@ -6,4 +7,4 @@ __all__ = [
     "Test",
 ]
 
-from .models import BaseTask, StringMatchTask, MultipleChoiceTask, CodeTask, Test
+from .models import AccountTaskProgress, BaseTask, StringMatchTask, MultipleChoiceTask, CodeTask, Test
