@@ -20,6 +20,12 @@ __all__ = [
     "TestCreate",
     "TestRead",
     "TestUpdate",
+    "MultipleChoiceTaskBase",
+    "MultipleChoiceTaskCreate",
+    "MultipleChoiceTaskRead",
+    "MultipleChoiceTaskReadWithCorrectness",
+    "MultipleChoiceTaskReadWithSolutions",
+    "MultipleChoiceTaskUpdate",
 ]
 
 from .base import (
@@ -47,3 +53,12 @@ from .string_match import (
     StringMatchTaskUpdate,
 )
 from .test import TestCreate, TestRead, TestUpdate
+
+from .choice import (
+    MultipleChoiceTaskBase,
+    MultipleChoiceTaskCreate,
+    MultipleChoiceTaskRead,
+    MultipleChoiceTaskReadWithCorrectness,
+    MultipleChoiceTaskReadWithSolutions,
+    MultipleChoiceTaskUpdate,
+)
