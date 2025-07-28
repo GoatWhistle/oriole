@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, Query, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from database import db_helper
-from features.notifications import services as notification_service
+from features.notifications.services import notification as notification_service
 from features.users.services.auth import get_current_active_auth_user_id
 from utils.response_func import create_json_response
 from utils.schemas import SuccessResponse, SuccessListResponse

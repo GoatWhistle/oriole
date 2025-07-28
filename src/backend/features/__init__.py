@@ -16,6 +16,7 @@ __all__ = [
     "Message",
     "ChatAccountAssociation",
     "Chat",
+    "Notification",
 ]
 
 from .accounts import Account
@@ -26,3 +27,4 @@ from .solutions import BaseSolution, StringMatchSolution, CodeSolution
 from .spaces import Space
 from .tasks import BaseTask, StringMatchTask, CodeTask, Test
 from .users import User, UserProfile
+from .notifications import Notification

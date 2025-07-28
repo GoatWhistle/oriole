@@ -48,3 +48,6 @@ async def validate_notification_creation(
 
     if len(notification_data["message"]) > 500:
         raise ValueError("Notification message is too long (max 500 characters)")
+
+    if not user:
+        raise ValueError("User not found")

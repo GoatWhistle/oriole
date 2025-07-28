@@ -40,5 +40,10 @@ class UserProfile(Base):
         cascade="all, delete-orphan",
         order_by="Notification.created_at.desc()"
     )
+    notification_settings: Mapped["UserNotificationSettings"] = relationship(
+        back_populates="user",
+        cascade="all, delete-orphan",
+        uselist=False
+    )
     def get_validation_schema(self) -> UserProfileRead:
         return UserProfileRead.model_validate(self)

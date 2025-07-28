@@ -2,4 +2,4 @@ __all__ = [
     "Notification"
 ]
 
-from .base import Notification
+from .notification import Notification
