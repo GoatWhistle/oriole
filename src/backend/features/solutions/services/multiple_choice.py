@@ -2,7 +2,7 @@ from typing import cast
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-import features.solutions.crud.choice as multiple_choice_solution_crud
+import features.solutions.crud.multiple_choice as multiple_choice_solution_crud
 from features.groups.validators import get_account_or_404
 from features.modules.validators import get_module_or_404
 from features.solutions.schemas import (
@@ -11,13 +11,12 @@ from features.solutions.schemas import (
 )
 from features.spaces.validators import get_space_or_404
 from features.tasks.models import MultipleChoice
-from shared.validators import check_is_active
-
 from features.tasks.validators import (
     check_counter_limit,
     get_task_or_404,
     validate_solution_creation,
 )
+from shared.validators import check_is_active
 
 
 async def create_multiple_choice_solution(

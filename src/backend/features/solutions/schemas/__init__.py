@@ -14,6 +14,6 @@ __all__ = [
 
 from .base import BaseSolutionModel, BaseSolutionCreate, BaseSolutionRead
 from .code import CodeSolutionCreate, CodeSolutionRead
-from .string_match import StringMatchSolutionCreate, StringMatchSolutionRead
-from .choice import MultipleChoiceSolutionCreate, MultipleChoiceSolutionRead
 from .feedback_multiple import BaseFeedbackModel, MultipleChoiceFeedback
+from .multiple_choice import MultipleChoiceSolutionCreate, MultipleChoiceSolutionRead
+from .string_match import StringMatchSolutionCreate, StringMatchSolutionRead

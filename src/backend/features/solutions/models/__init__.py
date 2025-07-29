@@ -7,5 +7,5 @@ __all__ = [
 
 from .base import BaseSolution
 from .code import CodeSolution
+from .multiple_choice import MultipleChoiceSolution
 from .string_match import StringMatchSolution
-from .choice import MultipleChoiceSolution

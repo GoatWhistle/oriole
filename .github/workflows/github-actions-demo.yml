@@ -46,7 +46,7 @@ jobs:
           pip install poetry
           poetry install --no-interaction --no-ansi
 
-      - name: Create ..env file
+      - name: Create .env file
         run: |
           echo "BACKEND_PORT=${{ secrets.BACKEND_PORT }}" > ./src/backend/.env
           echo "DB_URL=${{ secrets.DB_URL }}" >> ./src/backend/.env
@@ -58,7 +58,7 @@ jobs:
           echo "ADMIN_PORT=${{ secrets.ADMIN_PORT }}" >> ./src/backend/.env
           echo "REDIS_PORT=${{ secrets.REDIS_PORT }}" >> ./src/backend/.env
 
-      - name: Create ..env file
+      - name: Create .env file
         run: |
           echo "APP_CONFIG__DB__URL=${{ secrets.APP_CONFIG__DB__URL }}" > ./src/backend/.env.app_config
           echo "APP_CONFIG__RUN__PORT=${{ secrets.APP_CONFIG__RUN__PORT }}" >> ./src/backend/.env.app_config
@@ -87,20 +87,20 @@ jobs:
       - name: Create jwt-public.pem
         run: echo "${{ secrets.JWT-PUBLIC }}" > ./src/backend/jwt-public.pem
 
-      - name: Show ..env file
-        run: cat ./src/backend/..env
+      - name: Show .env file
+        run: cat ./src/backend/.env
 
-      - name: Show ..env.app_config file
-        run: cat ./src/backend/..env.app_config
+      - name: Show .env.app_config file
+        run: cat ./src/backend/.env.app_config
 
       - name: Show directory structure
         run: tree -a -L 3 ./
 
-      - name: List .env and py files
-        run: find ./src -name "..env*"
+      - name: List env and py files
+        run: find ./src -name ".env*"
 
       - name: Build and start services
-        run: docker compose --.env-file src/backend/..env up -d --build
+        run: docker compose --env-file src/backend/.env up -d --build
 
       - name: Show running containers
         run: docker ps -a
@@ -108,8 +108,8 @@ jobs:
       - name: Wait for services to be ready
         run: sleep 10
 
-#      - name: Run tests in backend container
-#        run: PYTHONPATH=src/backend poetry run pytest src/tests/
+      #      - name: Run tests in backend container
+      #        run: PYTHONPATH=src/backend poetry run pytest src/tests/
 
       - name: Tear down containers
         if: always()

@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 import features.modules.crud.module as module_crud
 import features.solutions.crud.base as solution_crud
 import features.tasks.crud.base as base_task_crud
-import features.tasks.crud.choice as choice_crud
+import features.tasks.crud.multiple_choice as choice_crud
 import features.tasks.mappers as mapper
 from features.groups.validators import (
     get_account_or_404,
