@@ -15,4 +15,3 @@ class MultipleChoiceSolutionCreate(MultipleChoiceSolutionBase, BaseSolutionCreat
 
 class MultipleChoiceSolutionRead(MultipleChoiceSolutionBase, BaseSolutionRead):
     pass
-

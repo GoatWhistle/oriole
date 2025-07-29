@@ -2,7 +2,7 @@ __all__ = [
     "BaseSolution",
     "StringMatchSolution",
     "CodeSolution",
-    "MultipleChoiceSolution"
+    "MultipleChoiceSolution",
 ]
 
 from .base import BaseSolution

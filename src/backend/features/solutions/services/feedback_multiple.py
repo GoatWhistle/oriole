@@ -1,5 +1,3 @@
-from typing import cast
-
 from sqlalchemy.ext.asyncio import AsyncSession
 
 import features.solutions.crud.feedback_multiple as multiple_choice_solution_feedback_crud
@@ -31,8 +29,10 @@ async def create_feedback_multiple_choice_solution(
     total_attempts = await validate_solution_creation(session, account.id, task)
     check_counter_limit(task.max_attempts, total_attempts)
 
-    feedback = await multiple_choice_solution_feedback_crud.create_string_match_solution(
-        session, feedback_in, account.id
+    feedback = (
+        await multiple_choice_solution_feedback_crud.create_string_match_solution(
+            session, feedback_in, account.id
+        )
     )
 
     return feedback.get_validation_schema()

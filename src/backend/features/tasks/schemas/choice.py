@@ -1,5 +1,3 @@
-from pydantic import Field
-
 from features.solutions.schemas import MultipleChoiceSolutionRead
 from features.tasks.schemas import (
     BaseTaskModel,

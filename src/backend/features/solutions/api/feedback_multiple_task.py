@@ -6,7 +6,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 import features.solutions.services.feedback_multiple as feedback_service
 from database import db_helper
 from features.solutions.schemas import MultipleChoiceFeedback
-from features.users.services.auth import get_current_active_auth_user_id
 from utils.response_func import create_json_response
 from utils.schemas import SuccessResponse
 
