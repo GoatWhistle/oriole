@@ -1,12 +1,11 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
 import features.solutions.crud.feedback_multiple as multiple_choice_solution_feedback_crud
-from features import MultipleChoice
 from features.groups.validators import get_account_or_404
 from features.modules.validators import get_module_or_404
 from features.solutions.schemas import MultipleChoiceFeedback
-
 from features.spaces.validators import get_space_or_404
+from features.tasks.models import MultipleChoice
 from features.tasks.validators import (
     check_counter_limit,
     get_task_or_404,
