@@ -18,6 +18,8 @@ from features.tasks.validators import (
     get_task_or_404,
     validate_solution_creation,
 )
+
+
 async def create_multiple_choice_solution(
     session: AsyncSession,
     user_id: int,

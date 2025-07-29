@@ -1,6 +1,5 @@
 from sqlalchemy import ForeignKey, String, ARRAY
 from sqlalchemy.orm import Mapped, mapped_column
-from pydantic import Field
 
 from features.solutions.models import BaseSolution
 from features.solutions.schemas import MultipleChoiceSolutionRead
@@ -17,7 +16,6 @@ class MultipleChoiceSolution(BaseSolution):
 
     user_answer: Mapped[list] = mapped_column(ARRAY(String))
     feedback: Mapped[str] = mapped_column(String(500), nullable=True)
-
 
     def get_validation_schema(self) -> MultipleChoiceSolutionRead:
         return MultipleChoiceSolutionRead.model_validate(self)

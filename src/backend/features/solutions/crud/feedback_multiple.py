@@ -10,11 +10,8 @@ async def create_feedback_to_multiple_choice_solution(
     feedback: MultipleChoiceFeedback,
 ) -> MultipleChoiceSolution:
     current_solution = await solutions_crud_base.get_solution_by_id(
-        session=session,
-        solution_id=feedback.solution_id,
-        solution_model=BaseSolution
+        session=session, solution_id=feedback.solution_id, solution_model=BaseSolution
     )
     current_solution.feedback = feedback.feedback
     await session.commit()
     return current_solution
-

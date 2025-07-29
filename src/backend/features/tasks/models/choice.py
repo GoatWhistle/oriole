@@ -7,7 +7,7 @@ from shared.enums import TaskTypeEnum
 
 
 class MultipleChoice(BaseTask):
-    __tablename__ =  "multiple_choice"
+    __tablename__ = "multiple_choice"
     __mapper_args__ = {"polymorphic_identity": TaskTypeEnum.MULTIPLE_CHOICE.value}
 
     id: Mapped[int] = mapped_column(
@@ -17,5 +17,3 @@ class MultipleChoice(BaseTask):
 
     def get_validation_schema(self) -> MultipleChoiceTaskRead:
         return MultipleChoiceTaskRead.model_validate(self)
-
-

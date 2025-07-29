@@ -9,7 +9,7 @@ __all__ = [
     "MultipleChoiceSolutionCreate",
     "MultipleChoiceSolutionRead",
     "BaseFeedbackModel",
-    "MultipleChoiceFeedback"
+    "MultipleChoiceFeedback",
 ]
 
 from .base import BaseSolutionModel, BaseSolutionCreate, BaseSolutionRead
