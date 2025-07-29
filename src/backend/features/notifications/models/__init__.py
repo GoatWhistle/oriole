@@ -1,5 +1,3 @@
-__all__ = [
-    "Notification"
-]
+__all__ = ["Notification"]
 
 from .notification import Notification

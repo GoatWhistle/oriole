@@ -26,9 +26,7 @@ async def get_user_notifications(
     user_id: int = Depends(get_current_active_auth_user_id),
 ):
     data = await notification_service.get_user_notifications(
-        session,
-        user_id,
-        unread_only=unread_only
+        session, user_id, unread_only=unread_only
     )
     return create_json_response(
         data=data,
@@ -49,9 +47,7 @@ async def get_notification_by_id(
     user_id: int = Depends(get_current_active_auth_user_id),
 ):
     data = await notification_service.get_notification_by_id(
-        session,
-        user_id,
-        notification_id
+        session, user_id, notification_id
     )
     return create_json_response(data=data)
 
@@ -66,9 +62,7 @@ async def mark_as_read(
     user_id: int = Depends(get_current_active_auth_user_id),
 ):
     await notification_service.mark_notification_as_read(
-        session,
-        user_id,
-        notification_id
+        session, user_id, notification_id
     )
 
 
@@ -92,10 +86,7 @@ async def get_unread_count(
     session: AsyncSession = Depends(db_helper.dependency_session_getter),
     user_id: int = Depends(get_current_active_auth_user_id),
 ):
-    count = await notification_service.get_unread_notifications_count(
-        session,
-        user_id
-    )
+    count = await notification_service.get_unread_notifications_count(session, user_id)
     return create_json_response(data={"count": count})
 
 
@@ -108,8 +99,4 @@ async def delete_notification(
     session: AsyncSession = Depends(db_helper.dependency_session_getter),
     user_id: int = Depends(get_current_active_auth_user_id),
 ):
-    await notification_service.delete_notification(
-        session,
-        user_id,
-        notification_id
-    )
+    await notification_service.delete_notification(session, user_id, notification_id)

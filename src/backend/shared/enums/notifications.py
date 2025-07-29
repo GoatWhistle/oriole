@@ -11,6 +11,7 @@ class NotificationTypeEnum(StrEnum):
     DEADLINE_OVERDUE = "deadline_overdue"
     CHAT_MESSAGE = "chat_message"
 
+
 class NotificationChannelType(IntEnum):
     EMAIL = 0
     TELEGRAM = 1

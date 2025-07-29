@@ -18,11 +18,12 @@ class Notification(Base, IdIntPkMixin):
     title: Mapped[str] = mapped_column(String(100))
     message: Mapped[str] = mapped_column(String(500))
     is_read: Mapped[bool] = mapped_column(Boolean, default=False)
-    notification_type: Mapped[str] = mapped_column(String(50), nullable=False, index=True)
+    notification_type: Mapped[str] = mapped_column(
+        String(50), nullable=False, index=True
+    )
     related_entity_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True),
-        server_default=func.timezone("UTC", func.now())
+        DateTime(timezone=True), server_default=func.timezone("UTC", func.now())
     )
 
     user: Mapped["UserProfile"] = relationship(back_populates="notifications")

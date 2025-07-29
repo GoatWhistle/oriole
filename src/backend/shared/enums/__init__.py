@@ -2,7 +2,7 @@ __all__ = [
     "SpaceTypeEnum",
     "TaskTypeEnum",
     "SolutionStatusEnum",
-    "NotificationTypeEnum"
+    "NotificationTypeEnum",
 ]
 
 from .solution import SolutionStatusEnum

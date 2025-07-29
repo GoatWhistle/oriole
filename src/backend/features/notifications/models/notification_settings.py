@@ -17,11 +17,13 @@ class UserNotificationSettings(Base, IdIntPkMixin):
     telegram_enabled: Mapped[bool] = mapped_column(Boolean, default=True)
 
     chat_notifications_enabled: Mapped[bool] = mapped_column(Boolean, default=True)
-    system_notifications_enabled: Mapped[bool] = mapped_column(Boolean, default=True) #base
+    system_notifications_enabled: Mapped[bool] = mapped_column(
+        Boolean, default=True
+    )  # base
     deadline_notifications_enabled: Mapped[bool] = mapped_column(Boolean, default=True)
 
     notifications: Mapped[list["Notification"]] = relationship(
         back_populates="user_settings",
         cascade="all, delete-orphan",
-        order_by="Notification.created_at.desc()"
+        order_by="Notification.created_at.desc()",
     )

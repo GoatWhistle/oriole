@@ -8,8 +8,8 @@ from features.notifications.schemas import NotificationCreate
 
 
 async def create_notification(
-        session: AsyncSession,
-        notification_in: NotificationCreate,
+    session: AsyncSession,
+    notification_in: NotificationCreate,
 ) -> Notification:
     notification = Notification(**notification_in.model_dump())
     session.add(notification)
@@ -19,17 +19,17 @@ async def create_notification(
 
 
 async def get_notification_by_id(
-        session: AsyncSession,
-        notification_id: int,
+    session: AsyncSession,
+    notification_id: int,
 ) -> Notification | None:
     return await session.get(Notification, notification_id)
 
 
 async def get_user_notifications(
-        session: AsyncSession,
-        user_id: int,
-        limit: int = 100,
-        unread_only: bool = False,
+    session: AsyncSession,
+    user_id: int,
+    limit: int = 100,
+    unread_only: bool = False,
 ) -> Sequence[Notification]:
     stmt = select(Notification).where(Notification.user_id == user_id)
 
@@ -43,22 +43,19 @@ async def get_user_notifications(
 
 
 async def get_unread_notifications_count(
-        session: AsyncSession,
-        user_id: int,
+    session: AsyncSession,
+    user_id: int,
 ) -> int:
     stmt = select(Notification).where(
-        and_(
-            Notification.user_id == user_id,
-            Notification.is_read == False
-        )
+        and_(Notification.user_id == user_id, Notification.is_read == False)
     )
     result = await session.execute(stmt)
     return len(result.scalars().all())
 
 
 async def mark_notification_as_read(
-        session: AsyncSession,
-        notification_id: int,
+    session: AsyncSession,
+    notification_id: int,
 ) -> Notification | None:
     notification = await session.get(Notification, notification_id)
     if notification:
@@ -69,14 +66,11 @@ async def mark_notification_as_read(
 
 
 async def mark_all_as_read(
-        session: AsyncSession,
-        user_id: int,
+    session: AsyncSession,
+    user_id: int,
 ) -> None:
     stmt = select(Notification).where(
-        and_(
-            Notification.user_id == user_id,
-            Notification.is_read == False
-        )
+        and_(Notification.user_id == user_id, Notification.is_read == False)
     )
     result = await session.execute(stmt)
     notifications = result.scalars().all()
@@ -89,8 +83,8 @@ async def mark_all_as_read(
 
 
 async def delete_notification(
-        session: AsyncSession,
-        notification: Notification,
+    session: AsyncSession,
+    notification: Notification,
 ) -> None:
     await session.delete(notification)
     await session.commit()

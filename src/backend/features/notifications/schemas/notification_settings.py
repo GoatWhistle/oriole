@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 
+
 class UserNotificationSettingsUpdate(BaseModel):
     email_enabled: bool
     telegram_enabled: bool

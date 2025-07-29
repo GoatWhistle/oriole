@@ -14,6 +14,7 @@ if TYPE_CHECKING:
     from features.spaces.models import Space
     from features.notifications.models import Notification
 
+
 class UserProfile(Base):
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), primary_key=True)
     user: Mapped["User"] = relationship(back_populates="profile")
@@ -38,12 +39,11 @@ class UserProfile(Base):
     notifications: Mapped[list["Notification"]] = relationship(
         back_populates="user",
         cascade="all, delete-orphan",
-        order_by="Notification.created_at.desc()"
+        order_by="Notification.created_at.desc()",
     )
     notification_settings: Mapped["UserNotificationSettings"] = relationship(
-        back_populates="user",
-        cascade="all, delete-orphan",
-        uselist=False
+        back_populates="user", cascade="all, delete-orphan", uselist=False
     )
+
     def get_validation_schema(self) -> UserProfileRead:
         return UserProfileRead.model_validate(self)
