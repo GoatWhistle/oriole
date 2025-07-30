@@ -4,7 +4,9 @@ from fastapi import APIRouter, Depends, Query, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from database import db_helper
+from features.solutions.schemas import SolutionFeedbackCreate, SolutionFeedbackUpdate
 from features.solutions.services import base as solution_service
+from features.solutions.services import solution_feedback as solution_feedback_service
 from features.tasks.services import base as task_service
 from features.users.services.auth import get_current_active_auth_user_id
 from utils.response_func import create_json_response
@@ -47,10 +49,7 @@ async def get_user_tasks(
     )
 
     return create_json_response(
-        data=data,
-        page=page,
-        per_page=per_page,
-        base_url=str(base_url_with_query),
+        data=data, page=page, per_page=per_page, base_url=str(base_url_with_query)
     )
 
 
@@ -99,7 +98,7 @@ async def get_solutions_in_task(
         data=data,
         page=page,
         per_page=per_page,
-        base_url=f"{str(request.base_url).rstrip("/")}/api/tasks/{task_id}/solutions/",
+        base_url=f"{str(request.base_url).rstrip("/")}/api/tasks/base/{task_id}/solutions/",
     )
 
 
@@ -113,3 +112,91 @@ async def delete_solution(
     user_id: int = Depends(get_current_active_auth_user_id),
 ):
     await solution_service.delete_solution(session, user_id, solution_id)
+
+
+@router.post(
+    "/solutions/feedbacks",
+    response_model=SuccessResponse,
+    status_code=HTTPStatus.CREATED,
+)
+async def create_solution_feedback(
+    solution_id: int,
+    solution_feedback_create: SolutionFeedbackCreate,
+    session: AsyncSession = Depends(db_helper.dependency_session_getter),
+    user_id: int = Depends(get_current_active_auth_user_id),
+):
+    data = await solution_feedback_service.create_solution_feedback(
+        session, user_id, solution_id, solution_feedback_create
+    )
+    return create_json_response(data=data)
+
+
+@router.get(
+    "/solutions/feedbacks/{solution_feedback_id}/",
+    response_model=SuccessResponse,
+    status_code=HTTPStatus.OK,
+)
+async def get_solution_feedback(
+    solution_feedback_id: int,
+    session: AsyncSession = Depends(db_helper.dependency_session_getter),
+    user_id: int = Depends(get_current_active_auth_user_id),
+):
+    data = await solution_feedback_service.get_solution_feedback(
+        session, user_id, solution_feedback_id
+    )
+    return create_json_response(data=data)
+
+
+@router.get(
+    "/solutions/{solution_id}/feedbacks",
+    response_model=SuccessListResponse,
+    status_code=HTTPStatus.OK,
+)
+async def get_feedbacks_in_solution(
+    request: Request,
+    solution_id: int,
+    page: int | None = None,
+    per_page: int | None = None,
+    session: AsyncSession = Depends(db_helper.dependency_session_getter),
+    user_id: int = Depends(get_current_active_auth_user_id),
+):
+    data = await solution_feedback_service.get_feedbacks_in_solution(
+        session, user_id, solution_id
+    )
+    return create_json_response(
+        data=data,
+        page=page,
+        per_page=per_page,
+        base_url=f"{str(request.base_url).rstrip("/")}/api/tasks/base/solutions/{solution_id}/feedbacks",
+    )
+
+
+@router.put(
+    "/solutions/feedbacks/{solution_feedback_id}/",
+    response_model=SuccessResponse,
+    status_code=HTTPStatus.OK,
+)
+async def update_solution_feedback(
+    solution_feedback_update: SolutionFeedbackUpdate,
+    solution_feedback_id: int,
+    session: AsyncSession = Depends(db_helper.dependency_session_getter),
+    user_id: int = Depends(get_current_active_auth_user_id),
+):
+    data = await solution_feedback_service.update_solution_feedback(
+        session, user_id, solution_feedback_id, solution_feedback_update
+    )
+    return create_json_response(data=data)
+
+
+@router.delete(
+    "/solutions/feedbacks/{solution_feedback_id}/",
+    status_code=HTTPStatus.NO_CONTENT,
+)
+async def delete_solution_feedback(
+    solution_feedback_id: int,
+    session: AsyncSession = Depends(db_helper.dependency_session_getter),
+    user_id: int = Depends(get_current_active_auth_user_id),
+):
+    await solution_feedback_service.delete_solution_feedback(
+        session, user_id, solution_feedback_id
+    )
