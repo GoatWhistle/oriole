@@ -72,10 +72,11 @@ async def delete_task(
 )
 async def get_solution(
     solution_id: int,
+    include: list[str] | None = Query(None),
     session: AsyncSession = Depends(db_helper.dependency_session_getter),
     user_id: int = Depends(get_current_active_auth_user_id),
 ):
-    data = await solution_service.get_solution(session, user_id, solution_id)
+    data = await solution_service.get_solution(session, user_id, solution_id, include)
     return create_json_response(data=data)
 
 
