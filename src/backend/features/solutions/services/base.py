@@ -1,9 +1,10 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
 import features.solutions.crud.base as base_solution_crud
+import features.solutions.crud.solution_feedback as solution_feedback_crud
+import features.solutions.mappers as solution_mapper
 from features.groups.validators import check_user_is_admin_or_owner, get_account_or_404
 from features.modules.validators import get_module_or_404
-from features.solutions.mappers import build_base_solution_read_list
 from features.solutions.schemas import BaseSolutionRead
 from features.solutions.validators import get_solution_or_404
 from features.solutions.validators.membership import check_user_is_creator_of_solution
@@ -16,6 +17,7 @@ async def get_solution(
     session: AsyncSession,
     user_id: int,
     solution_id: int,
+    include: list[str] | None = None,
 ) -> BaseSolutionRead:
     solution = await get_solution_or_404(session, solution_id)
     task = await get_task_or_404(session, solution.task_id)
@@ -24,6 +26,15 @@ async def get_solution(
     account = await get_account_or_404(session, user_id, module.space_id)
 
     check_user_is_creator_of_solution(account, solution)
+
+    if include and "feedbacks" in include:
+        feedbacks = await solution_feedback_crud.get_feedbacks_by_solution_id(
+            session, solution_id
+        )
+        return solution_mapper.build_base_solution_read_with_feedbacks(
+            solution, feedbacks
+        )
+
     return solution.get_validation_schema()
 
 
@@ -41,7 +52,7 @@ async def get_solutions_in_task(
         session, account.id, task_id
     )
     solutions = solutions or []
-    return build_base_solution_read_list(solutions)
+    return solution_mapper.build_base_solution_read_list(solutions)
 
 
 async def delete_solution(
