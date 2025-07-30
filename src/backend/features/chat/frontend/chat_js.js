@@ -247,7 +247,6 @@ function connect() {
 }
 
 function onMessagesScroll() {
-    // Показываем кнопку "вниз", если прокрутили выше, чем на 100px от низа
     const scrollFromBottom = messagesContainer.scrollHeight - messagesContainer.clientHeight - messagesContainer.scrollTop;
     if (scrollFromBottom > 100) {
         scrollDownBtn.style.display = "block";
