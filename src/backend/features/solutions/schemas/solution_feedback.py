@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from pydantic import BaseModel, model_validator
+from pydantic import BaseModel, model_validator, ConfigDict
 
 
 class SolutionFeedbackBase(BaseModel):
@@ -19,11 +19,13 @@ class SolutionFeedbackRead(SolutionFeedbackBase):
     updated_at: datetime
     is_updated: bool
 
-    @model_validator(mode="before")
-    def hide_account_if_anonymous(cls, data: dict) -> dict:
-        if data.get("is_anonymous"):
-            data["creator_id"] = None
-        return data
+    model_config = ConfigDict(from_attributes=True)
+
+    @model_validator(mode="after")
+    def hide_account_if_anonymous(self):
+        if self.is_anonymous:
+            self.creator_id = None
+        return self
 
 
 class SolutionFeedbackUpdate(SolutionFeedbackBase):
