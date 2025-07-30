@@ -55,7 +55,7 @@ async def get_solution_feedback(
     return solution_feedback.get_validation_schema()
 
 
-async def get_feedbacks_by_solution_id(
+async def get_feedbacks_in_solution(
     session: AsyncSession,
     user_id: int,
     solution_id: int,
@@ -72,7 +72,7 @@ async def get_feedbacks_by_solution_id(
     return build_base_solution_feedback_read_list(solution_feedbacks)
 
 
-async def update_multiple_choice_task(
+async def update_solution_feedback(
     session: AsyncSession,
     user_id: int,
     solution_feedback_id: int,
