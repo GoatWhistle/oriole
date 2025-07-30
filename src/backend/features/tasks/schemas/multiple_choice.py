@@ -14,7 +14,7 @@ class MultipleChoiceTaskBase(BaseTaskModel):
 
 
 class MultipleChoiceTaskCreate(MultipleChoiceTaskBase, BaseTaskCreate):
-    correct_answer: list
+    correct_answer: list[str]
 
 
 class MultipleChoiceTaskRead(MultipleChoiceTaskBase, BaseTaskRead):

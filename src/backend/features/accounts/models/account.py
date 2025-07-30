@@ -9,9 +9,10 @@ from features.accounts.schemas import AccountRead
 if TYPE_CHECKING:
     from features.users.models import UserProfile
     from features.spaces.models import Space, SpaceInvite
-    from features.solutions.models import BaseSolution
+    from features.solutions.models import BaseSolution, SolutionFeedback
     from features.modules.models import Module
     from features.tasks.models import BaseTask
+
     from features import Chat
     from features import ChatAccountAssociation
     from features import Message
@@ -32,6 +33,9 @@ class Account(Base, IdIntPkMixin):
     created_modules: Mapped[list["Module"]] = relationship(back_populates="creator")
     created_tasks: Mapped[list["BaseTask"]] = relationship(back_populates="creator")
     created_solutions: Mapped[list["BaseSolution"]] = relationship(
+        back_populates="creator"
+    )
+    created_feedbacks: Mapped[list["SolutionFeedback"]] = relationship(
         back_populates="creator"
     )
 

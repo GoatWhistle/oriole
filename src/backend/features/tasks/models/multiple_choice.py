@@ -6,7 +6,7 @@ from features.tasks.schemas import MultipleChoiceTaskRead
 from shared.enums import TaskTypeEnum
 
 
-class MultipleChoice(BaseTask):
+class MultipleChoiceTask(BaseTask):
     __tablename__ = "multiple_choice"
     __mapper_args__ = {"polymorphic_identity": TaskTypeEnum.MULTIPLE_CHOICE.value}
 

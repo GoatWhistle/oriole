@@ -15,7 +15,6 @@ class MultipleChoiceSolution(BaseSolution):
     )
 
     user_answer: Mapped[list] = mapped_column(ARRAY(String))
-    feedback: Mapped[str] = mapped_column(String(500), nullable=True)
 
     def get_validation_schema(self) -> MultipleChoiceSolutionRead:
         return MultipleChoiceSolutionRead.model_validate(self)

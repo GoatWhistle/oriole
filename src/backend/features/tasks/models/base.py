@@ -33,7 +33,6 @@ class BaseTask(Base, IdIntPkMixin):
     module_id: Mapped[int] = mapped_column(ForeignKey("modules.id"))
 
     can_attempt: Mapped[bool] = mapped_column(default=False)
-    manual_grading: Mapped[bool] = mapped_column(default=False)
     max_attempts: Mapped[int] = mapped_column(Integer, default=0)
 
     start_datetime: Mapped[datetime] = mapped_column(

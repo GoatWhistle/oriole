@@ -84,16 +84,16 @@
 
 <div align="center">
 
-|                                                                                                                                                                    |                                                   |
-|:------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:-------------------------------------------------:|
-|  <a href="https://github.com/mikhailkhorokhorin" target="_blank"><img src="https://github.com/mikhailkhorokhorin.png" width="80" style="border-radius: 50%"></a>   |   **Михаил Хорохорин**<br>*Тимлид & Бэкенд*<br>   |
-|      <a href="https://github.com/timofeipupykin" target="_blank"><img src="https://github.com/timofeipupykin.png" width="80" style="border-radius: 50%"></a>       |        **Тимофей Пупыкин**<br>*DevOps*<br>        |
-|        <a href="https://github.com/amemeansrain" target="_blank"><img src="https://github.com/amemeansrain.png" width="80" style="border-radius: 50%"></a>         | **Роберт Савицкас**<br>*Frontend-разработчик*<br> |
-|        <a href="https://github.com/AI-AVENGER-S" target="_blank"><img src="https://github.com/AI-AVENGER-S.png" width="80" style="border-radius: 50%"></a>         |  **Артем Савельев**<br>*Backend-разработчик*<br>  |
-|          <a href="https://github.com/BazhenovDM" target="_blank"><img src="https://github.com/BazhenovDM.png" width="80" style="border-radius: 50%"></a>           | **Баженов Дмитрий**<br>*Backend-разработчик*<br>  |
-|            <a href="https://github.com/ivanGMAI" target="_blank"><img src="https://github.com/ivanGMAI.png" width="80" style="border-radius: 50%"></a>             |  **Иван Герасимов**<br>*Backend-разработчик*<br>  |
-|          <a href="https://github.com/curboturbo" target="_blank"><img src="https://github.com/curboturbo.png" width="80" style="border-radius: 50%"></a>           |  **Артем Калинин**<br>*Backend-разработчик*<br>   |
-|           <a href="https://github.com/Makpukich" target="_blank"><img src="https://github.com/Makpukich.png" width="80" style="border-radius: 50%"></a>            |    **Борис Сергеев**<br>*Tester & Backend*<br>    |
-|     <a href="https://github.com/Cyber-bober" target="_blank"><img src="https://github.com/Cyber-bober.png" width="80" style="border-radius: 50%"></a>              | **Владислав Быков**<br>*Frontend-разработчик*<br> |
+|                                                                                                                                                                 |                                                   |
+|:---------------------------------------------------------------------------------------------------------------------------------------------------------------:|:-------------------------------------------------:|
+| <a href="https://github.com/mikhailkhorokhorin" target="_blank"><img src="https://github.com/mikhailkhorokhorin.png" width="80" style="border-radius: 50%"></a> |  **Михаил Хорохорин**<br>*Тимлид & Backend*<br>   |
+|     <a href="https://github.com/timofeipupykin" target="_blank"><img src="https://github.com/timofeipupykin.png" width="80" style="border-radius: 50%"></a>     |        **Тимофей Пупыкин**<br>*DevOps*<br>        |
+|       <a href="https://github.com/amemeansrain" target="_blank"><img src="https://github.com/amemeansrain.png" width="80" style="border-radius: 50%"></a>       | **Роберт Савицкас**<br>*Frontend-разработчик*<br> |
+|       <a href="https://github.com/AI-AVENGER-S" target="_blank"><img src="https://github.com/AI-AVENGER-S.png" width="80" style="border-radius: 50%"></a>       |  **Артем Савельев**<br>*Backend-разработчик*<br>  |
+|         <a href="https://github.com/BazhenovDM" target="_blank"><img src="https://github.com/BazhenovDM.png" width="80" style="border-radius: 50%"></a>         | **Баженов Дмитрий**<br>*Backend-разработчик*<br>  |
+|           <a href="https://github.com/ivanGMAI" target="_blank"><img src="https://github.com/ivanGMAI.png" width="80" style="border-radius: 50%"></a>           |  **Иван Герасимов**<br>*Backend-разработчик*<br>  |
+|         <a href="https://github.com/curboturbo" target="_blank"><img src="https://github.com/curboturbo.png" width="80" style="border-radius: 50%"></a>         |  **Артем Калинин**<br>*Backend-разработчик*<br>   |
+|          <a href="https://github.com/Makpukich" target="_blank"><img src="https://github.com/Makpukich.png" width="80" style="border-radius: 50%"></a>          |  **Борис Сергеев**<br>*Backend-разработчик*<br>   |
+|        <a href="https://github.com/Cyber-bober" target="_blank"><img src="https://github.com/Cyber-bober.png" width="80" style="border-radius: 50%"></a>        | **Владислав Быков**<br>*Frontend-разработчик*<br> |
 
 </div>

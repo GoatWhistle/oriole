@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from features.solutions.models import BaseSolution
 
 
-async def get_solution_by_id(
+async def get_solution(
     session: AsyncSession,
     solution_id: int,
     solution_model: Type[BaseSolution] = BaseSolution,

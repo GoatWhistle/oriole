@@ -4,16 +4,21 @@ __all__ = [
     "BaseSolutionRead",
     "CodeSolutionCreate",
     "CodeSolutionRead",
-    "StringMatchSolutionCreate",
-    "StringMatchSolutionRead",
     "MultipleChoiceSolutionCreate",
     "MultipleChoiceSolutionRead",
-    "BaseFeedbackModel",
-    "MultipleChoiceFeedback",
+    "SolutionFeedbackCreate",
+    "SolutionFeedbackRead",
+    "SolutionFeedbackUpdate",
+    "StringMatchSolutionCreate",
+    "StringMatchSolutionRead",
 ]
 
 from .base import BaseSolutionModel, BaseSolutionCreate, BaseSolutionRead
 from .code import CodeSolutionCreate, CodeSolutionRead
-from .feedback_multiple import BaseFeedbackModel, MultipleChoiceFeedback
 from .multiple_choice import MultipleChoiceSolutionCreate, MultipleChoiceSolutionRead
+from .solution_feedback import (
+    SolutionFeedbackCreate,
+    SolutionFeedbackRead,
+    SolutionFeedbackUpdate,
+)
 from .string_match import StringMatchSolutionCreate, StringMatchSolutionRead

@@ -13,7 +13,7 @@ async def create_multiple_choice_solution(
 ) -> MultipleChoiceSolution:
     solution = MultipleChoiceSolution(
         **solution_in.model_dump(),
-        account_id=account_id,
+        creator_id=account_id,
         is_correct=(set(solution_in.user_answer) == set(correct_answer)),
         submitted_at=get_current_utc(),
     )
