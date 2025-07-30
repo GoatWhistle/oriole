@@ -95,6 +95,7 @@ technical stack.
 |         <a href="https://github.com/BazhenovDM" target="_blank"><img src="https://github.com/BazhenovDM.png" width="80" style="border-radius: 50%"></a>         |   **Dmitry Bazhenov**<br>*Backend Developer*<br>    |
 |           <a href="https://github.com/ivanGMAI" target="_blank"><img src="https://github.com/ivanGMAI.png" width="80" style="border-radius: 50%"></a>           |    **Ivan Gerasimov**<br>*Backend Developer*<br>    |
 |         <a href="https://github.com/curboturbo" target="_blank"><img src="https://github.com/curboturbo.png" width="80" style="border-radius: 50%"></a>         |    **Artem Kalinin**<br>*Backend Developer*<br>     |
-|          <a href="https://github.com/Makpukich" target="_blank"><img src="https://github.com/Makpukich.png" width="80" style="border-radius: 50%"></a>          |     **Boris Sergeev**<br>*Tester & Backend*<br>     |
+|          <a href="https://github.com/Makpukich" target="_blank"><img src="https://github.com/Makpukich.png" width="80" style="border-radius: 50%"></a>          |    **Boris Sergeev**<br>*Backend Developer*<br>     |
+|        <a href="https://github.com/Cyber-bober" target="_blank"><img src="https://github.com/Cyber-bober.png" width="80" style="border-radius: 50%"></a>        |   **Vladislav Bikov**<br>*Frontend Developer*<br>   |
 
 </div>

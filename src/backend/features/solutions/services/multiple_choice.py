@@ -10,7 +10,7 @@ from features.solutions.schemas import (
     MultipleChoiceSolutionCreate,
 )
 from features.spaces.validators import get_space_or_404
-from features.tasks.models import MultipleChoice
+from features.tasks.models import MultipleChoiceTask
 from features.tasks.validators import (
     check_counter_limit,
     get_task_or_404,
@@ -24,7 +24,7 @@ async def create_multiple_choice_solution(
     user_id: int,
     solution_in: MultipleChoiceSolutionCreate,
 ) -> MultipleChoiceSolutionRead:
-    task = await get_task_or_404(session, solution_in.task_id, MultipleChoice)
+    task = await get_task_or_404(session, solution_in.task_id, MultipleChoiceTask)
     module = await get_module_or_404(session, task.module_id)
     _ = await get_space_or_404(session, module.space_id)
     account = await get_account_or_404(session, user_id, module.space_id)
@@ -34,7 +34,7 @@ async def create_multiple_choice_solution(
     check_counter_limit(task.max_attempts, total_attempts)
 
     solution = await multiple_choice_solution_crud.create_multiple_choice_solution(
-        session, solution_in, account.id, cast(MultipleChoice, task).correct_answer
+        session, solution_in, account.id, cast(MultipleChoiceTask, task).correct_answer
     )
 
     return solution.get_validation_schema()

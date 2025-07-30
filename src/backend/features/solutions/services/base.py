@@ -12,7 +12,7 @@ from features.tasks.models import BaseTask
 from features.tasks.validators import get_task_or_404
 
 
-async def get_solution_by_id(
+async def get_solution(
     session: AsyncSession,
     user_id: int,
     solution_id: int,

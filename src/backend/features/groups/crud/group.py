@@ -34,10 +34,7 @@ async def get_groups_by_ids(
     session: AsyncSession,
     group_ids: list[int],
 ) -> list[Group]:
-    if not group_ids:
-        return []
-    statement = select(Group).where(Group.id.in_(group_ids))
-    result = await session.execute(statement)
+    result = await session.execute(select(Group).where(Group.id.in_(group_ids)))
     return list(result.scalars().all())
 
 

@@ -12,6 +12,7 @@ from shared.enums import TaskTypeEnum
 if TYPE_CHECKING:
     from features.tasks.models import BaseTask
     from features.accounts.models import Account
+    from features.solutions.models import SolutionFeedback
 
 
 class BaseSolution(Base, IdIntPkMixin):
@@ -39,3 +40,6 @@ class BaseSolution(Base, IdIntPkMixin):
 
     creator: Mapped["Account"] = relationship(back_populates="created_solutions")
     task: Mapped["BaseTask"] = relationship(back_populates="solutions")
+    feedbacks: Mapped[list["SolutionFeedback"]] = relationship(
+        back_populates="solution"
+    )

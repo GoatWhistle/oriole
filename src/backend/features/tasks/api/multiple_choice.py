@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 import features.solutions.services.multiple_choice as solution_service
-import features.tasks.services.choice as task_choice_service
+import features.tasks.services.multiple_choice as task_choice_service
 from database import db_helper
 from features.solutions.schemas import MultipleChoiceSolutionCreate
 from features.tasks.schemas import MultipleChoiceTaskUpdate, MultipleChoiceTaskCreate

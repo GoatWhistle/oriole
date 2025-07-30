@@ -76,7 +76,7 @@ async def get_solution(
     session: AsyncSession = Depends(db_helper.dependency_session_getter),
     user_id: int = Depends(get_current_active_auth_user_id),
 ):
-    data = await solution_service.get_solution_by_id(session, user_id, solution_id)
+    data = await solution_service.get_solution(session, user_id, solution_id)
     return create_json_response(data=data)
 
 

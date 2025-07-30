@@ -14,7 +14,7 @@ from features.groups.validators import (
 from features.modules.validators import get_module_or_404
 from features.solutions.models import MultipleChoiceSolution
 from features.spaces.validators import get_space_or_404
-from features.tasks.models import MultipleChoice
+from features.tasks.models import MultipleChoiceTask
 from features.tasks.schemas import (
     MultipleChoiceTaskCreate,
     MultipleChoiceTaskRead,
@@ -45,7 +45,7 @@ async def create_multiple_choice_task(
         module.end_datetime,
     )
 
-    task = await choice_crud.create_string_match_task(session, task_in, user_id)
+    task = await choice_crud.create_multiple_choice_task(session, task_in, account.id)
     await module_crud.increment_module_tasks_count(session, module.id)
 
     return task.get_validation_schema()
@@ -57,7 +57,7 @@ async def update_multiple_choice_task(
     task_id: int,
     task_update: MultipleChoiceTaskUpdate,
 ) -> MultipleChoiceTaskReadWithCorrectness:
-    task = await get_task_or_404(session, task_id, MultipleChoice)
+    task = await get_task_or_404(session, task_id, MultipleChoiceTask)
     module = await get_module_or_404(session, task.module_id)
     _ = await get_space_or_404(session, module.space_id)
     account = await get_account_or_404(session, user_id, module.space_id)
@@ -78,6 +78,6 @@ async def update_multiple_choice_task(
     )
 
     return mapper.build_multiple_choice_task_read_with_correctness(
-        cast(MultipleChoice, task),
+        cast(MultipleChoiceTask, task),
         cast(list[MultipleChoiceSolution], solutions),
     )
