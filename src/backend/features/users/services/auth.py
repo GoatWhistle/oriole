@@ -50,7 +50,6 @@ from features.users.validators.existence import (
     validate_token_has_email,
     validate_token_has_user_id,
     is_email_entered,
-    ensure_no_tokens,
     ensure_user_exists_by_email,
     has_any_token,
 )
@@ -109,7 +108,7 @@ async def register_user(
     session: AsyncSession,
     user_data: RegisterUserInput,
 ) -> UserAuth:
-    ensure_no_tokens(request)
+    # ensure_no_tokens(request)
     await ensure_user_not_exists_by_email(session, user_data.email)
 
     try:

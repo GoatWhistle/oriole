@@ -1,0 +1,94 @@
+/* LoginPage.css */
+
+.login-container {
+  background: linear-gradient(135deg, #f28c38 0%, #1c2526 100%); /* Оранжево-черный градиент */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 1rem;
+}
+
+.login-form {
+  background: #ffffff;
+  padding: 2.5rem;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 360px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.login-form:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
+}
+
+.login-form h2 {
+  margin: 0;
+  text-align: center;
+  color: #1c2526; /* Черный для заголовка */
+  font-size: 1.8rem;
+  font-weight: 600;
+}
+
+.login-form input {
+  padding: 0.8rem;
+  font-size: 1rem;
+  border: 2px solid #f28c38; /* Оранжевая рамка */
+  border-radius: 8px;
+  outline: none;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.login-form input:focus {
+  border-color: #d9742b; /* Темнее оранжевый при фокусе */
+  box-shadow: 0 0 8px rgba(242, 140, 56, 0.4);
+}
+
+.login-form button {
+  background: #f28c38; /* Оранжевый фон кнопки */
+  color: #ffffff;
+  border: none;
+  padding: 0.8rem;
+  font-size: 1.1rem;
+  font-weight: 500;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.3s ease, transform 0.2s ease;
+}
+
+.login-form button:hover {
+  background: #d9742b; /* Темнее оранжевый при наведении */
+  transform: scale(1.02);
+}
+
+.login-form button:active {
+  transform: scale(0.98);
+}
+
+.error-text {
+  color: #ff4d4f; /* Красный для ошибок */
+  font-size: 0.9rem;
+  text-align: center;
+  font-weight: 500;
+}
+
+@media (max-width: 480px) {
+  .login-form {
+    padding: 1.5rem;
+    max-width: 90%;
+  }
+
+  .login-form h2 {
+    font-size: 1.5rem;
+  }
+
+  .login-form input,
+  .login-form button {
+    font-size: 0.95rem;
+  }
+}
