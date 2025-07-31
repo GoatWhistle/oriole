@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 from features.solutions.schemas import BaseSolutionRead
 
@@ -31,12 +31,12 @@ class BaseTaskRead(BaseTaskModel):
 
     model_config = ConfigDict(from_attributes=True)
 
-    def to_with_correctness(
+    def to_with_progress(
         self,
         is_correct: bool,
         user_attempts: int,
-    ) -> "BaseTaskReadWithCorrectness":
-        return BaseTaskReadWithCorrectness(
+    ) -> "BaseTaskReadWithProgress":
+        return BaseTaskReadWithProgress(
             **self.model_dump(),
             is_correct=is_correct,
             user_attempts=user_attempts,
@@ -56,12 +56,12 @@ class BaseTaskRead(BaseTaskModel):
         )
 
 
-class BaseTaskReadWithCorrectness(BaseTaskRead):
+class BaseTaskReadWithProgress(BaseTaskRead):
     is_correct: bool
     user_attempts: int
 
 
-class BaseTaskReadWithSolutions(BaseTaskReadWithCorrectness):
+class BaseTaskReadWithSolutions(BaseTaskReadWithProgress):
     solutions: list[BaseSolutionRead]
 
 

@@ -7,4 +7,11 @@ __all__ = [
     "Test",
 ]
 
-from .models import AccountTaskProgress, BaseTask, StringMatchTask, MultipleChoiceTask, CodeTask, Test
+from .models import (
+    AccountTaskProgress,
+    BaseTask,
+    StringMatchTask,
+    MultipleChoiceTask,
+    CodeTask,
+    Test,
+)

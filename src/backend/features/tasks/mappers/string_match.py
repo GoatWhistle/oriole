@@ -1,17 +1,13 @@
-from features.solutions.models import StringMatchSolution
-from features.tasks.models import StringMatchTask
-from features.tasks.schemas import StringMatchTaskReadWithCorrectness
+from features.tasks.models import AccountTaskProgress, StringMatchTask
+from features.tasks.schemas import StringMatchTaskReadWithProgress
 
 
 def build_string_match_task_read_with_correctness(
     task: StringMatchTask,
-    solutions: list[StringMatchSolution],
-) -> StringMatchTaskReadWithCorrectness:
-    task_read = task.get_validation_schema()
-    is_correct = any(sol.is_correct for sol in solutions) if solutions else False
-    user_attempts = len(solutions) if solutions else 0
-    return StringMatchTaskReadWithCorrectness(
-        **task_read.model_dump(),
-        is_correct=is_correct,
-        user_attempts=user_attempts,
+    account_task_progress: AccountTaskProgress | None = None,
+) -> StringMatchTaskReadWithProgress:
+    base_schema = task.get_validation_schema()
+    return base_schema.to_with_progress(
+        account_task_progress.is_correct if account_task_progress else False,
+        account_task_progress.user_attempts if account_task_progress else 0,
     )

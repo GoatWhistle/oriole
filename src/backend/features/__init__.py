@@ -29,16 +29,20 @@ from .accounts import Account
 from .chat import Chat, ChatAccountAssociation, Message
 from .groups import Group, GroupInvite
 from .modules import AccountModuleProgress, Module
-from .solutions import BaseSolution, StringMatchSolution, CodeSolution
-from .modules import Module
 from .solutions import (
     BaseSolution,
-    StringMatchSolution,
+    CodeSolution,
     MultipleChoiceSolution,
     SolutionFeedback,
-    CodeSolution,
+    StringMatchSolution,
 )
 from .spaces import Space, SpaceInvite, SpaceJoinRequest
-from .tasks import AccountTaskProgress, BaseTask, StringMatchTask, CodeTask, Test
-from .tasks import BaseTask, StringMatchTask, MultipleChoiceTask, CodeTask, Test
+from .tasks import (
+    AccountTaskProgress,
+    BaseTask,
+    CodeTask,
+    MultipleChoiceTask,
+    StringMatchTask,
+    Test,
+)
 from .users import User, UserProfile

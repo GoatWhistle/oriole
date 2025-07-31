@@ -1,4 +1,8 @@
-from shared.exceptions import RuleException
+from shared.exceptions import InactiveObjectException, RuleException
+
+
+class TaskInactiveException(InactiveObjectException):
+    detail: str = "Operation is not allowed on inactive task."
 
 
 class TaskAlreadySolved(RuleException):
