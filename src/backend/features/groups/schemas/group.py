@@ -1,12 +1,12 @@
 from features.accounts.schemas.account import AccountReadWithProfileData
-from features.modules.schemas import ModuleReadWithPerformance
+from features.modules.schemas import ModuleReadWithProgress
 from features.spaces.schemas import (
     SpaceBase,
     SpaceCreate,
     SpaceRead,
     SpaceReadWithAccounts,
-    SpaceReadWithModules,
     SpaceReadWithAccountsAndModules,
+    SpaceReadWithModules,
     SpaceUpdate,
 )
 
@@ -31,7 +31,7 @@ class GroupRead(GroupBase, SpaceRead):
 
     def to_with_modules(
         self,
-        modules: list[ModuleReadWithPerformance],
+        modules: list[ModuleReadWithProgress],
     ) -> "GroupReadWithModules":
         return GroupReadWithModules(
             **self.model_dump(),
@@ -41,7 +41,7 @@ class GroupRead(GroupBase, SpaceRead):
     def to_with_accounts_and_modules(
         self,
         accounts: list[AccountReadWithProfileData],
-        modules: list[ModuleReadWithPerformance],
+        modules: list[ModuleReadWithProgress],
     ) -> "GroupReadWithAccountsAndModules":
         return GroupReadWithAccountsAndModules(
             **self.model_dump(),

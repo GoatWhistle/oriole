@@ -10,7 +10,7 @@ from features.solutions.services import solution_feedback as solution_feedback_s
 from features.tasks.services import base as task_service
 from features.users.services.auth import get_current_active_auth_user_id
 from utils.response_func import create_json_response
-from utils.schemas import SuccessResponse, SuccessListResponse
+from utils.schemas import SuccessListResponse, SuccessResponse
 
 router = APIRouter()
 
@@ -81,7 +81,7 @@ async def get_solution(
 
 
 @router.get(
-    "/{task_id}/solutions",
+    "/{task_id}/solutions/",
     response_model=SuccessListResponse,
     status_code=HTTPStatus.OK,
 )
@@ -100,6 +100,30 @@ async def get_solutions_in_task(
         page=page,
         per_page=per_page,
         base_url=f"{str(request.base_url).rstrip("/")}/api/tasks/base/{task_id}/solutions/",
+    )
+
+
+@router.get(
+    "/solutions/",
+    response_model=SuccessListResponse,
+    status_code=HTTPStatus.OK,
+)
+async def get_user_solutions(
+    request: Request,
+    task_id: int,
+    page: int | None = None,
+    per_page: int | None = None,
+    session: AsyncSession = Depends(db_helper.dependency_session_getter),
+    user_id: int = Depends(get_current_active_auth_user_id),
+):
+    data = await solution_service.get_user_solutions_by_task_id(
+        session, user_id, task_id
+    )
+    return create_json_response(
+        data=data,
+        page=page,
+        per_page=per_page,
+        base_url=f"{str(request.base_url).rstrip("/")}/api/tasks/base/solutions/",
     )
 
 

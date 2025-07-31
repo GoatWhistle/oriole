@@ -9,5 +9,5 @@ def build_string_match_task_read_with_correctness(
     base_schema = task.get_validation_schema()
     return base_schema.to_with_progress(
         account_task_progress.is_correct if account_task_progress else False,
-        account_task_progress.user_attempts if account_task_progress else 0,
+        account_task_progress.user_attempts_count if account_task_progress else 0,
     )

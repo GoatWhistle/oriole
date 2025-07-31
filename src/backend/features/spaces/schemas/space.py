@@ -1,7 +1,7 @@
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 from features.accounts.schemas import AccountReadWithProfileData
-from features.modules.schemas import ModuleReadWithPerformance
+from features.modules.schemas import ModuleReadWithProgress
 
 
 class SpaceBase(BaseModel):
@@ -31,7 +31,7 @@ class SpaceRead(SpaceBase):
 
     def to_with_modules(
         self,
-        modules: list[ModuleReadWithPerformance],
+        modules: list[ModuleReadWithProgress],
     ) -> "SpaceReadWithModules":
         return SpaceReadWithModules(
             **self.model_dump(),
@@ -41,7 +41,7 @@ class SpaceRead(SpaceBase):
     def to_with_accounts_and_modules(
         self,
         accounts: list[AccountReadWithProfileData],
-        modules: list[ModuleReadWithPerformance],
+        modules: list[ModuleReadWithProgress],
     ) -> "SpaceReadWithAccountsAndModules":
         return SpaceReadWithAccountsAndModules(
             **self.model_dump(),
@@ -55,7 +55,7 @@ class SpaceReadWithAccounts(SpaceRead):
 
 
 class SpaceReadWithModules(SpaceRead):
-    modules: list[ModuleReadWithPerformance]
+    modules: list[ModuleReadWithProgress]
 
 
 class SpaceReadWithAccountsAndModules(SpaceReadWithAccounts, SpaceReadWithModules):

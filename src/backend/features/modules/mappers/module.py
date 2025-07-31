@@ -1,40 +1,55 @@
-from features.modules.models import Module
-from features.modules.schemas import ModuleReadWithPerformance, ModuleReadWithTasks
-from features.solutions.models import BaseSolution
+from features.modules.models import AccountModuleProgress, Module
+from features.modules.schemas import ModuleReadWithProgress, ModuleReadWithTasks
 from features.tasks.mappers import build_base_task_read_with_progress_list
-from features.tasks.models import BaseTask
+from features.tasks.models import AccountTaskProgress, BaseTask
 
 
-def build_module_read_with_performance(
+def build_module_read_with_progress(
     module: Module,
-    tasks: list[BaseTask],
-    solutions: list[BaseSolution],
-) -> ModuleReadWithPerformance:
-    tasks_schemas = build_base_task_read_with_progress_list(tasks, solutions)
-    user_completed_tasks_count = sum(1 for task in tasks_schemas if task.is_correct)
+    account_module_progress: AccountModuleProgress | None = None,
+) -> ModuleReadWithProgress:
     base_schema = module.get_validation_schema()
 
-    return base_schema.to_with_performance(user_completed_tasks_count)
+    return base_schema.to_with_progress(
+        account_module_progress.user_completed_tasks_count
+        if account_module_progress
+        else 0
+    )
 
 
 def build_module_read_with_tasks(
     module: Module,
+    account_module_progress: AccountModuleProgress,
     tasks: list[BaseTask],
-    solutions: list[BaseSolution],
+    account_task_progresses: list[AccountTaskProgress],
 ) -> ModuleReadWithTasks:
-    tasks_schemas = build_base_task_read_with_progress_list(tasks, solutions)
-    user_completed_tasks_count = sum(1 for task in tasks_schemas if task.is_correct)
     base_schema = module.get_validation_schema()
+    tasks_schemas = build_base_task_read_with_progress_list(
+        tasks, account_task_progresses
+    )
 
-    return base_schema.to_with_tasks(user_completed_tasks_count, tasks_schemas)
+    return base_schema.to_with_tasks(
+        (
+            account_module_progress.user_completed_tasks_count
+            if account_module_progress
+            else 0
+        ),
+        tasks_schemas,
+    )
 
 
-def build_module_read_with_performance_list(
+def build_module_read_with_progress_list(
     modules: list[Module],
-    tasks: list[BaseTask],
-    solutions: list[BaseSolution] | None,
-) -> list[ModuleReadWithPerformance]:
+    account_module_progresses: list[AccountModuleProgress],
+) -> list[ModuleReadWithProgress]:
+    account_progress_by_module_id: dict[int, AccountModuleProgress] = {}
+
+    for progress in account_module_progresses:
+        account_progress_by_module_id[progress.module_id] = progress
+
     return [
-        build_module_read_with_performance(module, tasks, solutions)
+        build_module_read_with_progress(
+            module, account_progress_by_module_id.get(module.id)
+        )
         for module in modules
     ]

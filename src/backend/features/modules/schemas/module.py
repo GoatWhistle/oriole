@@ -29,11 +29,12 @@ class ModuleRead(ModuleBase):
 
     model_config = ConfigDict(from_attributes=True)
 
-    def to_with_performance(
+    def to_with_progress(
         self, user_completed_tasks_count: int
-    ) -> "ModuleReadWithPerformance":
-        return ModuleReadWithPerformance(
-            **self.model_dump(), user_completed_tasks_count=user_completed_tasks_count
+    ) -> "ModuleReadWithProgress":
+        return ModuleReadWithProgress(
+            **self.model_dump(),
+            user_completed_tasks_count=user_completed_tasks_count,
         )
 
     def to_with_tasks(
@@ -48,11 +49,11 @@ class ModuleRead(ModuleBase):
         )
 
 
-class ModuleReadWithPerformance(ModuleRead):
+class ModuleReadWithProgress(ModuleRead):
     user_completed_tasks_count: int
 
 
-class ModuleReadWithTasks(ModuleReadWithPerformance):
+class ModuleReadWithTasks(ModuleReadWithProgress):
     tasks: list[BaseTaskReadWithProgress]
 
 

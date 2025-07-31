@@ -72,7 +72,7 @@ async def update_multiple_choice_task(
     task = await base_task_crud.update_task(session, task, update_data)
 
     account_task_progress = (
-        await progress_crud.get_account_task_progress_by_account_and_task_id(
+        await progress_crud.get_account_task_progress_by_account_id_and_task_id(
             session, account.id, task.id
         )
     )

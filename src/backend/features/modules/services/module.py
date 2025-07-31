@@ -2,22 +2,24 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 import features.accounts.crud.account as account_crud
 import features.groups.crud.group as group_crud
+import features.modules.crud.account_module_progress as module_progress_crud
 import features.modules.crud.module as module_crud
 import features.modules.mappers as mapper
 import features.solutions.crud.base as solution_crud
+import features.tasks.crud.account_task_progress as task_progress_crud
 import features.tasks.crud.base as task_crud
-from features.groups.validators import get_account_or_404, check_user_is_admin_or_owner
+from features.groups.validators import check_user_is_admin_or_owner, get_account_or_404
 from features.modules.schemas import ModuleCreate, ModuleRead, ModuleUpdate
 from features.modules.schemas.module import (
-    ModuleReadWithPerformance,
+    ModuleReadWithProgress,
     ModuleReadWithTasks,
 )
 from features.modules.validators import get_module_or_404
 from features.spaces.validators import get_space_or_404
 from shared.validators import (
-    check_start_time_not_in_past,
-    check_end_time_not_in_past,
     check_end_time_is_after_start_time,
+    check_end_time_not_in_past,
+    check_start_time_not_in_past,
 )
 
 
@@ -36,7 +38,8 @@ async def create_module(
     check_end_time_is_after_start_time(module_in.start_datetime, module_in.end_datetime)
 
     module = await module_crud.create_module(session, module_in, account.id)
-    return module.get_validation_schema()
+
+    return mapper.build_module_read_with_progress(module)
 
 
 async def get_module(
@@ -44,17 +47,25 @@ async def get_module(
     user_id: int,
     module_id: int,
     include: list[str] | None = None,
-) -> ModuleReadWithPerformance | ModuleReadWithTasks:
+) -> ModuleReadWithProgress | ModuleReadWithTasks:
     module = await get_module_or_404(session, module_id)
     _ = await get_space_or_404(session, module.space_id)
     account = await get_account_or_404(session, user_id, module.space_id)
-    tasks = await task_crud.get_tasks_by_module_id(session, module_id)
-    solutions = await solution_crud.get_solutions_by_account_id_and_task_ids(
-        session, account.id, [task.id for task in tasks]
+
+    account_module_progress = await module_progress_crud.get_account_module_progress_by_account_id_and_module_id(
+        session, account.id, module_id
     )
     if include and "tasks" in include:
-        return mapper.build_module_read_with_tasks(module, tasks, solutions)
-    return mapper.build_module_read_with_performance(module, tasks, solutions)
+        tasks = await task_crud.get_tasks_by_module_id(session, module_id)
+        account_task_progresses = await task_progress_crud.get_account_task_progresses_by_account_id_and_task_ids(
+            session, account.id, [task.id for task in tasks]
+        )
+
+        return mapper.build_module_read_with_tasks(
+            module, account_module_progress, tasks, account_task_progresses
+        )
+
+    return mapper.build_module_read_with_progress(module, account_module_progress)
 
 
 async def get_modules_in_space(
@@ -70,13 +81,11 @@ async def get_modules_in_space(
     if not modules:
         return []
 
-    tasks = await task_crud.get_tasks_by_module_ids(
-        session, [module.id for module in modules]
+    account_module_progress = await module_progress_crud.get_account_module_progresses_by_account_id_and_module_ids(
+        session, account.id, [module.id for module in modules]
     )
-    solutions = await solution_crud.get_solutions_by_account_id_and_task_ids(
-        session, account.id, [task.id for task in tasks]
-    )
-    return mapper.build_module_read_with_performance_list(modules, tasks, solutions)
+
+    return mapper.build_module_read_with_progress_list(modules, account_module_progress)
 
 
 async def get_user_modules(
@@ -100,13 +109,11 @@ async def get_user_modules(
     if not modules:
         return []
 
-    tasks = await task_crud.get_tasks_by_module_ids(
-        session, [module.id for module in modules]
+    account_module_progress = await module_progress_crud.get_account_module_progresses_by_account_ids_and_module_ids(
+        session, [account.id for account in accounts], [module.id for module in modules]
     )
-    solutions = await solution_crud.get_solutions_by_account_ids_and_task_ids(
-        session, account_ids, [task.id for task in tasks]
-    )
-    return mapper.build_module_read_with_performance_list(modules, tasks, solutions)
+
+    return mapper.build_module_read_with_progress_list(modules, account_module_progress)
 
 
 async def update_module(
@@ -134,11 +141,10 @@ async def update_module(
         check_end_time_is_after_start_time(start, end)
 
     module = await module_crud.update_module(session, module, update_data)
-    tasks = await task_crud.get_tasks_by_module_id(session, module.id)
-    solutions = await solution_crud.get_solutions_by_account_id_and_task_ids(
-        session, account.id, [task.id for task in tasks]
+    account_module_progress = await module_progress_crud.get_account_module_progress_by_account_id_and_module_id(
+        session, account.id, module_id
     )
-    return mapper.build_module_read_with_performance(module, tasks, solutions)
+    return mapper.build_module_read_with_progress(module, account_module_progress)
 
 
 async def delete_module(
@@ -156,6 +162,11 @@ async def delete_module(
 
     for task in tasks:
         await solution_crud.delete_solutions_by_task_id(session, task.id)
+        await task_progress_crud.delete_account_task_progresses_by_task_id(
+            session, task.id
+        )
         await task_crud.delete_task(session, task)
-
+    await module_progress_crud.delete_account_module_progresses_by_module_id(
+        session, module_id
+    )
     await module_crud.delete_module(session, module)

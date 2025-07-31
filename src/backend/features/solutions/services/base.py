@@ -55,6 +55,22 @@ async def get_solutions_in_task(
     return solution_mapper.build_base_solution_read_list(solutions)
 
 
+async def get_user_solutions_by_task_id(
+    session: AsyncSession,
+    user_id: int,
+    task_id: int,
+):
+    task = await get_task_or_404(session, task_id)
+    module = await get_module_or_404(session, task.module_id)
+    account = await get_account_or_404(session, user_id, module.space_id)
+
+    solutions = await base_solution_crud.get_solutions_by_account_id_and_task_id(
+        session, account.id, task_id
+    )
+
+    return solution_mapper.build_base_solution_read_list(solutions)
+
+
 async def delete_solution(
     session: AsyncSession,
     user_id: int,

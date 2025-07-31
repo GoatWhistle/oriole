@@ -4,8 +4,10 @@ import features.accounts.crud.account as account_crud
 import features.groups.crud.group as group_crud
 import features.groups.crud.group_invite as group_invite_crud
 import features.groups.mappers as mapper
+import features.modules.crud.account_module_progress as module_progress_crud
 import features.modules.crud.module as module_crud
 import features.solutions.crud.base as solutions_crud
+import features.tasks.crud.account_task_progress as progress_crud
 import features.tasks.crud.base as task_crud
 import features.users.crud.user_profile as user_profile_crud
 from features.accounts.schemas import AccountRole
@@ -15,10 +17,10 @@ from features.groups.schemas import (
     GroupUpdate,
 )
 from features.groups.validators import (
-    get_group_or_404,
-    get_account_or_404,
     check_user_is_admin_or_owner,
     check_user_is_owner,
+    get_account_or_404,
+    get_group_or_404,
 )
 from shared.enums import SpaceTypeEnum
 
@@ -45,29 +47,35 @@ async def get_group(
     group = await get_group_or_404(session, group_id)
     account = await get_account_or_404(session, user_id, group_id)
 
-    accounts = await account_crud.get_accounts_in_space(session, group_id)
-    user_profiles = await user_profile_crud.get_user_profiles_by_user_ids(
-        session, [account.user_id for account in accounts]
-    )
-    modules = await module_crud.get_modules_by_group_id(session, group_id)
-    tasks = await task_crud.get_tasks_by_module_ids(
-        session, [module.id for module in modules]
-    )
-    solutions = await solutions_crud.get_solutions_by_account_id_and_task_ids(
-        session, account.id, [task.id for task in tasks]
-    )
-
     if include:
         if "accounts" in include and "modules" in include:
+            accounts = await account_crud.get_accounts_in_space(session, group_id)
+            user_profiles = await user_profile_crud.get_user_profiles_by_user_ids(
+                session, [account.user_id for account in accounts]
+            )
+            modules = await module_crud.get_modules_by_group_id(session, group_id)
+            account_module_progress = await module_progress_crud.get_account_module_progresses_by_account_id_and_module_ids(
+                session, account.id, [module.id for module in modules]
+            )
             return mapper.build_group_read_with_accounts_and_modules(
-                group, accounts, user_profiles, modules, tasks, solutions
+                group, accounts, user_profiles, modules, account_module_progress
             )
         elif "accounts" in include:
+            accounts = await account_crud.get_accounts_in_space(session, group_id)
+            user_profiles = await user_profile_crud.get_user_profiles_by_user_ids(
+                session, [account.user_id for account in accounts]
+            )
+
             return mapper.build_group_read_with_accounts(group, accounts, user_profiles)
         elif "modules" in include:
-            return mapper.build_group_read_with_modules(
-                group, modules, tasks, solutions
+            modules = await module_crud.get_modules_by_group_id(session, group_id)
+            account_module_progress = await module_progress_crud.get_account_module_progresses_by_account_id_and_module_ids(
+                session, account.id, [module.id for module in modules]
             )
+            return mapper.build_group_read_with_modules(
+                group, modules, account_module_progress
+            )
+
     return group.get_validation_schema()
 
 
@@ -120,8 +128,13 @@ async def delete_group(
 
         for task in tasks:
             await solutions_crud.delete_solutions_by_task_id(session, task.id)
+            await progress_crud.delete_account_task_progresses_by_task_id(
+                session, task.id
+            )
             await task_crud.delete_task(session, task)
-
+        await module_progress_crud.delete_account_module_progresses_by_module_id(
+            session, module.id
+        )
         await module_crud.delete_module(session, module)
 
     await group_invite_crud.delete_group_invites_by_group_id(session, group_id)

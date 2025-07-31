@@ -21,24 +21,24 @@ class MultipleChoiceTaskRead(MultipleChoiceTaskBase, BaseTaskRead):
     def to_with_progress(
         self,
         is_correct: bool,
-        user_attempts: int,
+        user_attempts_count: int,
     ) -> "MultipleChoiceTaskReadWithProgress":
         return MultipleChoiceTaskReadWithProgress(
             **self.model_dump(),
             is_correct=is_correct,
-            user_attempts=user_attempts,
+            user_attempts_count=user_attempts_count,
         )
 
     def to_with_solutions(
         self,
         is_correct: bool,
-        user_attempts: int,
+        user_attempts_count: int,
         solutions: list[MultipleChoiceSolutionRead],
     ) -> "MultipleChoiceTaskReadWithSolutions":
         return MultipleChoiceTaskReadWithSolutions(
             **self.model_dump(),
             is_correct=is_correct,
-            user_attempts=user_attempts,
+            user_attempts_count=user_attempts_count,
             solutions=solutions,
         )
 
