@@ -1,11 +1,11 @@
 from features.solutions.schemas import MultipleChoiceSolutionRead
 from features.tasks.schemas import (
+    BaseTaskCreate,
     BaseTaskModel,
     BaseTaskRead,
-    BaseTaskCreate,
-    BaseTaskUpdate,
-    BaseTaskReadWithCorrectness,
+    BaseTaskReadWithProgress,
     BaseTaskReadWithSolutions,
+    BaseTaskUpdate,
 )
 
 
@@ -18,12 +18,12 @@ class MultipleChoiceTaskCreate(MultipleChoiceTaskBase, BaseTaskCreate):
 
 
 class MultipleChoiceTaskRead(MultipleChoiceTaskBase, BaseTaskRead):
-    def to_with_correctness(
+    def to_with_progress(
         self,
         is_correct: bool,
         user_attempts: int,
-    ) -> "MultipleChoiceTaskReadWithCorrectness":
-        return MultipleChoiceTaskReadWithCorrectness(
+    ) -> "MultipleChoiceTaskReadWithProgress":
+        return MultipleChoiceTaskReadWithProgress(
             **self.model_dump(),
             is_correct=is_correct,
             user_attempts=user_attempts,
@@ -43,14 +43,14 @@ class MultipleChoiceTaskRead(MultipleChoiceTaskBase, BaseTaskRead):
         )
 
 
-class MultipleChoiceTaskReadWithCorrectness(
-    MultipleChoiceTaskRead, BaseTaskReadWithCorrectness
+class MultipleChoiceTaskReadWithProgress(
+    MultipleChoiceTaskRead, BaseTaskReadWithProgress
 ):
     pass
 
 
 class MultipleChoiceTaskReadWithSolutions(
-    MultipleChoiceTaskReadWithCorrectness, BaseTaskReadWithSolutions
+    MultipleChoiceTaskReadWithProgress, BaseTaskReadWithSolutions
 ):
     solutions: list[MultipleChoiceSolutionRead]
 

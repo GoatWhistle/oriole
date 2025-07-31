@@ -1,8 +1,8 @@
 from datetime import datetime
 
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
-from features.tasks.schemas import BaseTaskReadWithCorrectness
+from features.tasks.schemas import BaseTaskReadWithProgress
 
 
 class ModuleBase(BaseModel):
@@ -39,7 +39,7 @@ class ModuleRead(ModuleBase):
     def to_with_tasks(
         self,
         user_completed_tasks_count: int,
-        tasks: list[BaseTaskReadWithCorrectness],
+        tasks: list[BaseTaskReadWithProgress],
     ) -> "ModuleReadWithTasks":
         return ModuleReadWithTasks(
             **self.model_dump(),
@@ -53,7 +53,7 @@ class ModuleReadWithPerformance(ModuleRead):
 
 
 class ModuleReadWithTasks(ModuleReadWithPerformance):
-    tasks: list[BaseTaskReadWithCorrectness]
+    tasks: list[BaseTaskReadWithProgress]
 
 
 class ModuleUpdate(ModuleBase):

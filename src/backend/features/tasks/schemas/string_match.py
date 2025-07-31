@@ -2,12 +2,12 @@ from pydantic import Field
 
 from features.solutions.schemas import StringMatchSolutionRead
 from features.tasks.schemas import (
+    BaseTaskCreate,
     BaseTaskModel,
     BaseTaskRead,
-    BaseTaskCreate,
-    BaseTaskUpdate,
-    BaseTaskReadWithCorrectness,
+    BaseTaskReadWithProgress,
     BaseTaskReadWithSolutions,
+    BaseTaskUpdate,
 )
 
 
@@ -22,12 +22,12 @@ class StringMatchTaskCreate(StringMatchTaskBase, BaseTaskCreate):
 
 
 class StringMatchTaskRead(StringMatchTaskBase, BaseTaskRead):
-    def to_with_correctness(
+    def to_with_progress(
         self,
         is_correct: bool,
         user_attempts: int,
-    ) -> "StringMatchTaskReadWithCorrectness":
-        return StringMatchTaskReadWithCorrectness(
+    ) -> "StringMatchTaskReadWithProgress":
+        return StringMatchTaskReadWithProgress(
             **self.model_dump(),
             is_correct=is_correct,
             user_attempts=user_attempts,
@@ -47,14 +47,12 @@ class StringMatchTaskRead(StringMatchTaskBase, BaseTaskRead):
         )
 
 
-class StringMatchTaskReadWithCorrectness(
-    StringMatchTaskRead, BaseTaskReadWithCorrectness
-):
+class StringMatchTaskReadWithProgress(StringMatchTaskRead, BaseTaskReadWithProgress):
     pass
 
 
 class StringMatchTaskReadWithSolutions(
-    StringMatchTaskReadWithCorrectness, BaseTaskReadWithSolutions
+    StringMatchTaskReadWithProgress, BaseTaskReadWithSolutions
 ):
     solutions: list[StringMatchSolutionRead]
 

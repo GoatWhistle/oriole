@@ -1,6 +1,7 @@
 __all__ = [
     "TaskNotFoundException",
     "TaskAlreadySolved",
+    "TaskInactiveException",
     "TaskCounterLimitExceededException",
     "TaskStartBeforeModuleStartException",
     "TaskEndAfterModuleEndException",
@@ -9,12 +10,13 @@ __all__ = [
     "TaskHasNoTests",
     "TestIsNotPublic",
 ]
-from .existence import TaskNotFoundException, TaskHasNoTests
+from .existence import TaskHasNoTests, TaskNotFoundException
 from .rules import (
-    TaskCounterLimitExceededException,
-    TaskAlreadySolved,
-    TestIsNotPublic,
     InvalidStringMatchTaskWithNumberConfiguration,
     InvalidStringMatchTaskWithStringConfiguration,
+    TaskAlreadySolved,
+    TaskCounterLimitExceededException,
+    TaskInactiveException,
+    TestIsNotPublic,
 )
-from .timing import TaskStartBeforeModuleStartException, TaskEndAfterModuleEndException
+from .timing import TaskEndAfterModuleEndException, TaskStartBeforeModuleStartException

@@ -8,16 +8,15 @@ from features import StringMatchTask
 from features.groups.validators import get_account_or_404
 from features.modules.validators import get_module_or_404
 from features.solutions.schemas import (
-    StringMatchSolutionRead,
     StringMatchSolutionCreate,
+    StringMatchSolutionRead,
+)
+from features.solutions.validators import (
+    validate_solution_after_creation,
+    validate_solution_before_creation,
 )
 from features.spaces.validators import get_space_or_404
-from features.tasks.validators import (
-    check_counter_limit,
-    get_task_or_404,
-    validate_solution_creation,
-)
-from shared.validators import check_is_active
+from features.tasks.validators import get_task_or_404
 
 
 def compare_as_numbers(correct: str, user: str) -> bool:
@@ -49,9 +48,7 @@ async def create_string_match_solution(
     _ = await get_space_or_404(session, module.space_id)
     account = await get_account_or_404(session, user_id, module.space_id)
 
-    check_is_active(task.is_active)
-    total_attempts = await validate_solution_creation(session, account.id, task)
-    check_counter_limit(task.max_attempts, total_attempts)
+    await validate_solution_before_creation(session, account.id, task)
 
     if task.compare_as_number:
         is_correct = compare_as_numbers(task.correct_answer, solution_in.user_answer)
@@ -63,5 +60,7 @@ async def create_string_match_solution(
     solution = await string_match_solution_crud.create_string_match_solution(
         session, solution_in, is_correct, account.id
     )
+
+    await validate_solution_after_creation(session, account.id, task, solution)
 
     return solution.get_validation_schema()

@@ -1,11 +1,11 @@
 from features.solutions.schemas import CodeSolutionRead
 from features.tasks.schemas import (
+    BaseTaskCreate,
     BaseTaskModel,
     BaseTaskRead,
-    BaseTaskCreate,
-    BaseTaskUpdate,
-    BaseTaskReadWithCorrectness,
+    BaseTaskReadWithProgress,
     BaseTaskReadWithSolutions,
+    BaseTaskUpdate,
 )
 
 
@@ -19,12 +19,12 @@ class CodeTaskCreate(CodeTaskBase, BaseTaskCreate):
 
 
 class CodeTaskRead(CodeTaskBase, BaseTaskRead):
-    def to_with_correctness(
+    def to_with_progress(
         self,
         is_correct: bool,
         user_attempts: int,
-    ) -> "CodeTaskReadWithCorrectness":
-        return CodeTaskReadWithCorrectness(
+    ) -> "CodeTaskReadWithProgress":
+        return CodeTaskReadWithProgress(
             **self.model_dump(),
             is_correct=is_correct,
             user_attempts=user_attempts,
@@ -44,7 +44,7 @@ class CodeTaskRead(CodeTaskBase, BaseTaskRead):
         )
 
 
-class CodeTaskReadWithCorrectness(CodeTaskRead, BaseTaskReadWithCorrectness):
+class CodeTaskReadWithProgress(CodeTaskRead, BaseTaskReadWithProgress):
     pass
 
 
