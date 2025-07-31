@@ -9,31 +9,18 @@ async def create_account_task_progress(
     account_id: int,
     task_id: int,
     is_correct: bool,
-    user_attempts: int,
+    user_attempts_count: int,
 ) -> AccountTaskProgress:
     account_task_progress = AccountTaskProgress(
         account_id=account_id,
         task_id=task_id,
         is_correct=is_correct,
-        user_attempts=user_attempts,
+        user_attempts_count=user_attempts_count,
     )
     session.add(account_task_progress)
     await session.commit()
     await session.refresh(account_task_progress)
     return account_task_progress
-
-
-async def get_account_task_progress_by_account_and_task_id(
-    session: AsyncSession,
-    account_id: int,
-    task_id: int,
-) -> AccountTaskProgress | None:
-    result = await session.execute(
-        select(AccountTaskProgress)
-        .where(AccountTaskProgress.account_id == account_id)
-        .where(AccountTaskProgress.task_id == task_id)
-    )
-    return result.scalar_one_or_none()
 
 
 async def get_account_task_progresses(
@@ -64,7 +51,7 @@ async def get_account_task_progresses_by_account_ids_and_task_ids(
     return await get_account_task_progresses(session, account_ids, task_ids)
 
 
-async def get_account_task_progresses_by_account_and_task_ids(
+async def get_account_task_progresses_by_account_id_and_task_ids(
     session: AsyncSession,
     account_id: int,
     task_ids: list[int],
@@ -72,11 +59,20 @@ async def get_account_task_progresses_by_account_and_task_ids(
     return await get_account_task_progresses(session, [account_id], task_ids)
 
 
+async def get_account_task_progress_by_account_id_and_task_id(
+    session: AsyncSession,
+    account_id: int,
+    task_id: int,
+) -> AccountTaskProgress | None:
+    result = await get_account_task_progresses(session, [account_id], [task_id])
+    return result[0] if result else None
+
+
 async def increment_user_attempts_count(
     session: AsyncSession,
     account_task_progress: AccountTaskProgress,
 ) -> None:
-    account_task_progress.user_attempts += 1
+    account_task_progress.user_attempts_count += 1
     await session.commit()
     await session.refresh(account_task_progress)
 

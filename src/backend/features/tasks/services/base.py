@@ -28,7 +28,7 @@ async def get_task(
     account = await get_account_or_404(session, user_id, module.space_id)
 
     account_task_progress = (
-        await progress_crud.get_account_task_progress_by_account_and_task_id(
+        await progress_crud.get_account_task_progress_by_account_id_and_task_id(
             session, account.id, task_id
         )
     )
@@ -58,7 +58,7 @@ async def get_tasks_in_module(
         return []
 
     account_task_progresses = (
-        await progress_crud.get_account_task_progresses_by_account_and_task_ids(
+        await progress_crud.get_account_task_progresses_by_account_id_and_task_ids(
             session, account.id, [task.id for task in tasks]
         )
     )

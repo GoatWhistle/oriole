@@ -1,7 +1,7 @@
 __all__ = [
     "ModuleCreate",
     "ModuleRead",
-    "ModuleReadWithPerformance",
+    "ModuleReadWithProgress",
     "ModuleReadWithTasks",
     "ModuleUpdate",
 ]
@@ -9,7 +9,7 @@ __all__ = [
 from .module import (
     ModuleCreate,
     ModuleRead,
-    ModuleReadWithPerformance,
+    ModuleReadWithProgress,
     ModuleReadWithTasks,
     ModuleUpdate,
 )

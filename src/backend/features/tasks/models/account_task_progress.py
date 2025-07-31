@@ -1,7 +1,7 @@
 from typing import TYPE_CHECKING
 
 from sqlalchemy import ForeignKey, Integer
-from sqlalchemy.orm import relationship, Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from database import Base, IdIntPkMixin
 
@@ -15,7 +15,7 @@ class AccountTaskProgress(Base, IdIntPkMixin):
     task_id: Mapped[int] = mapped_column(ForeignKey("tasks.id"))
 
     is_correct: Mapped[bool] = mapped_column(default=False)
-    user_attempts: Mapped[int] = mapped_column(Integer, default=0)
+    user_attempts_count: Mapped[int] = mapped_column(Integer, default=0)
 
     account: Mapped["Account"] = relationship(back_populates="task_progresses")
     task: Mapped["BaseTask"] = relationship(back_populates="account_progresses")
