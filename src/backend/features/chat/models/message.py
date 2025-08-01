@@ -3,7 +3,7 @@ from sqlalchemy import ForeignKey, Text, DateTime, func, Boolean
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime
 
-from database import Base
+from database import Base, IdIntPkMixin
 
 
 if TYPE_CHECKING:
@@ -11,9 +11,7 @@ if TYPE_CHECKING:
     from features import Account
 
 
-class Message(Base):
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-
+class Message(Base, IdIntPkMixin):
     group_id: Mapped[int] = mapped_column(
         ForeignKey("groups.id", ondelete="CASCADE"), nullable=False
     )

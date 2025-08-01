@@ -2,7 +2,7 @@ from typing import List, TYPE_CHECKING
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from database import Base
+from database import Base, IdIntPkMixin
 
 
 if TYPE_CHECKING:
@@ -12,8 +12,7 @@ if TYPE_CHECKING:
     from features import ChatAccountAssociation
 
 
-class Chat(Base):
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+class Chat(Base, IdIntPkMixin):
     group_id: Mapped[int] = mapped_column(ForeignKey("groups.id"), nullable=False)
     creator_id: Mapped[int] = mapped_column(ForeignKey("accounts.id"), nullable=False)
 
