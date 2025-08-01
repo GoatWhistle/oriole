@@ -26,6 +26,7 @@ async def save_new_message(
         chat_id=chat_id,
         account_id=account_id,
         timestamp=timestamp,
+        is_edited=False,
         reply_to=reply_to,
     )
     await repo.save_new_message(message)
@@ -38,6 +39,7 @@ async def save_new_message(
         "message_id": message.id,
         "reply_to": reply_to,
         "reply_to_text": data.get("reply_to_text"),
+        "is_edited": message.is_edited,
     }
 
 
@@ -57,6 +59,7 @@ async def get_message_history(group_id: int, repo: MessageRepository):
             "message": msg.text,
             "timestamp": msg.timestamp.isoformat(),
             "message_id": msg.id,
+            "is_edited": msg.is_edited,
             "reply_to": msg.reply_to,
             "reply_to_text": (
                 msg_dict[msg.reply_to].text if msg.reply_to in msg_dict else None
@@ -86,6 +89,7 @@ async def delete_message(
         "message_id": message.id,
         "reply_to": message.reply_to,
         "reply_to_text": message.reply_to_message,
+        "is_edited": message.is_edited,
     }
 
 
@@ -97,7 +101,6 @@ async def update_message(
     message = await repo.get_by_id(message_id)
     if not message:
         raise MessageNotFoundOrForbiddenException(message_id)
-
     await repo.update_message(message, new_text)
     return {
         "account_id": message.account_id,
@@ -106,4 +109,5 @@ async def update_message(
         "message_id": message.id,
         "reply_to": message.reply_to,
         "reply_to_text": message.reply_to_message,
+        "is_edited": message.is_edited,
     }
