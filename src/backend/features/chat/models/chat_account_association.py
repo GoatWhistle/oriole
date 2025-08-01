@@ -12,9 +12,7 @@ if TYPE_CHECKING:
 
 
 class ChatAccountAssociation(Base, IdIntPkMixin):
-    __tablename__ = "chat_account_association"
-
-    chat_id: Mapped[int] = mapped_column(ForeignKey("chat.id", ondelete="CASCADE"))
+    chat_id: Mapped[int] = mapped_column(ForeignKey("chats.id", ondelete="CASCADE"))
     account_id: Mapped[int] = mapped_column(
         ForeignKey("accounts.id", ondelete="CASCADE")
     )

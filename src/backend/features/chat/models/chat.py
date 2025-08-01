@@ -13,8 +13,6 @@ if TYPE_CHECKING:
 
 
 class Chat(Base):
-    __tablename__ = "chat"
-
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     group_id: Mapped[int] = mapped_column(ForeignKey("groups.id"), nullable=False)
     creator_id: Mapped[int] = mapped_column(ForeignKey("accounts.id"), nullable=False)
@@ -30,5 +28,5 @@ class Chat(Base):
     )
 
     accounts: Mapped[List["Account"]] = relationship(
-        secondary="chat_account_association", back_populates="chats", viewonly=True
+        secondary="chat_account_associations", back_populates="chat", viewonly=True
     )

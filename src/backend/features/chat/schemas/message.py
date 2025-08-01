@@ -10,6 +10,7 @@ class MessageOut(BaseModel):
     timestamp: datetime
     reply_to: Optional[int] = None
     reply_to_text: Optional[str] = None
+    is_edited: Optional[bool] = False
 
     class Config:
         orm_mode = True

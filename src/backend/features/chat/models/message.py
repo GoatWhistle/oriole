@@ -1,5 +1,5 @@
 from typing import TYPE_CHECKING
-from sqlalchemy import ForeignKey, Text, DateTime, func
+from sqlalchemy import ForeignKey, Text, DateTime, func, Boolean
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime
 
@@ -12,8 +12,6 @@ if TYPE_CHECKING:
 
 
 class Message(Base):
-    __tablename__ = "messages"
-
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
 
     group_id: Mapped[int] = mapped_column(
@@ -23,11 +21,12 @@ class Message(Base):
         ForeignKey("accounts.id", ondelete="CASCADE"), nullable=False
     )
     chat_id: Mapped[int] = mapped_column(
-        ForeignKey("chat.id", ondelete="CASCADE"), nullable=False
+        ForeignKey("chats.id", ondelete="CASCADE"), nullable=False
     )
     reply_to: Mapped[int | None] = mapped_column(
         ForeignKey("messages.id"), nullable=True
     )
+    is_edited: Mapped[bool] = mapped_column(Boolean, default=False)
     reply_to_message: Mapped["Message"] = relationship("Message", remote_side=[id])
     text: Mapped[str] = mapped_column(Text, nullable=False)
     timestamp: Mapped[datetime] = mapped_column(
