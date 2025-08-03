@@ -1,6 +1,5 @@
 import React, { useRef } from "react";
 
-
 function Message({ message, isOwnMessage, onReply, onEdit, onDelete, onContextMenu }) {
   const messageRef = useRef(null);
 
@@ -9,7 +8,7 @@ function Message({ message, isOwnMessage, onReply, onEdit, onDelete, onContextMe
       className={`message ${isOwnMessage ? "sent" : "received"}`}
       id={`msg-${message.message_id}`}
       ref={messageRef}
-      onContextMenu={(e) => onContextMenu(e, message, isOwnMessage)} // 👈 прокидываем в ChatWindow
+      onContextMenu={(e) => onContextMenu(e, message, isOwnMessage)}
     >
       <div className="user-id">{message.account_id}</div>
 
@@ -42,6 +41,7 @@ function Message({ message, isOwnMessage, onReply, onEdit, onDelete, onContextMe
             hour: "2-digit",
             minute: "2-digit",
           })}
+          {message.is_edited && <span className="edited-mark"> (edited)</span>}
         </div>
       </div>
     </div>
