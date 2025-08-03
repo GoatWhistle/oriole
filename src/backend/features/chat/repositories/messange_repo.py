@@ -35,6 +35,7 @@ class MessageRepository:
         await self.session.commit()
 
     async def update_message(self, message: Message, new_text: str):
+        if message.text != new_text:
+            message.is_edited = True
         message.text = new_text
-        message.is_edited = True
         await self.session.commit()

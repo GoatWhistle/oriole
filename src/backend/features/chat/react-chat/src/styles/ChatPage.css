@@ -259,6 +259,12 @@ button.send-btn:active {
   border-radius: 8px;
   font-weight: 600;
 }
+.edited-mark {
+  color: #999;
+  font-size: 0.8em;
+  margin-left: 4px;
+  font-style: italic;
+}
 
 @keyframes flash {
   from {

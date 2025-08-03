@@ -54,6 +54,7 @@ async def handle_websocket(
                                 "timestamp": updated["timestamp"],
                                 "connectionId": data.get("connectionId"),
                                 "message_id": updated["message_id"],
+                                "is_edited": updated["is_edited"],
                             }
                         ),
                     )
