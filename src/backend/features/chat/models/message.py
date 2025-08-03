@@ -25,7 +25,9 @@ class Message(Base, IdIntPkMixin):
         ForeignKey("messages.id"), nullable=True
     )
     is_edited: Mapped[bool] = mapped_column(Boolean, default=False)
-    reply_to_message: Mapped["Message"] = relationship("Message", remote_side=[id])
+    reply_to_message: Mapped["Message"] = relationship(
+        "Message", remote_side=lambda: Message.id
+    )
     text: Mapped[str] = mapped_column(Text, nullable=False)
     timestamp: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=func.now()
