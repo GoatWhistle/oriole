@@ -27,5 +27,5 @@ class Chat(Base, IdIntPkMixin):
     )
 
     accounts: Mapped[List["Account"]] = relationship(
-        secondary="chat_account_associations", back_populates="chat", viewonly=True
+        secondary="chat_account_associations", back_populates="chats", viewonly=True
     )

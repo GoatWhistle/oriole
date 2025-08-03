@@ -53,7 +53,7 @@ class Account(Base, IdIntPkMixin):
         back_populates="account", cascade="all, delete-orphan"
     )
     chats: Mapped[List["Chat"]] = relationship(
-        secondary="chat_account_association", back_populates="accounts", viewonly=True
+        secondary="chat_account_associations", back_populates="accounts", viewonly=True
     )
 
     def get_validation_schema(self) -> AccountRead:
