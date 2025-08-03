@@ -34,17 +34,21 @@
 
 ## 🛠 <span id="tech-stack">Технологический стек</span>
 
-### Фронтенд
-
-<p align="left">
-  <img src="https://img.shields.io/badge/React-20232A?logo=react&logoColor=61DAFB" alt="React">
-</p>
-
 ### Бэкенд
 
 <p align="left">
   <img src="https://img.shields.io/badge/Python-3776AB?logo=python&logoColor=white" alt="Python">
   <img src="https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white" alt="FastAPI">
+  <img src="https://img.shields.io/badge/WebSocket-010101?logo=websocket&logoColor=white" alt="WebSocket">
+</p>
+
+### Фронтенд
+
+<p align="left">
+  <img src="https://img.shields.io/badge/HTML5-E34F26?logo=html5&logoColor=white" alt="HTML5">
+  <img src="https://img.shields.io/badge/CSS3-1572B6?logo=css3&logoColor=white" alt="CSS3">
+  <img src="https://img.shields.io/badge/React-20232A?logo=react&logoColor=61DAFB" alt="React">
+  <img src="https://img.shields.io/badge/JavaScript-F7DF1E?logo=javascript&logoColor=black" alt="JavaScript">
 </p>
 
 ### Работа с данными
@@ -62,6 +66,7 @@
   <img src="https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=white" alt="Docker">
   <img src="https://img.shields.io/badge/Nginx-009639?logo=nginx&logoColor=white" alt="Nginx">
   <img src="https://img.shields.io/badge/Gunicorn-499848?logo=gunicorn&logoColor=white" alt="Gunicorn">
+  <img src="https://img.shields.io/badge/Infisical-000000?logo=infisical&logoColor=white" alt="Infisical">
 </p>
 
 ### Обработка задач
@@ -72,28 +77,17 @@
   <img src="https://img.shields.io/badge/Flower-000000?logo=flower" alt="Flower">
 </p>
 
+### Мониторинг
+
+<p align="left">
+  <img src="https://img.shields.io/badge/Prometheus-E6522C?logo=prometheus&logoColor=white" alt="Prometheus">
+  <img src="https://img.shields.io/badge/Grafana-F46800?logo=grafana&logoColor=white" alt="Grafana">
+  <img src="https://img.shields.io/badge/Loki-000000?logo=loki&logoColor=white" alt="Loki">
+  <img src="https://img.shields.io/badge/Promtail-000000?logo=promtail&logoColor=white" alt="Promtail">
+</p>
+
 ### Управление зависимостями
 
 <p align="left">
   <img src="https://img.shields.io/badge/Poetry-60A5FA?logo=poetry&logoColor=white" alt="Poetry">
 </p>
-
-#
-
-## 👥 <span id="team">Наша команда</span>
-
-<div align="center">
-
-|                                                                                                                                                                 |                                                   |
-|:---------------------------------------------------------------------------------------------------------------------------------------------------------------:|:-------------------------------------------------:|
-| <a href="https://github.com/mikhailkhorokhorin" target="_blank"><img src="https://github.com/mikhailkhorokhorin.png" width="80" style="border-radius: 50%"></a> |  **Михаил Хорохорин**<br>*Тимлид & Backend*<br>   |
-|     <a href="https://github.com/timofeipupykin" target="_blank"><img src="https://github.com/timofeipupykin.png" width="80" style="border-radius: 50%"></a>     |        **Тимофей Пупыкин**<br>*DevOps*<br>        |
-|       <a href="https://github.com/amemeansrain" target="_blank"><img src="https://github.com/amemeansrain.png" width="80" style="border-radius: 50%"></a>       | **Роберт Савицкас**<br>*Frontend-разработчик*<br> |
-|       <a href="https://github.com/AI-AVENGER-S" target="_blank"><img src="https://github.com/AI-AVENGER-S.png" width="80" style="border-radius: 50%"></a>       |  **Артем Савельев**<br>*Backend-разработчик*<br>  |
-|         <a href="https://github.com/BazhenovDM" target="_blank"><img src="https://github.com/BazhenovDM.png" width="80" style="border-radius: 50%"></a>         | **Баженов Дмитрий**<br>*Backend-разработчик*<br>  |
-|           <a href="https://github.com/ivanGMAI" target="_blank"><img src="https://github.com/ivanGMAI.png" width="80" style="border-radius: 50%"></a>           |  **Иван Герасимов**<br>*Backend-разработчик*<br>  |
-|         <a href="https://github.com/curboturbo" target="_blank"><img src="https://github.com/curboturbo.png" width="80" style="border-radius: 50%"></a>         |  **Артем Калинин**<br>*Backend-разработчик*<br>   |
-|          <a href="https://github.com/Makpukich" target="_blank"><img src="https://github.com/Makpukich.png" width="80" style="border-radius: 50%"></a>          |  **Борис Сергеев**<br>*Backend-разработчик*<br>   |
-|        <a href="https://github.com/Cyber-bober" target="_blank"><img src="https://github.com/Cyber-bober.png" width="80" style="border-radius: 50%"></a>        | **Владислав Быков**<br>*Frontend-разработчик*<br> |
-
-</div>
