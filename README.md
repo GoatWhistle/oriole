@@ -79,7 +79,7 @@ technical stack.
   <img src="https://img.shields.io/badge/Flower-000000?logo=flower" alt="Flower">
 </p>
 
-### Monitoring & Observability
+### Monitoring
 
 <p align="left">
   <img src="https://img.shields.io/badge/Prometheus-E6522C?logo=prometheus&logoColor=white" alt="Prometheus">
