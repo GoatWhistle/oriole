@@ -12,9 +12,15 @@ const AuthButton = () => {
 
   useEffect(() => {
     const checkAuth = async () => {
-      const authStatus = await fetchCheckAuth();
-      setIsAuthenticated(authStatus);
-      setLoading(false);
+      try {
+        const authResponse = await fetchCheckAuth();
+        setIsAuthenticated(authResponse.isAuthenticated);
+      } catch (error) {
+        console.error('Auth check failed:', error);
+        setIsAuthenticated(false);
+      } finally {
+        setLoading(false);
+      }
     };
 
     checkAuth();
