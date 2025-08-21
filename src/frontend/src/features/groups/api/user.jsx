@@ -15,6 +15,6 @@ export const kickUser = async (spaceId, userId) => {
 /* Figure out how to visualize user groups more effective */
 export const showGroupList = async () => {
   const response = await axios.get('/api/groups/?page=1&per_page=10');
-  return await response.data;
+  return await response.data.data;
 };
 
