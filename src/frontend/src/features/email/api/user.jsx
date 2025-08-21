@@ -26,3 +26,8 @@ export const verify = async (token) => {
   const response = await axios.get(`/api/verify/${token}`);
   return response.data;
 };
+
+export const resendEmail = async () => {
+  const response = await axios.post('api/auth/send_email_again');
+  return response.data;
+};

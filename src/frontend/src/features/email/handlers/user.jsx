@@ -1,4 +1,4 @@
-import { forgotPassword, resetPassword, verify } from '../api/user.jsx';
+import { forgotPassword, resetPassword, verify, resendEmail } from '../api/user.jsx';
 import { fetchError } from '../../api/error.jsx';
 
 export const handleForgotPassword = async (token, newPassword, navigate, setLoading) => {
@@ -36,6 +36,15 @@ export const handleResetPassword = async (token, newPassword, navigate, setLoadi
 export const handleVerify = async (token) => {
   try {
     const response = await verify(token);
+  } catch (error) {
+    fetchError(error, errorMessage);
+  }
+};
+
+export const handleResendEmail = async () => {
+  try {
+    const data = await resendEmail();
+    return { success: true, data };
   } catch (error) {
     fetchError(error, errorMessage);
   }
