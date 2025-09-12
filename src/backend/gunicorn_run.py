@@ -1,8 +1,10 @@
+import os
+
+import uvicorn
+
 from core.config import settings
 from core.gunicorn import Application, get_options
 from main import app
-import os
-import uvicorn
 
 
 def main():
