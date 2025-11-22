@@ -1,7 +1,7 @@
 <!--suppress HtmlDeprecatedAttribute -->
 <div align="center">
   <h1>
-    <img src="https://github.com/GoatWhistle/oriole/blob/main/src/frontend/src/components/oriole-icon.png" alt="Oriole Logo" width="80" style="vertical-align: middle; margin-right: 20px;"/>
+    <img src="https://github.com/GoatWhistle/oriole/blob/main/src/frontend/src/presets/oriole-icon.png" alt="Oriole Logo" width="80" style="vertical-align: middle; margin-right: 20px;"/>
     <span style="vertical-align: middle;">Oriole</span>
   </h1>
   <p><a href="https://github.com/GoatWhistle/oriole/blob/main/i18n/README_ru.md">Russian README</a> | <a href="#features">Features</a> | <a href="#tech-stack">Technologies</a>
